@@ -10,7 +10,7 @@
   let filtroLinha = 'todos';
 
   // Entrada compartilhada entre a avaliação da página e o detalhe do produto
-  const entrada = { usar: null, modeloId: '', armazenamento: '', bateriaId: '', defeitos: [] };
+  const entrada = { usar: null, modeloId: '', armazenamento: '', bateriaId: '', temDetalhe: null, defeitos: [] };
 
   init().catch((e) => {
     console.error(e);
@@ -145,19 +145,26 @@
             arms.map((a) => '<option value="' + esc(a) + '"' + (a === entrada.armazenamento ? ' selected' : '') + '>' + esc(RB.fmtGB(a)) + '</option>').join('') +
           '</select></label>' +
         '</div>' +
-        '<fieldset class="field"><legend>Saúde da bateria <small>(Ajustes › Bateria)</small></legend><div class="pills">' +
-          av.bateria.map((b) =>
-            '<label class="pill"><input type="radio" name="bat-' + container.id + '" value="' + esc(b.id) + '"' + (b.id === entrada.bateriaId ? ' checked' : '') + '>' +
-            '<span>' + esc(b.label) + (b.desconto > 0 ? ' <em>−' + money(b.desconto) + '</em>' : '') + '</span></label>'
-          ).join('') +
-        '</div></fieldset>' +
-        '<fieldset class="field"><legend>O aparelho tem algum desses itens?</legend><div class="defects">' +
-          av.defeitos.map((d) =>
-            '<label class="defect"><input type="checkbox" value="' + esc(d.id) + '"' + (entrada.defeitos.includes(d.id) ? ' checked' : '') + '>' +
-            '<span class="defect-label">' + esc(d.label) + '</span>' +
-            '<span class="defect-val">' + (d.recusa ? 'Não aceito' : '−' + money(d.desconto)) + '</span></label>'
-          ).join('') +
-        '</div><p class="hint">Se não marcar nada, consideramos o aparelho sem defeitos.</p></fieldset>' +
+        (modelo ?
+          '<fieldset class="field"><legend>Seu iPhone tem algum detalhe ou defeito?</legend>' +
+            '<div class="yesno">' +
+              '<button type="button" data-det="0" class="' + (entrada.temDetalhe === false ? 'on' : '') + '">Não, está perfeito</button>' +
+              '<button type="button" data-det="1" class="' + (entrada.temDetalhe === true ? 'on' : '') + '">Sim, tem detalhe</button>' +
+            '</div>' +
+            (entrada.temDetalhe ?
+              '<div class="defects-box"><p class="defects-q">Quais detalhes? <small>Pode marcar mais de um.</small></p><div class="defects">' +
+                av.defeitos.map((d) =>
+                  '<label class="defect"><input type="checkbox" value="' + esc(d.id) + '"' + (entrada.defeitos.includes(d.id) ? ' checked' : '') + '>' +
+                  '<span class="defect-label">' + esc(d.label) + '</span></label>'
+                ).join('') +
+              '</div></div>' : '') +
+          '</fieldset>' +
+          '<fieldset class="field"><legend>Saúde da bateria <small>(Ajustes › Bateria)</small></legend><div class="pills">' +
+            av.bateria.map((b) =>
+              '<label class="pill"><input type="radio" name="bat-' + container.id + '" value="' + esc(b.id) + '"' + (b.id === entrada.bateriaId ? ' checked' : '') + '>' +
+              '<span>' + esc(b.label) + '</span></label>'
+            ).join('') +
+          '</div></fieldset>' : '') +
       '</div>';
 
     $('[data-k="modelo"]', container).addEventListener('change', (e) => {
@@ -166,6 +173,12 @@
       formEntrada(container, onChange);
       onChange();
     });
+    $$('[data-det]', container).forEach((b) => b.addEventListener('click', () => {
+      entrada.temDetalhe = b.dataset.det === '1';
+      if (!entrada.temDetalhe) entrada.defeitos = [];
+      formEntrada(container, onChange);
+      onChange();
+    }));
     const selArm = $('[data-k="arm"]', container);
     selArm.addEventListener('change', (e) => { entrada.armazenamento = e.target.value; onChange(); });
     $$('input[type=radio]', container).forEach((r) => r.addEventListener('change', () => { entrada.bateriaId = r.value; onChange(); }));
@@ -176,7 +189,11 @@
   }
 
   function resultadoEntradaHTML(r) {
-    if (!r) return '<div class="eval eval-empty">Selecione o modelo para ver a pré-avaliação.</div>';
+    if (!r) {
+      return '<div class="eval eval-empty">' + (entrada.modeloId
+        ? 'Responda se o seu iPhone tem algum detalhe para ver a pré-avaliação.'
+        : 'Selecione o modelo para ver a pré-avaliação.') + '</div>';
+    }
     if (r.recusado) {
       return '<div class="eval eval-bad"><strong>Não conseguimos aceitar este aparelho.</strong><p>' + esc(r.recusado) +
         '. Fale com a gente no WhatsApp para entender outras opções.</p></div>';
@@ -188,8 +205,8 @@
     }
     return (
       '<div class="eval">' +
-        '<div class="eval-row"><span>' + esc(r.modelo) + ' ' + esc(RB.fmtGB(r.armazenamento)) + '</span><span>' + money(r.base) + '</span></div>' +
-        r.descontos.map((d) => '<div class="eval-row neg"><span>' + esc(d.label) + '</span><span>−' + money(d.valor) + '</span></div>').join('') +
+        '<div class="eval-row"><span>' + esc(r.modelo) + ' ' + esc(RB.fmtGB(r.armazenamento)) + '</span></div>' +
+        (r.descontos.length ? '<p class="eval-itens">Considerado: ' + esc(r.descontos.map((d) => d.label).join(', ')) + '</p>' : '') +
         '<div class="eval-total"><span>Pré-avaliação do seu iPhone</span><strong>' + money(r.total) + '</strong></div>' +
         '<p class="hint">' + esc(cat.avaliacao.observacao) + '</p>' +
       '</div>'
@@ -197,7 +214,8 @@
   }
 
   function avaliacaoAtual() {
-    return entrada.modeloId ? RB.avaliar(cat, entrada) : null;
+    if (!entrada.modeloId || entrada.temDetalhe === null) return null;
+    return RB.avaliar(cat, Object.assign({}, entrada, { defeitos: entrada.temDetalhe ? entrada.defeitos : [] }));
   }
 
   function montarAvaliacaoPagina() {
@@ -292,8 +310,8 @@
         b.setAttribute('aria-checked', on);
       });
       $('#sim-trade', body).hidden = !entrada.usar;
-      $('#sim-pay', body).hidden = entrada.usar === null;
       const r = entrada.usar ? avaliacaoAtual() : null;
+      $('#sim-pay', body).hidden = entrada.usar === null || (entrada.usar && !r);
       if (entrada.usar) $('#sim-eval', body).innerHTML = resultadoEntradaHTML(r);
       renderPagamento(p, r, pag);
     };

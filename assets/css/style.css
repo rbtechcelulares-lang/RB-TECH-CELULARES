@@ -491,3 +491,13 @@ body.loja {
 .loja .footer { background: #060606; border-top: 1px solid #1a1a1a; }
 .loja .footer-info a { color: var(--yellow); }
 .loja .sheet-panel { border: 1px solid #222; }
+
+/* Pergunta de detalhes do aparelho de entrada */
+.yesno { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.yesno button { padding: 12px 10px; border-radius: 12px; border: 1.5px solid var(--line); background: #fff; font-weight: 700; font-size: 14px; }
+.escuro .yesno button { background: var(--dk-3); border-color: var(--gold); color: #fff; }
+.escuro .yesno button.on { background: var(--yellow); border-color: var(--yellow); color: #111; }
+.defects-box { margin-top: 10px; padding: 12px; border-radius: 14px; border: 1.5px solid var(--gold); animation: fade .2s; }
+.defects-q { margin: 0 0 10px; font-weight: 700; font-size: 14px; }
+.defects-q small { font-weight: 400; opacity: .65; }
+.eval-itens { margin: 4px 0 0; font-size: 13px; opacity: .75; }
