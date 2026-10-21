@@ -555,10 +555,12 @@
     if (p) abrirProduto(p);
   }
 
+  let entradaGuardada; // escolha de entrada do cliente, preservada ao abrir um aparelho sem troca
   function fecharSheet(semHistorico) {
     const s = $('#sheet');
     if (s.hidden) return;
     s.hidden = true;
+    if (entradaGuardada !== undefined) { entrada.usar = entradaGuardada; entradaGuardada = undefined; }
     document.body.classList.remove('no-scroll');
     if (semHistorico !== true && location.hash.startsWith('#p/')) {
       history.pushState('', document.title, location.pathname + location.search + '#vitrine');
@@ -605,6 +607,7 @@
       '</div>' +
       '<div class="sim">' +
         '<h3 class="sim-title">Monte sua proposta</h3>' +
+        (!RB.ehIphone(p) ? '<div id="sim-pay"></div></div>' :
         '<div class="sim-ask">' +
           '<span class="sim-step">Passo 1</span>' +
           '<p class="sim-q">Você quer dar o seu iPhone de entrada?</p>' +
@@ -617,14 +620,20 @@
         '<div id="sim-trade" hidden><h4 class="sim-h"><span class="sim-step">Passo 2</span> Conte como está o seu iPhone</h4>' +
           '<div id="sim-form"></div><div id="sim-eval"></div></div>' +
         '<div id="sim-pay" hidden></div>' +
-      '</div>';
+      '</div>');
 
     $$('.pd-thumbs button', body).forEach((b) => b.addEventListener('click', () => {
       $('.pd-main', body).innerHTML = '<img src="' + esc(fotos[b.dataset.i]) + '" alt="">';
       $$('.pd-thumbs button', body).forEach((x) => x.classList.toggle('on', x === b));
     }));
 
+    // MacBook, Xiaomi e iPad: sem aparelho de entrada, vai direto para o pagamento
+    if (!RB.ehIphone(p)) {
+      entradaGuardada = entrada.usar;
+      entrada.usar = false;
+    }
     const atualizar = () => {
+      if (!RB.ehIphone(p)) { renderPagamento(p, null, pag); return; }
       $$('.toggle button', body).forEach((b) => {
         const on = entrada.usar !== null && (b.dataset.entrada === '1') === entrada.usar;
         b.classList.toggle('on', on);
@@ -642,7 +651,7 @@
       pag.aba = null; pag.parcela = null;
       atualizar();
     }));
-    formEntrada($('#sim-form', body), () => { pag.parcela = null; atualizar(); });
+    if (RB.ehIphone(p)) formEntrada($('#sim-form', body), () => { pag.parcela = null; atualizar(); });
     atualizar();
 
     s.hidden = false;
@@ -665,7 +674,7 @@
     const desc = Number(cat.pagamento.descontoPix) || 0;
 
     let html = '';
-    html += '<div class="pay"><h4 class="sim-h"><span class="sim-step">Passo ' + (entrada.usar ? 3 : 2) + '</span> Escolha como pagar</h4>';
+    html += '<div class="pay"><h4 class="sim-h"><span class="sim-step">Passo ' + (!RB.ehIphone(p) ? 1 : entrada.usar ? 3 : 2) + '</span> Escolha como pagar</h4>';
     if (temEntrada) {
       html +=
         '<div class="summary">' +
