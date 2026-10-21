@@ -341,7 +341,7 @@ button { cursor: pointer; }
 .sim-ask .sim-step { background: #111; color: var(--yellow, #f5c542); }
 .escuro .sim-q, .sim-ask .sim-q { margin: 8px 0 2px; font-size: clamp(21px, 5.4vw, 27px); font-weight: 800; line-height: 1.15; color: #111; }
 .sim-q-sub { margin: 0; font-size: 14px; color: rgba(0,0,0,.7); }
-.sim-h { margin: 22px 0 12px; font-size: 17px; display: flex; align-items: center; gap: 10px; }
+.sim-h { margin: 22px 0 12px; font-size: 17px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
 .escuro .toggle button {
   background: var(--dk-1); color: #fff; border: 2px solid var(--gold); padding: 14px 10px;
   display: grid; gap: 2px; text-align: center;
@@ -395,7 +395,7 @@ button { cursor: pointer; }
 
 /* Avaliação da página inicial */
 .card-light.escuro { border: 2px solid var(--gold); }
-.card-light.escuro #aval-go { background: var(--yellow); color: #111; font-weight: 800; }
+.card-light.escuro #aval-go { font-weight: 700; }
 
 .eval-whats { display: grid; gap: 6px; justify-items: start; }
 .eval-whats p { margin: 0; }
@@ -501,3 +501,25 @@ body.loja {
 .defects-q { margin: 0 0 10px; font-weight: 700; font-size: 14px; }
 .defects-q small { font-weight: 400; opacity: .65; }
 .eval-itens { margin: 4px 0 0; font-size: 13px; opacity: .75; }
+
+/* Interesse na avaliação da página */
+.interesse { margin-top: 18px; padding-top: 6px; border-top: 1px solid var(--line); }
+.int-lista { display: grid; gap: 8px; margin-top: 12px; }
+.int-item {
+  display: grid; grid-template-columns: 1fr; gap: 8px; text-align: left; width: 100%;
+  padding: 14px; border-radius: 14px; border: 1.5px solid var(--gold); background: var(--dk-1, #fff); color: inherit;
+}
+.int-item:hover { border-color: var(--yellow, var(--gold)); box-shadow: 0 0 0 1px var(--yellow, var(--gold)); }
+.int-info { display: grid; gap: 3px; min-width: 0; }
+.int-info strong { font-size: 15px; }
+.int-info small, .int-preco small { font-size: 12px; opacity: .7; display: flex; align-items: center; gap: 5px; }
+.int-preco { display: grid; gap: 2px; padding-top: 8px; border-top: 1px dashed var(--line); }
+@media (min-width: 560px) {
+  .int-item { grid-template-columns: 1fr auto; }
+  .int-preco { justify-items: end; text-align: right; border-top: 0; padding-top: 0; }
+  .int-preco small { justify-content: flex-end; }
+}
+.int-dif { font-weight: 800; font-size: 18px; color: var(--yellow, var(--text)); }
+.int-cta { grid-column: 1 / -1; font-size: 13px; font-weight: 700; color: var(--yellow, var(--gold)); margin-top: 4px; }
+#aval-go { margin-top: 14px; }
+.loja .btn-outline { background: transparent; color: #fff; border-color: var(--gold); }

@@ -221,15 +221,63 @@
   function montarAvaliacaoPagina() {
     const box = $('#avaliar-box');
     box.innerHTML = '<div id="aval-form"></div><div id="aval-res"></div>' +
-      '<a href="#vitrine" class="btn btn-ink btn-block" id="aval-go">Usar como entrada e escolher meu iPhone</a>';
-    const atualizar = () => {
+      '<div class="interesse"><h4 class="sim-h"><span class="sim-step">Seu próximo iPhone</span> Qual iPhone você quer?</h4>' +
+      '<div class="field-row">' +
+        '<label class="field"><span>Modelo</span><select id="int-modelo"></select></label>' +
+        '<label class="field"><span>Armazenamento</span><select id="int-arm"></select></label>' +
+      '</div><div id="int-lista"></div></div>' +
+      '<a href="#vitrine" class="btn btn-outline btn-block" id="aval-go">Ver todos os iPhones</a>';
+    const interesse = { modelo: '', arm: '' };
+
+    const renderInteresse = () => {
       const r = avaliacaoAtual();
-      $('#aval-res').innerHTML = resultadoEntradaHTML(r);
-      $('#aval-go').classList.toggle('disabled', !r || !!r.recusado);
+      const disp = ativos();
+      const modelos = Array.from(new Set(disp.map((p) => p.modelo)))
+        .sort((a, b) => Math.min(...disp.filter((p) => p.modelo === a).map((p) => p.preco)) - Math.min(...disp.filter((p) => p.modelo === b).map((p) => p.preco)));
+      if (!modelos.includes(interesse.modelo)) interesse.modelo = '';
+      const arms = Array.from(new Set(disp.filter((p) => p.modelo === interesse.modelo).map((p) => p.armazenamento)))
+        .sort((a, b) => parseInt(a) * (/TB/i.test(a) ? 1024 : 1) - parseInt(b) * (/TB/i.test(b) ? 1024 : 1));
+      if (!arms.includes(interesse.arm)) interesse.arm = arms[0] || '';
+
+      $('#int-modelo').innerHTML = '<option value="">Selecione…</option>' +
+        modelos.map((m) => '<option' + (m === interesse.modelo ? ' selected' : '') + '>' + esc(m) + '</option>').join('');
+      $('#int-arm').innerHTML = arms.map((a) => '<option' + (a === interesse.arm ? ' selected' : '') + '>' + esc(a) + '</option>').join('');
+      $('#int-arm').disabled = !interesse.modelo;
+
+      if (!interesse.modelo) { $('#int-lista').innerHTML = ''; return; }
+      const itens = disp.filter((p) => p.modelo === interesse.modelo && p.armazenamento === interesse.arm).sort((a, b) => a.preco - b.preco);
+      const valEntrada = r && !r.recusado && !r.consultar ? r.total : 0;
+      $('#int-lista').innerHTML = '<div class="int-lista">' + itens.map((p) => {
+        const dif = Math.max(0, p.preco - valEntrada);
+        const ult = RB.parcelas(cat, dif).slice(-1)[0];
+        let linha;
+        if (r && r.consultar) linha = '<span class="int-dif">' + money(p.preco) + '</span><small>Seu usado será avaliado pelo WhatsApp</small>';
+        else if (valEntrada > 0) linha = '<small>Com seu iPhone de entrada, diferença de</small><span class="int-dif">' + money(dif) + '</span>' +
+          (dif > 0 ? '<small>ou ' + ult.n + 'x de ' + money(ult.parcela) + '</small>' : '');
+        else linha = '<span class="int-dif">' + money(RB.valorPix(cat, p.preco)) + '</span><small>ou ' + ult.n + 'x de ' + money(ult.parcela) + '</small>';
+        return '<button type="button" class="int-item" data-id="' + esc(p.id) + '">' +
+          '<span class="int-info"><strong>' + esc(RB.nomeProduto(p)) + '</strong>' +
+          '<small><span class="dot" style="background:' + esc(p.corHex || '#ccc') + '"></span> ' + esc(p.cor) + ' · ' + esc(p.condicao) + ' · bateria ' + esc(p.bateria) + '%</small>' +
+          (valEntrada > 0 ? '<small>Valor do aparelho: ' + money(p.preco) + '</small>' : '') + '</span>' +
+          '<span class="int-preco">' + linha + '</span>' +
+          '<span class="int-cta">Ver e montar proposta →</span>' +
+        '</button>';
+      }).join('') + '</div>';
+      $$('#int-lista .int-item').forEach((b) => b.addEventListener('click', () => {
+        const rr = avaliacaoAtual();
+        entrada.usar = rr && !rr.recusado ? true : null;
+        location.hash = '#p/' + encodeURIComponent(b.dataset.id);
+      }));
     };
+
+    const atualizar = () => {
+      $('#aval-res').innerHTML = resultadoEntradaHTML(avaliacaoAtual());
+      renderInteresse();
+    };
+    $('#int-modelo').addEventListener('change', (e) => { interesse.modelo = e.target.value; interesse.arm = ''; renderInteresse(); });
+    $('#int-arm').addEventListener('change', (e) => { interesse.arm = e.target.value; renderInteresse(); });
     formEntrada($('#aval-form'), atualizar);
     atualizar();
-    $('#aval-go').addEventListener('click', () => { if (avaliacaoAtual()) entrada.usar = true; });
   }
 
   /* ---------- Detalhe do produto ---------- */
