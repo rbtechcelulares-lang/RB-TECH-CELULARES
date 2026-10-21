@@ -1829,6 +1829,90 @@
           "nota": ""
         }
       }
+    },
+    {
+      "id": "p-16pro-256gb-novo",
+      "modelo": "iPhone 16 Pro",
+      "armazenamento": "256GB",
+      "cor": "Cores variadas",
+      "corHex": "#c8ae93",
+      "condicao": "Novo lacrado",
+      "bateria": 100,
+      "preco": 7150,
+      "precoAntigo": 0,
+      "garantia": "1 ano",
+      "destaque": false,
+      "disponivel": true,
+      "fotos": [],
+      "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia. Consulte as cores disponíveis pelo WhatsApp.",
+      "checklist": {
+        "faceid": {
+          "status": "ok",
+          "nota": ""
+        },
+        "bateria": {
+          "status": "ok",
+          "nota": "100% · aparelho novo"
+        },
+        "sistema": {
+          "status": "ok",
+          "nota": ""
+        },
+        "cameras": {
+          "status": "ok",
+          "nota": ""
+        },
+        "tela": {
+          "status": "ok",
+          "nota": ""
+        },
+        "tampa": {
+          "status": "ok",
+          "nota": ""
+        }
+      }
+    },
+    {
+      "id": "p-16promax-256gb-novo",
+      "modelo": "iPhone 16 Pro Max",
+      "armazenamento": "256GB",
+      "cor": "Cores variadas",
+      "corHex": "#c8ae93",
+      "condicao": "Novo lacrado",
+      "bateria": 100,
+      "preco": 7550,
+      "precoAntigo": 0,
+      "garantia": "1 ano",
+      "destaque": false,
+      "disponivel": true,
+      "fotos": [],
+      "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia. Consulte as cores disponíveis pelo WhatsApp.",
+      "checklist": {
+        "faceid": {
+          "status": "ok",
+          "nota": ""
+        },
+        "bateria": {
+          "status": "ok",
+          "nota": "100% · aparelho novo"
+        },
+        "sistema": {
+          "status": "ok",
+          "nota": ""
+        },
+        "cameras": {
+          "status": "ok",
+          "nota": ""
+        },
+        "tela": {
+          "status": "ok",
+          "nota": ""
+        },
+        "tampa": {
+          "status": "ok",
+          "nota": ""
+        }
+      }
     }
   ],
   "textos": {},
