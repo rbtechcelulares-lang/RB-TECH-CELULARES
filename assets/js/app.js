@@ -86,10 +86,13 @@
       if (!forcar && pp.frequencia === 'uma' && localStorage.getItem(chave)) return;
     } catch (e) { /* sem storage: mostra */ }
     setTimeout(() => {
-      try {
-        sessionStorage.setItem(chave, '1');
-        localStorage.setItem(chave, hoje);
-      } catch (e) { /* ignora */ }
+      // a pré-visualização do admin (?popup=1) não conta como "já visto"
+      if (!forcar) {
+        try {
+          sessionStorage.setItem(chave, '1');
+          localStorage.setItem(chave, hoje);
+        } catch (e) { /* ignora */ }
+      }
       RB.abrirPopup(cat, acaoPopup);
     }, Math.max(0, Number(pp.atraso) || 0) * 1000);
   }
