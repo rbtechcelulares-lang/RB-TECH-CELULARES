@@ -39,17 +39,25 @@
         <a href="#vitrine" class="btn btn-gold">Ver iPhones disponíveis</a>
         <a href="#avaliar" class="btn btn-ghost-light">Quanto vale o meu?</a>
       </div>
-      <ul class="hero-badges">
-        <li><strong>Checklist</strong> de 6 itens em cada aparelho</li>
-        <li><strong>Seu usado</strong> vale como entrada</li>
-        <li><strong>Até <span data-pg="max">12</span>x</strong> no cartão</li>
-      </ul>
       </div>
       <a class="hero-art" id="hero-art" href="#vitrine" aria-hidden="true" tabindex="-1"></a>
     </div>
   </section>
 
+  <section class="trust">
+    <ul class="wrap trust-in">
+      <li><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></span><div><strong>Aparelhos revisados</strong><small>Checklist completo em cada iPhone</small></div></li>
+      <li><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h3"/></svg></span><div><strong>Até <span data-pg="max">24</span>x no cartão</strong><small>Pix, débito e crédito</small></div></li>
+      <li><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg></span><div><strong>Seu usado vale como entrada</strong><small>Pré-avaliação na hora</small></div></li>
+      <li><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 1 3.6 6.7L4 20l1.2-3.4A8 8 0 0 1 4 12z"/></svg></span><div><strong>Atendimento personalizado</strong><small>Tire dúvidas pelo WhatsApp</small></div></li>
+    </ul>
+  </section>
+
   <main>
+    <section id="destaque" class="section spot-sec" hidden>
+      <div class="wrap" id="spotlight"></div>
+    </section>
+
     <section id="vitrine" class="section">
       <div class="wrap">
         <div class="section-head">
@@ -76,6 +84,17 @@
       </div>
     </section>
 
+    <section class="ajuda">
+      <div class="wrap">
+        <div class="ajuda-box">
+          <p class="eyebrow">Consultoria</p>
+          <h2 class="section-title">Não sabe qual <span class="hl">escolher?</span></h2>
+          <p class="section-sub">Diga como você usa o celular — fotos, jogos, trabalho, bateria — e a gente indica o iPhone ideal para o seu bolso.</p>
+          <a class="btn btn-gold" id="ajuda-btn" href="#" target="_blank" rel="noopener">Me ajude a escolher</a>
+        </div>
+      </div>
+    </section>
+
     <section id="avaliar" class="section section-ink">
       <div class="wrap avaliar-in">
         <div>
@@ -99,6 +118,20 @@
         </ol>
       </div>
     </section>
+    <section class="section why">
+      <div class="wrap">
+        <p class="eyebrow center">Confiança</p>
+        <h2 class="section-title center">Por que escolher a <span class="hl">RB Tech</span></h2>
+        <div class="orn" aria-hidden="true"><span></span><i></i><span></span></div>
+        <ul class="why-list">
+          <li><span class="ico ico-lg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></span><h3>Aparelhos revisados</h3><p>Cada iPhone passa por checklist de Face ID, bateria, sistema, câmeras, tela e tampa traseira.</p></li>
+          <li><span class="ico ico-lg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 1 3.6 6.7L4 20l1.2-3.4A8 8 0 0 1 4 12z"/></svg></span><h3>Atendimento personalizado</h3><p>Ajudamos você a escolher o modelo certo e tiramos todas as dúvidas pelo WhatsApp.</p></li>
+          <li><span class="ico ico-lg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg></span><h3>Seu usado na troca</h3><p>Pré-avaliação online do seu iPhone na hora, abatendo do valor do próximo.</p></li>
+          <li><span class="ico ico-lg"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h3"/></svg></span><h3>Pagamento facilitado</h3><p>Pix, débito ou crédito em até <span data-pg="max">24</span>x, com as parcelas já calculadas no site.</p></li>
+        </ul>
+      </div>
+    </section>
+
     <section class="cta-final">
       <div class="wrap">
         <div class="cta-box">
@@ -115,17 +148,26 @@
   <footer class="footer">
     <div class="wrap footer-in">
       <div>
-        <div class="brand brand-footer"><span class="logo"><strong>RB<span>TECH</span></strong><small>Celulares</small></span></div>
-        <p class="muted" data-loja="slogan"></p>
+        <div class="brand brand-footer"><span class="logo logo-lg"><strong>RB<span>TECH</span></strong><small>Celulares</small></span></div>
+        <p class="muted" data-loja="subtitulo"></p>
       </div>
-      <div class="footer-info">
-        <p><a class="js-whats" href="#" target="_blank" rel="noopener">WhatsApp <span data-loja="whatsFmt"></span></a></p>
-        <p id="f-insta"></p>
-        <p data-loja="endereco"></p>
-        <p data-loja="horario"></p>
+      <div class="footer-cols">
+        <div>
+          <p class="footer-h">Navegue</p>
+          <a href="#vitrine">iPhones disponíveis</a>
+          <a href="#avaliar">Avaliar meu iPhone</a>
+          <a href="#como">Como funciona</a>
+        </div>
+        <div class="footer-info">
+          <p class="footer-h">Atendimento</p>
+          <a class="js-whats" href="#" target="_blank" rel="noopener"><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 1 3.6 6.7L4 20l1.2-3.4A8 8 0 0 1 4 12z"/></svg></span><span data-loja="whatsFmt"></span></a>
+          <span id="f-insta"></span>
+          <p><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span data-loja="horario"></span></p>
+          <p><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span><span data-loja="endereco"></span></p>
+        </div>
       </div>
     </div>
-    <div class="wrap footer-legal">© <span id="ano"></span> <span data-loja="nome">RB Tech Celulares</span> · Valores e pré-avaliação sujeitos a confirmação na loja.</div>
+    <div class="wrap footer-legal">© <span id="ano"></span> <span data-loja="nome">RB Tech Celulares</span>. Valores e pré-avaliação sujeitos a confirmação na loja. · <a href="admin.html">Área do lojista</a></div>
   </footer>
 
   <a class="fab-whats js-whats" href="#" target="_blank" rel="noopener" aria-label="Falar no WhatsApp">

@@ -26,6 +26,7 @@
     renderGrid();
     const vitrine = ativos().slice().sort((a, b) => (b.destaque ? 1 : 0) - (a.destaque ? 1 : 0)).slice(0, 3);
     $('#hero-art').innerHTML = vitrine.map((p) => RB.phoneSVG(p.corHex)).join('');
+    renderDestaque();
     montarAvaliacaoPagina();
     $('#busca').addEventListener('input', renderGrid);
     $('#ordem').addEventListener('change', renderGrid);
@@ -54,8 +55,12 @@
     $$('.js-whats').forEach((a) => (a.href = RB.linkWhats(cat, msg)));
     if (l.instagram) {
       const u = l.instagram.replace(/^@/, '');
-      $('#f-insta').innerHTML = '<a href="https://instagram.com/' + esc(u) + '" target="_blank" rel="noopener">@' + esc(u) + '</a>';
+      $('#f-insta').innerHTML = '<a href="https://instagram.com/' + esc(u) + '" target="_blank" rel="noopener">' +
+        '<span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/></svg></span>@' + esc(u) + '</a>';
     }
+    // linhas do rodapé sem informação somem por inteiro
+    $$('.footer-info p').forEach((p) => { if (!p.querySelector('[data-loja]:not([hidden])')) p.hidden = true; });
+    $('#ajuda-btn').href = RB.linkWhats(cat, 'Olá! Não sei qual iPhone escolher. Pode me ajudar?');
     $('#ano').textContent = new Date().getFullYear();
     document.title = l.nome + ' · ' + (l.slogan || 'iPhones com garantia').replace(/\*/g, '');
   }
@@ -113,11 +118,37 @@
             (p.precoAntigo > p.preco ? '<p class="old">' + money(p.precoAntigo) + '</p>' : '') +
             '<p class="price">' + money(RB.valorPix(cat, p.preco)) + ' <small>à vista</small></p>' +
             '<p class="installment">ou ' + parc.n + 'x de ' + money(parc.parcela) + '</p>' +
-            '<span class="card-cta">Ver detalhes e simular troca →</span>' +
+            '<span class="btn btn-gold btn-sm card-btn">Quero este</span>' +
           '</div>' +
         '</a>'
       );
     }).join('');
+  }
+
+  // Um aparelho em evidência, como a vitrine da Durah
+  function renderDestaque() {
+    const lista = ativos().filter((p) => p.destaque);
+    const p = lista.sort((a, b) => (b.precoAntigo > b.preco ? 1 : 0) - (a.precoAntigo > a.preco ? 1 : 0))[0];
+    if (!p) return;
+    const ult = RB.parcelas(cat, p.preco).slice(-1)[0];
+    const off = p.precoAntigo > p.preco ? Math.round((1 - p.preco / p.precoAntigo) * 100) : 0;
+    const foto = p.fotos && p.fotos[0];
+    $('#spotlight').innerHTML =
+      '<div class="spot">' +
+        '<a class="spot-media" href="#p/' + encodeURIComponent(p.id) + '"><div class="arch" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
+          (foto ? '<img src="' + esc(foto) + '" alt="' + esc(RB.nomeProduto(p)) + '">' : RB.phoneSVG(p.corHex)) + '</div></a>' +
+        '<div class="spot-info">' +
+          '<span class="ribbon">' + (off ? 'Oferta da semana' : 'Destaque da semana') + '</span>' +
+          '<p class="eyebrow">' + esc(p.condicao) + ' · garantia ' + esc(p.garantia || cat.loja.garantiaPadrao) + '</p>' +
+          '<h2 class="spot-title">' + esc(RB.nomeProduto(p)) + (off ? ' <span class="hl">' + off + '% off</span>' : '') + '</h2>' +
+          '<p class="spot-sub">' + esc(p.cor) + ' · bateria ' + esc(p.bateria) + '% · checklist completo</p>' +
+          '<p class="spot-price">' + (off ? '<s>' + money(p.precoAntigo) + '</s> <small>por</small> ' : '') + '<strong>' + money(RB.valorPix(cat, p.preco)) + '</strong></p>' +
+          '<p class="spot-parc">ou ' + ult.n + 'x de ' + money(ult.parcela) + ' no cartão · aceitamos seu usado na troca</p>' +
+          '<div class="spot-cta"><a class="btn btn-gold" href="#p/' + encodeURIComponent(p.id) + '">Quero o meu</a>' +
+          '<a class="btn btn-ghost-light" href="#p/' + encodeURIComponent(p.id) + '">Ver detalhes</a></div>' +
+        '</div>' +
+      '</div>';
+    $('#destaque').hidden = false;
   }
 
   function batteryIcon(v) {
