@@ -259,8 +259,18 @@
     "bateria": [
       {
         "id": "b90",
-        "label": "80% ou mais",
+        "label": "90% a 100%",
         "desconto": 0
+      },
+      {
+        "id": "b85",
+        "label": "85% a 89%",
+        "desconto": 100
+      },
+      {
+        "id": "b80",
+        "label": "80% a 84%",
+        "desconto": 200
       },
       {
         "id": "b79",
@@ -277,17 +287,17 @@
       {
         "id": "tela-mancha",
         "label": "Tela com mancha, linha ou toque falhando",
-        "desconto": 500
+        "desconto": 400
       },
       {
         "id": "tela-nao-original",
         "label": "Tela trocada (não original)",
-        "desconto": 250
+        "desconto": 348
       },
       {
         "id": "tampa-trincada",
         "label": "Tampa traseira trincada",
-        "desconto": 300
+        "desconto": 400
       },
       {
         "id": "faceid",
@@ -297,17 +307,17 @@
       {
         "id": "camera",
         "label": "Câmera com defeito ou mancha",
-        "desconto": 350
+        "desconto": 400
       },
       {
         "id": "lente",
         "label": "Lente da câmera trincada",
-        "desconto": 150
+        "desconto": 200
       },
       {
         "id": "bateria-trocada",
         "label": "Bateria trocada (mensagem de peça desconhecida)",
-        "desconto": 150
+        "desconto": 200
       },
       {
         "id": "botoes",
