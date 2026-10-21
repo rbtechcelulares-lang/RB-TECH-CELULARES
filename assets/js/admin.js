@@ -90,6 +90,7 @@
       return;
     }
     sessionStorage.setItem(SESSION_KEY, '1');
+    try { localStorage.setItem('rbtech_admin_dispositivo', '1'); } catch (e) { /* ignora */ }
     senhaSessao = $('#senha').value; // só na memória, para publicar pelo servidor
     abrirApp();
   }
@@ -738,7 +739,8 @@
     el.innerHTML =
       '<div class="a-head"><div><h2>Cliques e propostas</h2><p class="muted">Quantas vezes cada iPhone foi aberto e quantas propostas foram enviadas para o WhatsApp.</p></div>' +
       '<div class="periodo" role="tablist">' + [['1', 'Hoje'], ['7', '7 dias'], ['30', '30 dias'], ['0', 'Tudo']].map(([v, t]) =>
-        '<button data-per="' + v + '" class="' + (v === periodo ? 'on' : '') + '">' + t + '</button>').join('') + '</div></div>' +
+        '<button data-per="' + v + '" class="' + (v === periodo ? 'on' : '') + '">' + t + '</button>').join('') + '</div>' +
+      '<button class="btn btn-sm btn-outline" id="atualizar">↻ Atualizar</button></div>' +
       '<div id="dash">' + (pronto && chave ? '<p class="hint">Carregando…</p>' : '') + '</div>' +
       '<details class="a-card" ' + (pronto && chave ? '' : 'open') + '><summary><h3>⚙️ Configuração do registro de cliques</h3></summary>' +
         '<ol class="steps-cfg">' +
@@ -766,6 +768,7 @@
       }
     });
     $$('[data-per]', el).forEach((b) => b.addEventListener('click', () => { periodo = b.dataset.per; renderCliques(); }));
+    $('#atualizar', el).addEventListener('click', () => renderCliques());
     $('#painel-ok').addEventListener('click', () => {
       try { localStorage.setItem(PAINEL_KEY, $('#painel-chave').value.trim()); } catch (e) { /* ignora */ }
       renderCliques();
@@ -795,40 +798,70 @@
       }
       dados = await res.json();
     } catch (e) {
-      dash.innerHTML = '<div class="a-card err-card">Não foi possível carregar: ' + esc(e.message) + '</div>';
+      dash.innerHTML = '<div class="a-card err-card">Não foi possível carregar: ' + esc(e.message) +
+        (/chave/i.test(e.message) ? '<p class="hint">A chave do painel é a senha que você colocou no fim do script <code>supabase/rastreamento.sql</code> (linha <code>convert_to(\'…\'</code>). ' +
+          'Se você não trocou, ela ainda é <b>TROQUE-ESTA-CHAVE</b>. Para definir uma nova, rode o script de novo no SQL Editor do Supabase com a senha que quiser.</p>' : '') + '</div>';
       $('[data-panel="cliques"] details').open = true;
       return;
     }
     const t = dados.totais || {};
-    const nomes = {};
-    cat.produtos.forEach((p) => (nomes[p.id] = RB.nomeProduto(p) + ' · ' + p.cor));
-    const prods = (dados.produtos || []).map((x) => Object.assign({}, x, { nome: nomes[x.produto_id] || x.produto_nome || x.produto_id }));
-    const max = Math.max(1, ...prods.map((x) => Math.max(x.cliques, x.whatsapp)));
+    const porId = {};
+    cat.produtos.forEach((p) => (porId[p.id] = p));
+    const prods = (dados.produtos || []).map((x) => {
+      const p = porId[x.produto_id];
+      return Object.assign({}, x, { p, nome: p ? RB.nomeProduto(p) : (x.produto_nome || x.produto_id), sub: p ? p.cor + ' · ' + p.condicao + ' · ' + money(p.preco) : 'aparelho removido' });
+    });
+    const maxV = Math.max(1, ...prods.map((x) => x.cliques));
+    const maxI = Math.max(1, ...prods.map((x) => x.whatsapp));
     const pct = (a, b) => (b ? Math.round((a / b) * 100) + '%' : '—');
-    const tile = (rotulo, valor, sub) => '<div class="kpi"><span>' + rotulo + '</span><strong>' + valor + '</strong>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>';
-    const bar = (v, cls) => '<div class="bar-cell" title="' + v + '"><div class="track"><div class="bar ' + cls + '" style="width:' + Math.max(v ? 3 : 0, (v / max) * 100) + '%"></div></div><span>' + v + '</span></div>';
-
+    const tile = (valor, rotulo, destaque) => '<div class="kpi2' + (destaque ? ' kpi2-gold' : '') + '"><strong>' + valor + '</strong><span>' + rotulo + '</span></div>';
+    const barra = (v, max, cls) => '<div class="trk"><div class="' + cls + '" style="width:' + (v ? Math.max(6, (v / max) * 100) : 0) + '%"></div></div>';
+    const ultimo = dados.ultimo ? new Date(dados.ultimo).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+    const vis = t.visitas || 0, cli = t.cliques || 0, prop = t.propostas || 0;
     dash.innerHTML =
-      '<div class="kpis">' +
-        tile('Visitas', t.visitas || 0, 'pessoas que entraram no site') +
-        tile('Cliques em iPhones', t.cliques || 0, 'aparelhos abertos') +
-        tile('Propostas no WhatsApp', t.propostas || 0, pct(t.propostas || 0, t.cliques || 0) + ' dos cliques') +
-        tile('Outros cliques no WhatsApp', t.whatsapp_geral || 0, 'botões gerais e consultoria') +
-        tile('Cliques no pop-up', t.popup || 0, '') +
+      '<div class="kpis2">' +
+        tile(cli, 'visualizações de aparelhos') +
+        tile(prop, 'propostas enviadas no WhatsApp', true) +
+        tile(pct(prop, cli), 'das visualizações viram proposta') +
+        tile(prods.length, 'aparelhos com cliques') +
       '</div>' +
-      '<div class="a-card"><h3>Por aparelho</h3>' +
-        (prods.length
-          ? '<div class="rank"><div class="rank-row rank-head"><span>iPhone</span><span>Cliques</span><span>Propostas WhatsApp</span><span>Conversão</span></div>' +
-            prods.map((x) => '<div class="rank-row"><span class="rank-name">' + esc(x.nome) + '</span>' +
-              bar(x.cliques, 'bar-c') + bar(x.whatsapp, 'bar-w') + '<span class="rank-pct">' + pct(x.whatsapp, x.cliques) + '</span></div>').join('') +
-            '</div>'
-          : '<p class="hint">Ainda não há cliques neste período.</p>') +
+      '<div class="funil a-card"><h3>Do site até o WhatsApp</h3>' +
+        [['Entraram no site', vis], ['Abriram um aparelho', cli], ['Enviaram proposta', prop]].map(([r, v], k, arr) =>
+          '<div class="fn"><span>' + r + '</span>' + barra(v, Math.max(1, arr[0][1], arr[1][1]), k === 2 ? 'fill-w' : 'fill-g') + '<b>' + v + '</b></div>').join('') +
+        '<p class="hint">Outros cliques no WhatsApp (botões gerais e consultoria): <b>' + (t.whatsapp_geral || 0) + '</b> · cliques no pop-up: <b>' + (t.popup || 0) + '</b></p>' +
       '</div>' +
+      '<div class="nota-dev">👁 <b>Este aparelho não entra na contagem</b> porque está logado no admin, assim seus testes não inflam os números. ' +
+        'Para testar, abra o site numa <b>aba anônima</b> (ou em outro celular) e depois toque em <b>Atualizar</b>.' + (ultimo ? '<br>Último clique registrado: <b>' + ultimo + '</b>.' : '') + '</div>' +
+      '<p class="hint expl"><b>Visualizações</b> = vezes que a página do aparelho foi aberta. <b>Propostas</b> = clientes que montaram a proposta e foram até o WhatsApp (confirmaram o aviso final). <b>Taxa</b> = propostas ÷ visualizações.</p>' +
+      (prods.length
+        ? '<div class="pcards">' + prods.map((x) =>
+            '<div class="pc">' +
+              '<div class="pc-top"><span class="pc-img">' + (x.p ? RB.imagemProduto(x.p, true) : '') + '</span>' +
+                '<div><strong>' + esc(x.nome) + '</strong><small>' + esc(x.sub) + '</small></div></div>' +
+              '<div class="pc-nums">' +
+                '<div><span>Visualizações</span><b>' + x.cliques + '</b>' + barra(x.cliques, maxV, 'fill-g') + '</div>' +
+                '<div><span>Propostas</span><b class="gold">' + x.whatsapp + '</b>' + barra(x.whatsapp, maxI, 'fill-w') + '</div>' +
+                '<div><span>Taxa</span><b>' + pct(x.whatsapp, x.cliques) + '</b></div>' +
+              '</div>' +
+            '</div>').join('') + '</div>'
+        : '<div class="a-card"><p class="hint">Ainda não há cliques neste período.</p></div>') +
       (dados.ultimas && dados.ultimas.length
         ? '<div class="a-card"><h3>Últimas propostas enviadas</h3><div class="ult">' + dados.ultimas.map((u) =>
-            '<div><b>' + esc(nomes[u.produto_id] || u.produto_nome || '') + '</b><span>' + esc(u.detalhe || '') + '</span><small>' +
+            '<div><b>' + esc(porId[u.produto_id] ? RB.nomeProduto(porId[u.produto_id]) + ' · ' + porId[u.produto_id].cor : (u.produto_nome || '')) + '</b><span>' + esc(u.detalhe || '') + '</span><small>' +
             new Date(u.criado_em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) + '</small></div>').join('') + '</div></div>'
-        : '');
+        : '') +
+      '<button class="btn btn-sm btn-danger" id="zerar">🗑 Zerar contagem</button>';
+    $('#zerar').addEventListener('click', async () => {
+      if (!confirm('Apagar todos os cliques registrados? Isso não pode ser desfeito.')) return;
+      try {
+        const r = await fetch(rs.supabaseUrl.replace(/\/+$/, '') + '/rest/v1/rpc/painel_zerar', {
+          method: 'POST', headers: RB.cabecalhosSupabase(rs.supabaseChave), body: JSON.stringify({ chave })
+        });
+        if (r.status === 404) throw new Error('Rode de novo o script supabase/rastreamento.sql no Supabase para ativar esta opção.');
+        if (!r.ok) throw new Error(((await r.json().catch(() => ({}))).message) || 'Erro ' + r.status);
+        toast('Contagem zerada.'); renderCliques();
+      } catch (e) { toast(e.message, true); }
+    });
   }
 
   /* ---------- Publicar ---------- */
