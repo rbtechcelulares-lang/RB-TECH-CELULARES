@@ -200,6 +200,13 @@
     } catch (e) { return ''; }
   }
 
+  // Chave antiga (JWT "eyJ…") vai também no Authorization; a nova "sb_publishable_…" só no apikey
+  function cabecalhosSupabase(chave) {
+    const h = { apikey: chave, 'Content-Type': 'application/json' };
+    if (/^eyJ/.test(chave)) h.Authorization = 'Bearer ' + chave;
+    return h;
+  }
+
   // tipo: visita | clique | whatsapp | popup
   function registrar(cat, tipo, dados) {
     const r = cat.rastreamento || {};
@@ -217,7 +224,7 @@
       fetch(r.supabaseUrl.replace(/\/+$/, '') + '/rest/v1/eventos', {
         method: 'POST',
         keepalive: true,
-        headers: { apikey: r.supabaseChave, Authorization: 'Bearer ' + r.supabaseChave, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        headers: Object.assign(cabecalhosSupabase(r.supabaseChave), { Prefer: 'return=minimal' }),
         body: JSON.stringify(corpo)
       }).catch(() => {});
     } catch (e) { /* registro nunca atrapalha o cliente */ }
@@ -273,7 +280,7 @@
   global.RB = {
     DRAFT_KEY, CHECKLIST_ITENS, STATUS,
     money, esc, lerRascunho, carregarCatalogo,
-    TEXTOS, texto, formatar, registrar, campanhaVigente, abrirPopup,
+    TEXTOS, texto, formatar, registrar, cabecalhosSupabase, campanhaVigente, abrirPopup,
     avaliar, fmtGB, parcelas, valorPix, linkWhats, nomeProduto, phoneSVG, sha256
   };
 })(window);

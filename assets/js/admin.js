@@ -645,12 +645,12 @@
         '<ol class="steps-cfg">' +
           '<li>Crie uma conta grátis em <a href="https://supabase.com" target="_blank" rel="noopener">supabase.com</a> e um projeto novo.</li>' +
           '<li>No projeto, abra <b>SQL Editor</b>, cole o conteúdo do arquivo <code>supabase/rastreamento.sql</code> do repositório, troque <code>TROQUE-ESTA-CHAVE</code> por uma senha sua e clique em <b>Run</b>.</li>' +
-          '<li>Em <b>Project Settings › API</b>, copie a <b>Project URL</b> e a chave <b>anon public</b> e cole abaixo. Depois publique o site.</li>' +
+          '<li>Em <b>Project Settings › API Keys</b>, copie a chave pública (<b>anon</b> ou <b>publishable</b>); a <b>Project URL</b> fica em <b>Project Settings › Data API</b>. Cole as duas abaixo e publique o site.</li>' +
           '<li>Digite a senha que você escolheu no passo 2 em "Chave do painel".</li>' +
         '</ol>' +
         '<div class="ed-grid">' +
           '<label class="field"><span>Project URL</span>' + inp('rastreamento.supabaseUrl', rs.supabaseUrl || '', 'placeholder="https://xxxx.supabase.co"') + '</label>' +
-          '<label class="field"><span>Chave anon public</span>' + inp('rastreamento.supabaseChave', rs.supabaseChave || '', 'placeholder="eyJhbGciOi…"') + '</label>' +
+          '<label class="field"><span>Chave pública (anon ou publishable)</span>' + inp('rastreamento.supabaseChave', rs.supabaseChave || '', 'placeholder="eyJhbGciOi… ou sb_publishable_…"') + '</label>' +
         '</div>' +
         '<label class="field"><span>Chave do painel (fica só neste navegador)</span><input type="password" id="painel-chave" value="' + esc(chave) + '" autocomplete="off"></label>' +
         '<button class="btn btn-sm btn-ink" id="painel-ok">Salvar e carregar</button>' +
@@ -677,7 +677,7 @@
     try {
       const res = await fetch(rs.supabaseUrl.replace(/\/+$/, '') + '/rest/v1/rpc/painel_resumo', {
         method: 'POST',
-        headers: { apikey: rs.supabaseChave, Authorization: 'Bearer ' + rs.supabaseChave, 'Content-Type': 'application/json' },
+        headers: RB.cabecalhosSupabase(rs.supabaseChave),
         body: JSON.stringify({ chave, desde })
       });
       if (!res.ok) {
