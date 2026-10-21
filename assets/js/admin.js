@@ -40,6 +40,18 @@
   let publicado = null; // catálogo que está no ar
   let cat = null; // rascunho em edição
   let aba = 'produtos';
+  let senhaSessao = '';
+
+  // Publicação pelo servidor (api/publicar na Vercel, com o token guardado lá)
+  let servidorOk = null;
+  async function modoServidor() {
+    if (servidorOk !== null) return servidorOk;
+    try {
+      const r = await fetch('api/publicar', { cache: 'no-store' });
+      servidorOk = r.ok && (await r.json()).configurado === true;
+    } catch (e) { servidorOk = false; }
+    return servidorOk;
+  }
 
   boot();
 
@@ -75,6 +87,7 @@
       return;
     }
     sessionStorage.setItem(SESSION_KEY, '1');
+    senhaSessao = $('#senha').value; // só na memória, para publicar pelo servidor
     abrirApp();
   }
 
@@ -844,9 +857,22 @@
         '<p class="pub-status">' + (temAlteracoes() ? '🟡 Há alterações não publicadas.' : '🟢 Tudo publicado.') + '</p>' +
         '<div class="pub-act"><a class="btn btn-outline" href="index.html?preview=1" target="_blank">Pré-visualizar</a>' +
         '<button class="btn btn-gold" id="pub">Publicar no site</button></div>' +
+        '<div class="field" id="pub-senha-box" hidden><span>Senha do admin (para publicar)</span>' +
+          '<input type="password" id="pub-senha" autocomplete="current-password"></div>' +
+        '<p class="hint" id="pub-modo">Verificando forma de publicação…</p>' +
         '<div id="pub-log" class="pub-log" hidden></div>' +
       '</div>' +
-      '<div class="a-card"><h3>Conexão com o GitHub</h3>' +
+      '<div class="a-card" id="srv-info" hidden><h3>🔒 Publicar sem token (recomendado)</h3>' +
+        '<p class="hint">Guarde o token do GitHub <b>uma única vez na Vercel</b>. Depois disso o admin publica só com a sua senha, em qualquer computador ou celular.</p>' +
+        '<ol class="steps-cfg">' +
+          '<li>Na Vercel, abra o projeto <b>rb-tech-celulares</b> › <b>Settings</b> › <b>Environment Variables</b>.</li>' +
+          '<li><b>Key</b>: <code>GITHUB_TOKEN</code> · <b>Value</b>: o seu token <code>github_pat_…</code> · marque <b>Production</b> (e Preview) e clique em <b>Save</b>.</li>' +
+          '<li>Vá em <b>Deployments</b>, no último deploy clique em <b>⋯ › Redeploy</b>.</li>' +
+          '<li>Volte aqui e recarregue a página: deve aparecer "Publicação pelo servidor ativada".</li>' +
+        '</ol>' +
+      '</div>' +
+      '<details class="a-card" id="gh-card"><summary><h3>Conexão pelo token neste navegador</h3></summary>' +
+      '<div>' +
         '<p class="hint">Feito uma vez em cada computador ou celular. O token fica salvo só neste navegador.</p>' +
         '<ol class="steps-cfg">' +
           '<li>Abra <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com › criar token (fine-grained)</a>, logado na conta dona do repositório.</li>' +
@@ -863,13 +889,22 @@
         '<div class="pub-act"><button class="btn btn-sm btn-ink" id="gh-test">Testar conexão</button>' +
         '<button class="btn btn-sm btn-outline" id="gh-save">Salvar conexão</button></div>' +
         '<p class="hint" id="gh-res"></p>' +
-      '</div>' +
+      '</div></details>' +
       '<div class="a-card"><h3>Backup</h3><p class="hint">Baixe uma cópia do catálogo ou restaure um backup.</p>' +
         '<div class="pub-act"><button class="btn btn-sm btn-outline" id="exp">Baixar backup (.json)</button>' +
         '<label class="btn btn-sm btn-outline">Restaurar backup<input type="file" accept=".json,application/json" id="imp" hidden></label>' +
         '<button class="btn btn-sm btn-danger" id="desc">Descartar rascunho</button></div>' +
       '</div>';
 
+    modoServidor().then((ok) => {
+      if (!$('#pub-modo')) return;
+      $('#pub-modo').innerHTML = ok
+        ? '🔒 Publicação pelo servidor ativada: não precisa de token, só da senha do admin.'
+        : '🔑 Publicando pelo token salvo neste navegador. Para não precisar mais dele, veja "Publicar sem token" abaixo.';
+      $('#srv-info').hidden = ok;
+      $('#gh-card').open = !ok;
+      if (ok && !senhaSessao) $('#pub-senha-box').hidden = false;
+    });
     const pegarGH = () => ({ repo: $('#gh-repo').value.trim(), branch: $('#gh-branch').value.trim(), token: $('#gh-token').value.trim() });
     $('#gh-save').addEventListener('click', () => {
       const { cfg, erro } = validarGH(pegarGH());
@@ -944,9 +979,29 @@
   }
 
   async function publicar(cfg0) {
-    const { cfg, erro } = validarGH(cfg0);
-    if (erro) { toast(erro, true); const r = $('#gh-res'); if (r) r.innerHTML = '❌ ' + esc(erro); return; }
-    localStorage.setItem(GH_KEY, JSON.stringify(cfg));
+    const servidor = await modoServidor();
+    let gravar;
+    if (servidor) {
+      if (!senhaSessao) senhaSessao = ($('#pub-senha') && $('#pub-senha').value) || '';
+      if (!senhaSessao) { toast('Digite a senha do admin para publicar.', true); if ($('#pub-senha-box')) { $('#pub-senha-box').hidden = false; $('#pub-senha').focus(); } return; }
+      gravar = async (caminho, conteudo, mensagem) => {
+        const r = await fetch('api/publicar', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ senha: senhaSessao, caminho, conteudo, mensagem })
+        });
+        const d = await r.json().catch(() => ({}));
+        if (r.status === 401) { senhaSessao = ''; if ($('#pub-senha-box')) $('#pub-senha-box').hidden = false; }
+        if (!r.ok) throw new Error(d.erro || 'Erro ' + r.status);
+      };
+    } else {
+      const { cfg, erro } = validarGH(cfg0);
+      if (erro) { toast(erro, true); const r = $('#gh-res'); if (r) r.innerHTML = '❌ ' + esc(erro); return; }
+      localStorage.setItem(GH_KEY, JSON.stringify(cfg));
+      gravar = async (caminho, conteudo, mensagem) => {
+        const atual = caminho === 'data/catalogo.json' ? await gh(cfg, caminho, 'GET') : null;
+        await gh(cfg, caminho, 'PUT', { message: mensagem, content: conteudo, branch: cfg.branch || undefined, sha: atual ? atual.sha : undefined });
+      };
+    }
     const log = $('#pub-log');
     const btn = $('#pub');
     log.hidden = false; log.innerHTML = '';
@@ -962,7 +1017,7 @@
         const ext = data.startsWith('data:image/webp') ? 'webp' : 'jpg';
         const caminho = 'img/produtos/' + p.id + '-' + Date.now().toString(36) + k + '.' + ext;
         linha('Enviando foto ' + (k + 1) + ' de ' + pendentes.length + '…');
-        await gh(cfg, caminho, 'PUT', { message: 'Foto: ' + RB.nomeProduto(p), content: data.split(',')[1], branch: cfg.branch || undefined });
+        await gravar(caminho, data.split(',')[1], 'Foto: ' + RB.nomeProduto(p));
         p.fotos[i] = caminho;
         salvar();
       }
@@ -970,17 +1025,13 @@
         const data = cat.popup.imagem;
         const caminho = 'img/promo/popup-' + Date.now().toString(36) + '.' + (data.startsWith('data:image/webp') ? 'webp' : 'jpg');
         linha('Enviando imagem do pop-up…');
-        await gh(cfg, caminho, 'PUT', { message: 'Imagem do pop-up', content: data.split(',')[1], branch: cfg.branch || undefined });
+        await gravar(caminho, data.split(',')[1], 'Imagem do pop-up');
         cat.popup.imagem = caminho;
         salvar();
       }
       // 2) grava o catálogo
       linha('Gravando catálogo…');
-      const atual = await gh(cfg, 'data/catalogo.json', 'GET');
-      const texto = JSON.stringify(cat, null, 2) + '\n';
-      await gh(cfg, 'data/catalogo.json', 'PUT', {
-        message: 'Atualiza catálogo pelo painel admin', content: b64(texto), branch: cfg.branch || undefined, sha: atual ? atual.sha : undefined
-      });
+      await gravar('data/catalogo.json', b64(JSON.stringify(cat, null, 2) + '\n'), 'Atualiza catálogo pelo painel admin');
       localStorage.setItem(PUB_KEY, JSON.stringify(cat));
       publicado = clone(cat);
       linha('✅ Publicado! O site atualiza em cerca de 1 minuto.');
@@ -994,4 +1045,5 @@
       btn.classList.remove('disabled');
     }
   }
+
 })();
