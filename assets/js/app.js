@@ -45,7 +45,9 @@
     const vals = Object.assign({}, l, { whatsFmt });
     $$('[data-loja]').forEach((el) => {
       const v = vals[el.dataset.loja];
-      if (v) el.textContent = v; else if (el.dataset.loja !== 'slogan' && el.dataset.loja !== 'nome') el.hidden = true;
+      // *texto* no slogan fica destacado em amarelo no topo
+      if (v && el.hasAttribute('data-destaque')) el.innerHTML = esc(v).replace(/\*([^*]+)\*/g, '<span class="hl">$1</span>');
+      else if (v) el.textContent = String(v).replace(/\*/g, ''); else if (el.dataset.loja !== 'slogan' && el.dataset.loja !== 'nome') el.hidden = true;
     });
     $$('[data-pg="max"]').forEach((el) => (el.textContent = cat.pagamento.maxParcelas));
     const msg = 'Olá! Vim pelo site da ' + l.nome + ' e gostaria de atendimento.';
@@ -55,7 +57,7 @@
       $('#f-insta').innerHTML = '<a href="https://instagram.com/' + esc(u) + '" target="_blank" rel="noopener">@' + esc(u) + '</a>';
     }
     $('#ano').textContent = new Date().getFullYear();
-    document.title = l.nome + ' · ' + (l.slogan || 'iPhones com garantia');
+    document.title = l.nome + ' · ' + (l.slogan || 'iPhones com garantia').replace(/\*/g, '');
   }
 
   /* ---------- Vitrine ---------- */

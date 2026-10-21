@@ -479,7 +479,8 @@
       '<div class="a-card"><div class="ed-grid">' +
         campo('nome', 'Nome da loja') +
         campo('whatsapp', 'WhatsApp (com DDI e DDD)', 'inputmode="tel" placeholder="5511999999999"', 'Apenas números. Ex.: 55 + DDD + número.') +
-        campo('slogan', 'Slogan') +
+        campo('slogan', 'Slogan', '', 'Coloque *entre asteriscos* o trecho que fica em amarelo.') +
+        campo('regiao', 'Região (aparece acima do slogan)') +
         campo('instagram', 'Instagram', 'placeholder="@sualoja"') +
         campo('endereco', 'Endereço') +
         campo('horario', 'Horário de atendimento') +

@@ -401,3 +401,93 @@ button { cursor: pointer; }
 .eval-whats p { margin: 0; }
 .escuro .eval-whats { border: 2px solid var(--yellow); }
 .escuro .eval-whats strong { font-size: 18px; color: var(--yellow); }
+
+/* ---------- Tema RB Tech: fundo preto, destaques em amarelo ---------- */
+body.loja {
+  --ink: #0b0b0b;
+  --ink-2: #1a1a1a;
+  --ivory: #0b0b0b;
+  --paper: #151515;
+  --sand: #1d1d1d;
+  --line: #2b2b2b;
+  --text: #fff;
+  --muted: rgba(255,255,255,.62);
+  --gold: #d9a514;
+  --gold-2: #f5c542;
+  --gold-soft: #2a2410;
+  --yellow: #f5c542;
+  --dk-1: #0b0b0b;
+  --dk-2: #151515;
+  --dk-3: #1d1d1d;
+  --dk-line: #2e2e2e;
+  --serif: 'Inter Tight', var(--sans);
+  --shadow: 0 10px 40px rgba(0,0,0,.6);
+  background: var(--ink); color: #fff;
+}
+.loja .hero-title, .loja .section-title, .loja .pd-title, .loja .sim-title, .loja .cta-box h2 {
+  font-family: var(--serif); font-weight: 800; letter-spacing: -.045em;
+}
+.loja .hero-title { font-size: clamp(44px, 11vw, 84px); line-height: .98; max-width: 12ch; }
+.loja .hl { color: var(--yellow); white-space: nowrap; }
+.loja .eyebrow, .loja .eyebrow-dark { color: var(--yellow); font-weight: 800; }
+
+/* Logo */
+.logo { display: grid; line-height: 1; text-decoration: none; }
+.logo strong { font-family: 'Inter Tight', var(--sans); font-weight: 900; font-size: 22px; letter-spacing: -.04em; color: #fff; }
+.logo strong span { color: var(--yellow); }
+.logo small { font-size: 9px; letter-spacing: .32em; text-transform: uppercase; color: rgba(255,255,255,.6); margin-top: 3px; font-weight: 600; }
+
+/* Topo e hero */
+.loja .topbar { background: rgba(11,11,11,.9); border-bottom: 1px solid #1f1f1f; }
+.loja .topnav a:hover { color: var(--yellow); }
+.loja .hero { background: radial-gradient(70% 60% at 85% 30%, rgba(245,197,66,.13) 0%, rgba(245,197,66,0) 60%), var(--ink); }
+.loja .hero::after { border-color: rgba(245,197,66,.14); box-shadow: 0 0 0 60px rgba(245,197,66,.03), 0 0 0 130px rgba(245,197,66,.02); }
+.loja .hero-sub { color: rgba(255,255,255,.7); }
+.loja .hero-badges strong { color: var(--yellow); }
+.loja .btn-gold { background: var(--yellow); color: #111; font-weight: 800; }
+.loja .btn-ghost-light { border-color: var(--gold); }
+.loja .btn-ink { background: var(--yellow); color: #111; font-weight: 800; }
+.btn-black { background: #0b0b0b; color: #fff; font-weight: 800; }
+.btn-black:hover { background: #222; }
+
+/* Seções */
+.loja .section-ink { background: #111; border-top: 1px solid #1f1f1f; border-bottom: 1px solid #1f1f1f; }
+.loja .section-sub, .loja .section-sub.light { color: rgba(255,255,255,.65); }
+
+/* Vitrine */
+.loja .search input, .loja .filters select { background: var(--paper); color: #fff; border-color: var(--line); }
+.loja .search input::placeholder { color: rgba(255,255,255,.45); }
+.loja .search input:focus, .loja .filters select:focus { border-color: var(--yellow); }
+.loja .chip { background: var(--paper); color: #fff; border-color: var(--line); }
+.loja .chip.on { background: var(--yellow); color: #111; border-color: var(--yellow); font-weight: 700; }
+.loja .card { background: var(--paper); border-color: var(--line); }
+.loja .card:hover { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), var(--shadow); }
+.loja .card-media, .loja .pd-main {
+  background: radial-gradient(65% 65% at 50% 45%, color-mix(in srgb, var(--tint) 35%, #262626) 0%, #121212 100%);
+}
+.loja .tag { background: rgba(0,0,0,.65); color: #fff; }
+.loja .tag-gold { background: #000; color: var(--yellow); border: 1px solid var(--gold); }
+.loja .tag-star { background: var(--yellow); color: #111; }
+.loja .dot { border-color: rgba(255,255,255,.3); }
+.loja .card-cta { color: var(--yellow); }
+.loja .price { color: #fff; }
+
+/* Avaliação e passos */
+.loja .card-light.escuro { background: var(--paper); }
+.loja .steps li { background: var(--paper); border-color: var(--line); }
+.loja .steps span { font-family: var(--serif); font-weight: 900; color: var(--yellow); }
+
+/* Chamada final */
+.cta-final { padding: 0 0 64px; }
+.cta-box {
+  background: var(--yellow); color: #111; border-radius: 26px; padding: 28px 22px;
+  display: grid; gap: 20px; align-items: center;
+}
+.cta-box h2 { margin: 0; font-size: clamp(30px, 7vw, 48px); line-height: 1; max-width: 14ch; }
+.cta-box p { margin: 10px 0 0; color: rgba(0,0,0,.7); }
+@media (min-width: 720px) { .cta-box { grid-template-columns: 1fr auto; padding: 44px; } }
+
+/* Rodapé */
+.loja .footer { background: #060606; border-top: 1px solid #1a1a1a; }
+.loja .footer-info a { color: var(--yellow); }
+.loja .sheet-panel { border: 1px solid #222; }
