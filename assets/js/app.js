@@ -125,7 +125,7 @@
     if (l.mapsLink) extras.push('<a href="' + esc(l.mapsLink) + '" target="_blank" rel="noopener">' + ic('<path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>') + 'Abrir no Google Maps</a>');
     $('#f-extra').innerHTML = extras.join('');
     // linhas do rodapé sem informação somem por inteiro
-    $$('.footer-info p').forEach((p) => { if (!p.querySelector('[data-loja]:not([hidden])')) p.hidden = true; });
+    $$('.footer-info p:not(.footer-h)').forEach((p) => { if (!p.querySelector('[data-loja]:not([hidden])')) p.hidden = true; });
     $('#ajuda-btn').href = RB.linkWhats(cat, RB.texto(cat, 'consultaMsg'));
     $('#ano').textContent = new Date().getFullYear();
     document.title = l.nome + ' · ' + (l.slogan || 'iPhones com garantia').replace(/\*/g, '');

@@ -176,3 +176,11 @@ details.a-card summary h3 { display: inline; }
 .steps-cfg { margin: 12px 0 16px; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; }
 .steps-cfg code { background: var(--ivory); padding: 1px 6px; border-radius: 6px; font-size: 13px; }
 .err-card { border-color: #f0c9c5; color: var(--bad); }
+
+/* Logo */
+.login-box { background: #0f0f0f; color: #fff; border: 1px solid #d9a514; }
+.login-box .muted, .login-box .back { color: rgba(255,255,255,.6); }
+.login-box .field > span { color: #fff; }
+.login-logo { width: 170px; height: auto; margin: 0 auto 4px; display: block; }
+.a-logo { height: 40px; width: auto; display: block; }
+.login-box .btn-ink { background: linear-gradient(135deg, #fbe38e 0%, #f5c542 40%, #c9971b 100%); color: #111; font-weight: 800; }

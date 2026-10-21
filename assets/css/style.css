@@ -647,3 +647,8 @@ body.loja {
   background: linear-gradient(135deg, #fbe38e 0%, #f5c542 40%, #c9971b 100%); box-shadow: 0 8px 24px rgba(245,197,66,.25);
 }
 .rbp-no { border: 0; background: none; color: rgba(255,255,255,.55); font-size: 13px; text-decoration: underline; padding: 4px; }
+
+/* Logo da loja */
+.logo-img { height: 54px; width: auto; display: block; }
+.logo-footer { width: 190px; height: auto; display: block; }
+@media (min-width: 860px) { .loja .topbar-in { height: 76px; } .logo-img { height: 64px; } }
