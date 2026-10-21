@@ -42,7 +42,15 @@
     } catch (e) {
       publicado = null;
     }
-    const rasc = RB.lerRascunho();
+    let rasc = RB.lerRascunho();
+    // rascunho sem nada pendente (igual ao último publicado daqui) dá lugar à versão do site,
+    // que pode ter mudado por outro aparelho ou por atualização do sistema
+    let ultimo = null;
+    try { ultimo = localStorage.getItem(PUB_KEY); } catch (e) { /* ignora */ }
+    if (rasc && publicado && ultimo && JSON.stringify(rasc) === ultimo) {
+      rasc = null;
+      try { localStorage.removeItem(RB.DRAFT_KEY); localStorage.setItem(PUB_KEY, JSON.stringify(publicado)); } catch (e) { /* ignora */ }
+    }
     cat = rasc || clone(publicado);
     if (!cat) { document.body.innerHTML = '<p style="padding:24px">Não foi possível carregar data/catalogo.json.</p>'; return; }
 
@@ -566,6 +574,10 @@
           '<label class="field" id="pop-prod"><span>iPhone</span><select data-bind="popup.produtoId"><option value="">Selecione…</option>' + optProdutos(pp.produtoId) + '</select></label>' +
           '<label class="field" id="pop-link"><span>Link</span>' + inp('popup.link', pp.link || '', 'placeholder="https://…"') + '</label>' +
         '</div>' +
+        '<label class="field" id="pop-msg"><span>Mensagem que chega no seu WhatsApp</span>' +
+          inp('popup.mensagem', pp.mensagem || '', 'placeholder="Olá! Quero ativar meu cupom *{cupom}* da promoção &quot;{titulo}&quot;. 🎟️"') +
+          '<small class="hint">{cupom} vira o código do cupom e {titulo} o título da promoção. Em branco usa a mensagem padrão. ' +
+          'Com cupom, o botão também copia o código e deixa o cupom ativo nas propostas do cliente.</small></label>' +
         '<div class="field"><span>Imagem (opcional)</span><div class="photo-add">' +
           '<span id="pop-img"></span>' +
           '<label class="btn btn-outline btn-sm">📷 Escolher imagem<input type="file" accept="image/*" id="pop-up" hidden></label>' +
@@ -586,6 +598,7 @@
     const ajustar = () => {
       $('#pop-prod').hidden = (cat.popup.acao || 'whatsapp') !== 'produto';
       $('#pop-link').hidden = cat.popup.acao !== 'link';
+      $('#pop-msg').hidden = (cat.popup.acao || 'whatsapp') !== 'whatsapp';
       $('#pop-img').innerHTML = cat.popup.imagem ? '<img class="pop-thumb" src="' + esc(cat.popup.imagem) + '" alt="">' : '<small class="hint">Sem imagem</small>';
       $('#pop-img-x').hidden = !cat.popup.imagem;
       const vig = RB.campanhaVigente(cat.popup);

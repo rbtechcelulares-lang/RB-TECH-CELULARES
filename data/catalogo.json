@@ -346,9 +346,9 @@
     "ativo": false,
     "selo": "Só esta semana",
     "titulo": "Ganhe *R$ 100 OFF* no seu iPhone",
-    "texto": "Mostre o cupom no WhatsApp e ganhe R$ 100 de desconto na compra de qualquer iPhone seminovo.",
+    "texto": "Toque em \"Salvar meu cupom\" e ganhe R$ 100 de desconto na compra de qualquer iPhone seminovo.",
     "cupom": "RBTECH100",
-    "botaoTexto": "Quero meu desconto",
+    "botaoTexto": "Salvar meu cupom",
     "acao": "whatsapp",
     "produtoId": "",
     "link": "",
@@ -356,7 +356,8 @@
     "frequencia": "sessao",
     "atraso": 2,
     "inicio": "",
-    "fim": ""
+    "fim": "",
+    "mensagem": "Olá! Quero ativar meu cupom *{cupom}* da promoção \"{titulo}\". 🎟️"
   },
   "produtos": [
     {

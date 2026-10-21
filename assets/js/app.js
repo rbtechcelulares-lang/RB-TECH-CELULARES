@@ -9,6 +9,21 @@
   const preview = params.has('preview');
   let cat = null;
   let origemClique = 'link'; // de onde veio o clique que abriu o aparelho
+  let nomeCliente = '';
+  try { nomeCliente = localStorage.getItem('rbtech_nome') || ''; } catch (e) { /* sem storage */ }
+
+  // Cupom que o cliente salvou pelo pop-up (vale até a data final da campanha)
+  function cupomSalvo() {
+    try {
+      const c = JSON.parse(localStorage.getItem('rbtech_cupom') || 'null');
+      if (!c || !c.codigo) return null;
+      const hoje = new Date().toISOString().slice(0, 10);
+      if (c.fim && hoje > c.fim) return null;
+      return c;
+    } catch (e) { return null; }
+  }
+
+  const nomeValido = (n) => n.trim().split(/\s+/).filter((x) => x.length >= 2).length >= 2;
   let filtroLinha = 'todos';
 
   // Entrada compartilhada entre a avaliação da página e o detalhe do produto
@@ -80,8 +95,16 @@
   function acaoPopup(pp, fechar) {
     RB.registrar(cat, 'popup', { origem: pp.acao || 'fechar', detalhe: pp.titulo });
     fechar();
+    const titulo = String(pp.titulo || '').replace(/\*/g, '');
+    if (pp.cupom) {
+      try { localStorage.setItem('rbtech_cupom', JSON.stringify({ codigo: pp.cupom, titulo, fim: pp.fim || '' })); } catch (e) { /* ignora */ }
+      if (navigator.clipboard) navigator.clipboard.writeText(pp.cupom).catch(() => {});
+    }
     if (pp.acao === 'whatsapp') {
-      const msg = 'Olá! Vi a promoção "' + String(pp.titulo || '').replace(/\*/g, '') + '" no site' + (pp.cupom ? ' e quero usar o cupom ' + pp.cupom : '') + '.';
+      const modelo = pp.mensagem || (pp.cupom
+        ? 'Olá! Quero ativar meu cupom *{cupom}* da promoção "{titulo}". 🎟️'
+        : 'Olá! Vi a promoção "{titulo}" no site e quero saber mais.');
+      const msg = modelo.replace(/\{cupom\}/g, pp.cupom || '').replace(/\{titulo\}/g, titulo);
       RB.registrar(cat, 'whatsapp', { origem: 'popup' });
       window.open(RB.linkWhats(cat, msg), '_blank', 'noopener');
     } else if (pp.acao === 'produto' && pp.produtoId) {
@@ -532,6 +555,11 @@
     }
 
     const pode = !(entrada.usar && (!r || r.recusado));
+    const cupom = cupomSalvo();
+    if (cupom) html += '<div class="cupom-ativo">🎟️ Cupom <b>' + esc(cupom.codigo) + '</b> ativado · será aplicado no atendimento</div>';
+    html += '<label class="field nome-cli"><span>Seu nome completo</span>' +
+      '<input id="nome-cli" autocomplete="name" autocapitalize="words" placeholder="Ex.: Maria da Silva" value="' + esc(nomeCliente) + '"></label>' +
+      '<p class="nome-err" id="nome-err" hidden>Digite seu nome e sobrenome para enviarmos a proposta.</p>';
     html += '<a class="btn btn-whats btn-block' + (pode ? '' : ' disabled') + '" id="enviar" target="_blank" rel="noopener" href="#">' +
       'Enviar proposta no WhatsApp</a>' +
       '<p class="hint center">' + (pag.parcela == null && valor > 0 ? 'Toque numa opção acima para incluí-la na proposta.' : 'Você será direcionado ao WhatsApp com a proposta pronta.') + '</p>' +
@@ -549,10 +577,25 @@
 
     const btn = $('#enviar', box);
     if (!pode) { btn.removeAttribute('href'); return; }
-    btn.href = RB.linkWhats(cat, mensagem(p, temEntrada || consultar ? r : null, aba, pag.parcela, valor, lista, pix));
+    const montar = () => RB.linkWhats(cat, mensagem(p, temEntrada || consultar ? r : null, aba, pag.parcela, valor, lista, pix));
+    btn.href = montar();
+    const campoNome = $('#nome-cli', box);
+    campoNome.addEventListener('input', () => {
+      nomeCliente = campoNome.value;
+      try { localStorage.setItem('rbtech_nome', nomeCliente); } catch (e) { /* ignora */ }
+      if (nomeValido(nomeCliente)) { $('#nome-err', box).hidden = true; campoNome.classList.remove('erro'); }
+      btn.href = montar();
+    });
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      const url = btn.href;
+      if (!nomeValido(nomeCliente)) {
+        $('#nome-err', box).hidden = false;
+        campoNome.classList.add('erro');
+        campoNome.focus();
+        campoNome.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        return;
+      }
+      const url = montar();
       const forma = valor <= 0 ? 'sem pagamento' : pag.parcela === 0 ? 'à vista' : pag.parcela ? pag.parcela + 'x' : 'a definir';
       const ent = r && (temEntrada || consultar) ? 'entrada ' + r.modelo + ' · ' : 'sem entrada · ';
       // aviso antes de ir para o WhatsApp: valores são simulação
@@ -570,7 +613,7 @@
   }
 
   function mensagem(p, r, aba, parcela, valor, lista, pix) {
-    const linhas = ['Olá! Montei uma proposta pelo site:', ''];
+    const linhas = ['Olá! Sou *' + nomeCliente.trim() + '* e montei uma proposta pelo site:', ''];
     linhas.push('📱 *' + RB.nomeProduto(p) + '* · ' + p.cor + ' · ' + p.condicao + ' · bateria ' + p.bateria + '%');
     linhas.push('Valor: ' + money(p.preco));
     if (r) {
@@ -594,6 +637,8 @@
     } else {
       linhas.push('💳 ' + tipo + ': ' + money(valor) + ' · quero ver as formas de pagamento');
     }
+    const cupom = cupomSalvo();
+    if (cupom) linhas.push('', '🎟️ *Cupom:* ' + cupom.codigo + (cupom.titulo ? ' (' + cupom.titulo + ')' : ''));
     return linhas.join('\n');
   }
 })();

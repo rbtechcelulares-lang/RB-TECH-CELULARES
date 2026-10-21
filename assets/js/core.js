@@ -271,7 +271,7 @@
           (pp.selo ? '<span class="rbp-selo">' + esc(pp.selo) + '</span>' : '') +
           '<h2 id="rbp-t">' + formatar(cat, pp.titulo || '') + '</h2>' +
           (pp.texto ? '<p class="rbp-txt">' + formatar(cat, pp.texto) + '</p>' : '') +
-          (pp.cupom ? '<div class="rbp-cupom"><span>Cupom</span><strong>' + esc(pp.cupom) + '</strong><button type="button" data-copiar>Copiar</button></div>' : '') +
+          (pp.cupom ? '<div class="rbp-cupom"><span>Cupom</span><strong>' + esc(pp.cupom) + '</strong><button type="button" data-copiar>Copiar código</button></div>' : '') +
           (pp.botaoTexto ? '<button type="button" class="rbp-btn" data-acao>' + esc(pp.botaoTexto) + '</button>' : '') +
           '<button type="button" class="rbp-no" data-x>Agora não</button>' +
         '</div>' +

@@ -655,3 +655,13 @@ body.loja {
 
 .rbp-ic { width: 46px; height: 46px; border-radius: 50%; border: 2px solid #f5c542; color: #f5c542; display: grid; place-items: center; font-weight: 900; font-size: 22px; }
 #rb-aviso .rbp-txt { font-size: 16px; color: #fff; }
+
+/* Nome do cliente e cupom na proposta */
+.nome-cli { margin-top: 6px; }
+.nome-cli input { font-size: 16px; }
+.escuro .nome-cli input { border: 1.5px solid var(--gold); }
+.nome-cli input.erro { border-color: var(--bad) !important; box-shadow: 0 0 0 3px rgba(192,70,59,.25); }
+.nome-err { margin: -4px 0 0; color: #ff8f84; font-size: 13px; font-weight: 600; }
+.cupom-ativo { border: 1.5px dashed #f5c542; background: #1a160a; color: #f5c542; border-radius: 12px; padding: 10px 12px; font-size: 14px; text-align: center; }
+.rbp-cupom button { white-space: nowrap; flex: none; }
+.rbp-cupom strong { min-width: 0; overflow-wrap: anywhere; }
