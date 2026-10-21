@@ -46,7 +46,7 @@
     } else {
       renderInicio();
       const vitrine = todos().filter((p) => RB.ehIphone(p)).sort((a, b) => (RB.emPromocao(b) ? 1 : 0) - (RB.emPromocao(a) ? 1 : 0)).slice(0, 3);
-      $('#hero-art').innerHTML = vitrine.map((p) => RB.phoneSVG(p.corHex)).join('');
+      $('#hero-art').innerHTML = vitrine.map((p) => (RB.fotoModelo(p) ? '<img src="' + RB.fotoModelo(p) + '" alt="">' : RB.phoneSVG(p.corHex))).join('');
       renderDestaque();
       montarAvaliacaoPagina();
     }
@@ -176,7 +176,7 @@
     return (
       '<a class="card" data-origem="' + (pagina === 'catalogo' ? 'catalogo' : 'vitrine') + '" href="#p/' + encodeURIComponent(p.id) + '">' +
         '<div class="card-media" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
-          (p.fotos && p.fotos[0] ? '<img src="' + esc(p.fotos[0]) + '" alt="' + esc(RB.nomeProduto(p)) + '" loading="lazy">' : RB.produtoSVG(p)) +
+          RB.imagemProduto(p, true) +
           '<span class="tag ' + (p.condicao === 'Seminovo' ? '' : 'tag-gold') + '">' + esc(p.condicao) + '</span>' +
           (RB.emPromocao(p) ? '<span class="tag tag-star">Promoção</span>' : '') +
         '</div>' +
@@ -218,7 +218,7 @@
       const menor = Math.min(...g.itens.map((p) => p.preco));
       const amostra = g.itens.slice().sort((x, y) => y.preco - x.preco)[0];
       return '<a class="cat-tile" href="' + linkPagina('catalogo.html?cat=' + g.cat + (g.tipo ? '&tipo=' + g.tipo : '')) + '">' +
-        '<span class="cat-art" style="--tint:' + esc(amostra.corHex || '#ccc') + '">' + RB.produtoSVG(amostra) + '</span>' +
+        '<span class="cat-art" style="--tint:' + esc(amostra.corHex || '#ccc') + '">' + RB.imagemProduto(amostra, true) + '</span>' +
         '<span class="cat-info"><strong>' + esc(g.nome) + '</strong>' +
         '<small>' + g.itens.length + (g.itens.length === 1 ? ' opção' : ' opções') + ' · a partir de ' + money(RB.valorPix(cat, menor)) + '</small></span>' +
         '<span class="cat-go">→</span></a>';
@@ -360,7 +360,7 @@
     return (
       '<div class="spot">' +
         '<a class="spot-media" data-origem="promocao" href="' + link + '"><div class="arch" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
-          (foto ? '<img src="' + esc(foto) + '" alt="' + esc(RB.nomeProduto(p)) + '">' : RB.produtoSVG(p)) + '</div></a>' +
+          RB.imagemProduto(p) + '</div></a>' +
         '<div class="spot-info">' +
           '<span class="ribbon">' + esc(promo.faixa || (off ? 'Oferta da semana' : 'Destaque da semana')) + '</span>' +
           '<p class="eyebrow">' + esc(p.condicao) + ' · garantia ' + esc(p.garantia || cat.loja.garantiaPadrao) + '</p>' +
@@ -568,7 +568,7 @@
       '<div class="pd">' +
         '<div class="pd-gallery">' +
           '<div class="pd-main" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
-            (fotos[0] ? '<img src="' + esc(fotos[0]) + '" alt="' + esc(RB.nomeProduto(p)) + '">' : RB.produtoSVG(p)) +
+            RB.imagemProduto(p) +
           '</div>' +
           (fotos.length > 1 ? '<div class="pd-thumbs">' + fotos.map((f, i) =>
             '<button class="' + (i === 0 ? 'on' : '') + '" data-i="' + i + '"><img src="' + esc(f) + '" alt="Foto ' + (i + 1) + '"></button>').join('') + '</div>' : '') +

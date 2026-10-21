@@ -187,6 +187,25 @@
     );
   }
 
+  // Fotos dos modelos (img/modelos), recortadas com fundo transparente
+  const FOTOS_MODELO = ['11', '11-pro', '11-pro-max', '12', '12-pro', '12-pro-max', '13', '13-pro', '13-pro-max',
+    '14', '14-plus', '14-pro', '14-pro-max', '15', '15-plus', '15-pro', '15-pro-max', '16', '16-plus', '16-pro', '16-pro-max',
+    '17', 'air', '17-pro', '17-pro-max', '18-pro', '18-pro-max'];
+  function fotoModelo(p) {
+    if (!ehIphone(p)) return '';
+    const s = String(p.modelo || '').toLowerCase().replace(/^iphone\s*/, '').trim().replace(/\s+/g, '-');
+    return FOTOS_MODELO.includes(s) ? 'img/modelos/iphone-' + s + '.webp' : '';
+  }
+
+  // Imagem do produto: foto própria > foto do modelo > ilustração
+  function imagemProduto(p, lazy) {
+    const alt = esc(nomeProduto(p));
+    if (p.fotos && p.fotos[0]) return '<img class="img-foto" src="' + esc(p.fotos[0]) + '" alt="' + alt + '"' + (lazy ? ' loading="lazy"' : '') + '>';
+    const m = fotoModelo(p);
+    if (m) return '<img class="img-modelo" src="' + m + '" alt="' + alt + '"' + (lazy ? ' loading="lazy"' : '') + '>';
+    return produtoSVG(p);
+  }
+
   function produtoSVG(p) {
     const c = categoria(p);
     if (c === 'macbook') return laptopSVG(p.corHex);
@@ -410,6 +429,6 @@
     DRAFT_KEY, CHECKLIST_ITENS, STATUS,
     money, esc, lerRascunho, carregarCatalogo,
     TEXTOS, texto, formatar, registrar, limparSupabase, abrirAviso, cabecalhosSupabase, campanhaVigente, abrirPopup,
-    avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, batNumero, CATEGORIAS, categoria, ehIphone, ehMac, ehNovo, noTopo, naVitrine, noCatalogo, ativo, emPromocao, nomeProduto, phoneSVG, produtoSVG, sha256
+    avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, batNumero, CATEGORIAS, categoria, ehIphone, ehMac, ehNovo, noTopo, naVitrine, noCatalogo, ativo, emPromocao, nomeProduto, phoneSVG, produtoSVG, fotoModelo, imagemProduto, sha256
   };
 })(window);

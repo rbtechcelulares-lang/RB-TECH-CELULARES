@@ -189,7 +189,7 @@
         .map(({ p, i }) =>
           '<div class="prow' + (RB.ativo(p) ? '' : ' off') + '">' +
             '<div class="prow-img" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
-              (p.fotos && p.fotos[0] ? '<img src="' + esc(p.fotos[0]) + '" alt="">' : RB.produtoSVG(p)) + '</div>' +
+              RB.imagemProduto(p, true) + '</div>' +
             '<div class="prow-info"><strong>' + esc(RB.nomeProduto(p)) + '</strong>' +
               '<span>' + esc(p.cor) + ' · ' + esc(p.condicao) + (!RB.ehIphone(p) ? (p.specs ? ' · ' + esc(p.specs) : '') : ' · 🔋 ' + esc(RB.batTexto(p, cat))) + '</span>' +
               '<span class="prow-price">' + money(p.preco) + '</span></div>' +

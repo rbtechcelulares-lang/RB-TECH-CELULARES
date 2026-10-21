@@ -97,10 +97,12 @@ button { cursor: pointer; }
   .hero-in { display: grid; grid-template-columns: 1.2fr 1fr; align-items: center; }
   .hero-text { grid-column: 1; }
   .hero-art { display: flex; grid-column: 2; grid-row: 1; justify-content: center; align-items: flex-end; height: 420px; text-decoration: none; }
-  .hero-art svg { width: 190px; height: 290px; filter: drop-shadow(0 30px 40px rgba(0,0,0,.5)); margin: 0 -38px; }
-  .hero-art svg:nth-child(2) { width: 230px; height: 350px; position: relative; z-index: 1; transform: translateY(-30px); }
-  .hero-art svg:first-child { transform: rotate(-8deg); }
-  .hero-art svg:last-child { transform: rotate(8deg); }
+  .hero-art > * { width: 190px; height: 290px; object-fit: contain; filter: drop-shadow(0 30px 40px rgba(0,0,0,.5)); margin: 0 -38px; }
+  .hero-art > img { width: auto; margin: 0 -14px; }
+  .hero-art > :nth-child(2) { height: 350px; position: relative; z-index: 1; transform: translateY(-30px); }
+  .hero-art > svg:nth-child(2) { width: 230px; }
+  .hero-art > :first-child { transform: rotate(-8deg); }
+  .hero-art > :last-child { transform: rotate(8deg); }
 }
 .hero-title { font-family: var(--serif); font-weight: 500; font-size: clamp(40px, 8vw, 76px); line-height: 1.02; margin: 0 0 18px; max-width: 14ch; }
 .hero-sub { font-size: 17px; color: rgba(255,255,255,.75); max-width: 52ch; margin: 0 0 28px; }
@@ -725,3 +727,17 @@ body.loja {
 .spot-dots { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
 .spot-dots button { width: 9px; height: 9px; border-radius: 99px; border: 0; padding: 0; background: #444; transition: .25s; }
 .spot-dots button.on { width: 26px; background: var(--yellow); }
+
+/* Fotos dos modelos (fundo transparente): inteiras, centralizadas, sem cortar */
+.card-media img.img-modelo, .pd-main img.img-modelo, .arch img.img-modelo, .cat-art img.img-modelo, .prow-img img.img-modelo {
+  width: auto; max-width: 86%; height: 82%; object-fit: contain; border-radius: 0;
+  filter: drop-shadow(0 14px 18px rgba(0,0,0,.45));
+}
+.arch img.img-modelo { height: 76%; }
+.cat-art img.img-modelo { height: 84%; }
+.prow-img img.img-modelo { height: 88%; filter: none; }
+/* no topo, as fotos não passam muito do tamanho original para não borrar */
+@media (min-width: 960px) {
+  .hero-art > img { height: 260px; }
+  .hero-art > img:nth-child(2) { height: 300px; }
+}
