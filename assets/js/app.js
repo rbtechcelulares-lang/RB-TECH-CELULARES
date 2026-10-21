@@ -182,6 +182,7 @@
           RB.imagemProduto(p, true) +
           '<span class="tag ' + (p.condicao === 'Seminovo' ? '' : 'tag-gold') + '">' + esc(p.condicao) + '</span>' +
           (RB.emPromocao(p) ? '<span class="tag tag-star">Promoção</span>' : '') +
+          (RB.sobEncomenda(p) ? '<span class="tag tag-enc">📦 Sob encomenda</span>' : '') +
         '</div>' +
         '<div class="card-body">' +
           '<h3>' + esc(p.modelo) + '</h3>' +
@@ -366,7 +367,7 @@
           RB.imagemProduto(p) + '</div></a>' +
         '<div class="spot-info">' +
           '<span class="ribbon">' + esc(promo.faixa || (off ? 'Oferta da semana' : 'Destaque da semana')) + '</span>' +
-          '<p class="eyebrow">' + esc(p.condicao) + ' · garantia ' + esc(p.garantia || cat.loja.garantiaPadrao) + '</p>' +
+          '<p class="eyebrow">' + esc(p.condicao) + ' · garantia ' + esc(p.garantia || cat.loja.garantiaPadrao) + (RB.sobEncomenda(p) ? ' · sob encomenda' : '') + '</p>' +
           '<h2 class="spot-title">' + esc(RB.nomeProduto(p)) + '</h2>' +
           (promo.texto ? '<p class="spot-text">' + esc(promo.texto) + '</p>' : '') +
           '<p class="spot-sub">' + esc(p.cor) + (!RB.ehIphone(p) ? (p.specs ? ' · ' + esc(p.specs) : '') : ' · bateria ' + esc(RB.batTexto(p, cat)) + ' · checklist completo') + '</p>' +
@@ -577,7 +578,7 @@
             '<button class="' + (i === 0 ? 'on' : '') + '" data-i="' + i + '"><img src="' + esc(f) + '" alt="Foto ' + (i + 1) + '"></button>').join('') + '</div>' : '') +
         '</div>' +
         '<div class="pd-info">' +
-          '<p class="eyebrow eyebrow-dark">' + esc(p.condicao) + ' · Garantia ' + esc(p.garantia || cat.loja.garantiaPadrao) + '</p>' +
+          '<p class="eyebrow eyebrow-dark">' + esc(p.condicao) + ' · Garantia ' + esc(p.garantia || cat.loja.garantiaPadrao) + (RB.sobEncomenda(p) ? ' · Sob encomenda' : '') + '</p>' +
           '<h2 id="sheet-title" class="pd-title">' + esc(p.modelo) + '</h2>' +
           '<p class="card-meta"><span class="dot" style="background:' + esc(p.corHex || '#ccc') + '"></span>' + esc(p.cor) + ' · ' + esc(p.armazenamento) +
             (!RB.ehIphone(p) ? (p.specs ? ' · ' + esc(p.specs) : '') : ' · ' + (RB.batNumero(p, cat) ? batteryIcon(RB.batNumero(p, cat)) + ' ' : '') + 'bateria ' + esc(RB.batTexto(p, cat))) + '</p>' +
@@ -592,6 +593,8 @@
             return '<li class="ck ck-' + esc(c.status) + '"><span class="ck-ic">' + st.icon + '</span><div><strong>' + esc(it.label) + '</strong>' +
               '<small>' + esc(c.nota || st.label) + '</small></div></li>';
           }).join('') + '</ul>') +
+          (RB.sobEncomenda(p) ? '<div class="enc-aviso"><span>📦</span><div><p>' + RB.formatar(cat, RB.texto(cat, 'encomendaAviso')) + '</p>' +
+            '<small>Prazo de entrega: <b>' + esc(prazoEncomenda(p)) + '</b></small></div></div>' : '') +
           (p.observacoes ? '<p class="pd-obs">' + esc(p.observacoes) + '</p>' : '') +
         '</div>' +
       '</div>' +
@@ -759,12 +762,15 @@
       '<li class="ck ck-ok"><span class="ck-ic">✓</span><div><strong>' + esc(k) + '</strong><small>' + esc(v) + '</small></div></li>').join('') + '</ul>';
   }
 
+  const prazoEncomenda = (p) => String(p.prazo || '').trim() || RB.texto(cat, 'encomendaPrazo');
+
   function mensagem(p, r, aba, parcela, valor, lista, pix) {
     const linhas = ['Olá! Sou *' + nomeCliente.trim() + '* e montei uma proposta pelo site:', ''];
     linhas.push(!RB.ehIphone(p)
       ? ((RB.CATEGORIAS.find((c) => c.id === RB.categoria(p)) || {}).icone || '📦') + ' *' + RB.nomeProduto(p) + '* · ' + p.cor + ' · ' + p.condicao + (p.specs ? ' · ' + p.specs : '')
       : '📱 *' + RB.nomeProduto(p) + '* · ' + p.cor + ' · ' + p.condicao + ' · bateria ' + RB.batTexto(p, cat));
     linhas.push('Valor: ' + money(p.preco));
+    if (RB.sobEncomenda(p)) linhas.push('📦 *Sob encomenda* · prazo: ' + prazoEncomenda(p));
     if (r) {
       const bat = cat.avaliacao.bateria.find((b) => b.id === entrada.bateriaId);
       const defs = entrada.defeitos.map((id) => (cat.avaliacao.defeitos.find((d) => d.id === id) || {}).label).filter(Boolean);

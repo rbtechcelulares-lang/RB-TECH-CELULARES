@@ -751,3 +751,11 @@ body.loja {
 .top-slogan .hl { color: var(--yellow, #f5c542); }
 @media (max-width: 359px) { .top-slogan { display: none; } }
 @media (min-width: 860px) { .top-slogan { font-size: 14px; max-width: 200px; } }
+
+/* Sob encomenda */
+.tag-enc { top: auto; bottom: 10px; left: 10px; background: #111; color: #f5c542; border: 1px solid #d9a514; }
+.enc-aviso { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; padding: 12px 14px; border-radius: 14px; border: 1.5px dashed #f5c542; background: #1a160a; }
+.enc-aviso > span { font-size: 20px; line-height: 1.2; }
+.enc-aviso p { margin: 0 0 4px; color: #fff; font-size: 14px; }
+.enc-aviso small { color: rgba(255,255,255,.7); font-size: 13px; }
+.enc-aviso .hl { color: #f5c542; }

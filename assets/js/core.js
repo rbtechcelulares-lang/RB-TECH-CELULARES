@@ -133,6 +133,7 @@
   const noCatalogo = (p) => p.disponivel !== false;
   const ativo = (p) => noTopo(p) || naVitrine(p) || noCatalogo(p);
   const emPromocao = (p) => noTopo(p) || naVitrine(p);
+  const sobEncomenda = (p) => !!p.encomenda;
 
   // Saúde da bateria: % informada; aparelho novo = 100%; senão a faixa da linha
   // (Admin › iPhones, ex.: "80% a 83%"); sem nada disso, "revisada"
@@ -285,6 +286,10 @@
       ['avisoS', 'Texto', 'Os valores da proposta são apenas simulações.\nA avaliação do seu usado pode mudar conforme a avaliação do consultor!'],
       ['avisoB', 'Botão', 'Continuar para o WhatsApp']
     ] },
+    { grupo: 'Sob encomenda', itens: [
+      ['encomendaAviso', 'Aviso na página do aparelho', 'Este aparelho é *sob encomenda*. Confirmamos prazo e disponibilidade pelo WhatsApp.'],
+      ['encomendaPrazo', 'Prazo padrão (quando o aparelho não tiver prazo próprio)', 'a combinar']
+    ] },
     { grupo: 'Mensagens de WhatsApp', itens: [
       ['msgGeral', 'Botões gerais de WhatsApp', 'Olá! Vim pelo site e gostaria de atendimento.']
     ] }
@@ -432,6 +437,6 @@
     DRAFT_KEY, CHECKLIST_ITENS, STATUS,
     money, esc, lerRascunho, carregarCatalogo,
     TEXTOS, texto, formatar, registrar, limparSupabase, abrirAviso, cabecalhosSupabase, campanhaVigente, abrirPopup,
-    avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, batNumero, CATEGORIAS, categoria, ehIphone, ehMac, ehNovo, noTopo, naVitrine, noCatalogo, ativo, emPromocao, nomeProduto, phoneSVG, produtoSVG, fotoModelo, imagemProduto, sha256
+    avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, batNumero, CATEGORIAS, categoria, ehIphone, ehMac, ehNovo, noTopo, naVitrine, noCatalogo, ativo, emPromocao, sobEncomenda, nomeProduto, phoneSVG, produtoSVG, fotoModelo, imagemProduto, sha256
   };
 })(window);

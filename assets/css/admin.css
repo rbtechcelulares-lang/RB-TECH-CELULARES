@@ -208,3 +208,4 @@ details.a-card summary h3 { display: inline; }
 .topo-lista { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 14px; }
 .topo-item { display: inline-flex; align-items: center; gap: 6px; background: var(--gold-soft); border: 1px solid #e6d3b2; border-radius: 999px; padding: 6px 6px 6px 12px; font-size: 13px; font-weight: 600; }
 .topo-item button { border: 0; background: #fff; width: 22px; height: 22px; border-radius: 50%; font-weight: 800; line-height: 1; }
+.onde button[data-onde="encomenda"].on { background: #3a2a05; border-color: #c9971b; color: #f5c542; }

@@ -213,6 +213,7 @@
               '<button data-onde="topo" data-i="' + i + '" class="' + (RB.noTopo(p) ? 'on' : '') + '" title="Promoção do topo da página inicial">⭐ Topo</button>' +
               '<button data-onde="vitrine" data-i="' + i + '" class="' + (RB.naVitrine(p) ? 'on' : '') + '" title="Vitrine logo abaixo, na página inicial">🏠 Vitrine</button>' +
               '<button data-onde="catalogo" data-i="' + i + '" class="' + (RB.noCatalogo(p) ? 'on' : '') + '" title="Página Catálogo">📚 Catálogo</button>' +
+              '<button data-onde="encomenda" data-i="' + i + '" class="' + (RB.sobEncomenda(p) ? 'on' : '') + '" title="Aparelho sob encomenda (não está em estoque)">📦 Encomenda</button>' +
             '</div>' +
             '<div class="prow-act">' +
               '<button class="btn btn-sm btn-outline" data-ed="' + i + '">Editar</button>' +
@@ -227,6 +228,7 @@
         if (b.dataset.onde === 'topo') p.topo = !RB.noTopo(p);
         if (b.dataset.onde === 'vitrine') { p.vitrine = !RB.naVitrine(p); delete p.destaque; }
         if (b.dataset.onde === 'catalogo') p.disponivel = !RB.noCatalogo(p);
+        if (b.dataset.onde === 'encomenda') p.encomenda = !RB.sobEncomenda(p);
         salvar(); renderProdutos();
       }));
       $$('[data-ed]').forEach((b) => b.addEventListener('click', () => abrirEditor(Number(b.dataset.ed))));
@@ -331,7 +333,10 @@
           '<label class="check"><input type="checkbox" name="topo"' + (RB.noTopo(p) ? ' checked' : '') + '> ⭐ Promoção (topo da página inicial)</label>' +
           '<label class="check"><input type="checkbox" name="vitrine"' + (RB.naVitrine(p) ? ' checked' : '') + '> 🏠 Vitrine (logo abaixo, na página inicial)</label>' +
           '<label class="check"><input type="checkbox" name="disponivel"' + (RB.noCatalogo(p) ? ' checked' : '') + '> 📚 Visível no catálogo</label>' +
-        '</div></div>' +
+          '<label class="check"><input type="checkbox" name="encomenda"' + (RB.sobEncomenda(p) ? ' checked' : '') + '> 📦 Sob encomenda</label>' +
+        '</div>' +
+        '<label class="field" id="ed-prazo"><span>Prazo da encomenda (opcional)</span><input name="prazo" value="' + esc(p.prazo || '') + '" placeholder="Ex.: 5 a 10 dias úteis"></label>' +
+      '</div>' +
 
       '<div class="ed-foot"><button type="button" class="btn btn-outline" data-x>Cancelar</button>' +
       '<button type="submit" class="btn btn-ink">Salvar</button></div>';
@@ -378,6 +383,8 @@
       $('#dl-modelos', f).innerHTML = (MODELOS[f.categoria.value] || []).map((m) => '<option value="' + esc(m) + '">').join('');
     };
     f.categoria.addEventListener('change', tipo); tipo();
+    const prazo = () => ($('#ed-prazo', f).hidden = !f.encomenda.checked);
+    f.encomenda.addEventListener('change', prazo); prazo();
     f.bateria.addEventListener('input', () => ($('#bat-v').textContent = f.bateria.value + '%'));
     f.semBateria.addEventListener('change', () => {
       f.bateria.disabled = f.semBateria.checked;
@@ -412,7 +419,9 @@
         observacoes: f.observacoes.value.trim(),
         topo: f.topo.checked,
         vitrine: f.vitrine.checked,
-        disponivel: f.disponivel.checked
+        disponivel: f.disponivel.checked,
+        encomenda: f.encomenda.checked,
+        prazo: f.prazo.value.trim()
       });
       RB.CHECKLIST_ITENS.forEach((it) => {
         p.checklist[it.id] = { status: (f['ck-' + it.id].value || 'ok'), nota: f['nota-' + it.id].value.trim() };
