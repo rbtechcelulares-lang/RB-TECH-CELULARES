@@ -45,7 +45,12 @@
       montarCatalogo();
     } else {
       renderInicio();
-      const vitrine = todos().filter((p) => RB.ehIphone(p)).sort((a, b) => (RB.emPromocao(b) ? 1 : 0) - (RB.emPromocao(a) ? 1 : 0)).slice(0, 3);
+      // topo: os 3 modelos Pro/Pro Max mais caros do site (um por modelo), o mais caro no centro
+      const porModelo = {};
+      todos().filter((p) => RB.ehIphone(p) && /pro/i.test(p.modelo) && RB.fotoModelo(p))
+        .forEach((p) => { if (!porModelo[p.modelo] || p.preco > porModelo[p.modelo].preco) porModelo[p.modelo] = p; });
+      const top = Object.values(porModelo).sort((a, b) => b.preco - a.preco).slice(0, 3);
+      const vitrine = top.length === 3 ? [top[1], top[0], top[2]] : top;
       $('#hero-art').innerHTML = vitrine.map((p) => (RB.fotoModelo(p) ? '<img src="' + RB.fotoModelo(p) + '" alt="">' : RB.phoneSVG(p.corHex))).join('');
       renderDestaque();
       montarAvaliacaoPagina();
