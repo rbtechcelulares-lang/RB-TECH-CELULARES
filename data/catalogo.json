@@ -338,11 +338,12 @@
     ]
   },
   "promocao": {
+    "produtoId": "p-15-128gb",
     "faixa": "Oferta da semana",
     "texto": "Revisado, com garantia e checklist completo. Aceitamos seu usado na troca."
   },
   "popup": {
-    "ativo": false,
+    "ativo": true,
     "selo": "Só esta semana",
     "titulo": "Ganhe *R$ 100 OFF* no seu iPhone",
     "texto": "Toque em \"Salvar meu cupom\" e ganhe R$ 100 de desconto na compra de qualquer iPhone seminovo.",
@@ -353,7 +354,7 @@
     "link": "",
     "imagem": "",
     "frequencia": "sessao",
-    "atraso": 2,
+    "atraso": 1,
     "inicio": "",
     "fim": "",
     "mensagem": "Olá! Quero ativar meu cupom *{cupom}* da promoção \"{titulo}\". 🎟️"
@@ -369,7 +370,7 @@
   },
   "produtos": [
     {
-      "id": "p-11-64gb",
+      "id": "p-iphone-11-64gb-cores-variadas-o6oy",
       "modelo": "iPhone 11",
       "armazenamento": "64GB",
       "cor": "Cores variadas",
@@ -379,6 +380,7 @@
       "preco": 950,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -407,10 +409,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-11-128gb",
@@ -423,6 +422,7 @@
       "preco": 1100,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -451,10 +451,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-11pro-64gb",
@@ -467,6 +464,7 @@
       "preco": 1050,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -495,10 +493,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-11pro-256gb",
@@ -511,6 +506,7 @@
       "preco": 1299,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -539,10 +535,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-11promax-256gb",
@@ -555,6 +548,7 @@
       "preco": 1599,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -583,10 +577,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-12-64gb",
@@ -599,6 +590,7 @@
       "preco": 1100,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -627,10 +619,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-12-128gb",
@@ -643,6 +632,7 @@
       "preco": 1499,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -671,10 +661,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-12-256gb",
@@ -687,6 +674,7 @@
       "preco": 1699,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -715,10 +703,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-12pro-128gb",
@@ -731,6 +716,7 @@
       "preco": 1600,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -759,10 +745,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-12promax-128gb",
@@ -775,6 +758,7 @@
       "preco": 2200,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -803,10 +787,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-12promax-256gb",
@@ -819,6 +800,7 @@
       "preco": 2349,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -847,10 +829,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-13-128gb",
@@ -863,6 +842,7 @@
       "preco": 1900,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -891,10 +871,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-13-256gb",
@@ -907,6 +884,7 @@
       "preco": 2100,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -935,10 +913,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-13pro-128gb",
@@ -951,6 +926,7 @@
       "preco": 2300,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -979,10 +955,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-13pro-256gb",
@@ -995,6 +968,7 @@
       "preco": 2500,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1023,10 +997,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-13promax-128gb",
@@ -1039,6 +1010,7 @@
       "preco": 2650,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1067,10 +1039,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-13promax-256gb",
@@ -1083,6 +1052,7 @@
       "preco": 2850,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1111,10 +1081,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-14-128gb",
@@ -1127,6 +1094,7 @@
       "preco": 2299,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1155,10 +1123,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-14-256gb",
@@ -1171,6 +1136,7 @@
       "preco": 2499,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1199,10 +1165,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-14pro-128gb",
@@ -1215,6 +1178,7 @@
       "preco": 2899,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1243,10 +1207,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-14pro-256gb",
@@ -1259,6 +1220,7 @@
       "preco": 3100,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1287,10 +1249,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-14promax-128gb",
@@ -1303,6 +1262,7 @@
       "preco": 3399,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1331,10 +1291,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-14promax-256gb",
@@ -1347,6 +1304,7 @@
       "preco": 3699,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1375,10 +1333,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-15-128gb",
@@ -1391,6 +1346,7 @@
       "preco": 2799,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": true,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1419,10 +1375,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": true,
-      "topo": true
+      }
     },
     {
       "id": "p-15-256gb",
@@ -1435,6 +1388,7 @@
       "preco": 3100,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1463,10 +1417,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-15pro-128gb",
@@ -1479,6 +1430,7 @@
       "preco": 3499,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": true,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1507,10 +1459,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": true,
-      "topo": false
+      }
     },
     {
       "id": "p-15pro-256gb",
@@ -1523,6 +1472,7 @@
       "preco": 3999,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": true,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1551,10 +1501,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": true,
-      "topo": false
+      }
     },
     {
       "id": "p-15promax-256gb",
@@ -1567,6 +1514,7 @@
       "preco": 4100,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1595,10 +1543,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-15promax-512gb",
@@ -1611,6 +1556,7 @@
       "preco": 4300,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1639,10 +1585,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-16-128gb",
@@ -1655,6 +1598,7 @@
       "preco": 3800,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1683,10 +1627,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-16-256gb",
@@ -1699,6 +1640,7 @@
       "preco": 4000,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1727,10 +1669,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-16pro-128gb",
@@ -1743,6 +1682,7 @@
       "preco": 4500,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1771,10 +1711,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-16pro-256gb",
@@ -1787,6 +1724,7 @@
       "preco": 4899,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1815,10 +1753,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-16promax-256gb",
@@ -1831,6 +1766,7 @@
       "preco": 5400,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1859,10 +1795,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-16promax-512gb",
@@ -1875,6 +1808,7 @@
       "preco": 5600,
       "precoAntigo": 0,
       "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1903,10 +1837,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-16pro-256gb-novo",
@@ -1919,6 +1850,7 @@
       "preco": 7150,
       "precoAntigo": 0,
       "garantia": "1 ano",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia. Consulte as cores disponíveis pelo WhatsApp.",
@@ -1947,10 +1879,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-16promax-256gb-novo",
@@ -1963,6 +1892,7 @@
       "preco": 7550,
       "precoAntigo": 0,
       "garantia": "1 ano",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia. Consulte as cores disponíveis pelo WhatsApp.",
@@ -1991,10 +1921,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-18pro-256gb-bordeaux",
@@ -2008,6 +1935,7 @@
       "preco": 8450,
       "precoAntigo": 0,
       "garantia": "1 ano",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia.",
@@ -2036,9 +1964,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-18pro-256gb-branco",
@@ -2052,6 +1978,7 @@
       "preco": 8150,
       "precoAntigo": 0,
       "garantia": "1 ano",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia.",
@@ -2080,9 +2007,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-18pro-256gb-azul",
@@ -2096,6 +2021,7 @@
       "preco": 8150,
       "precoAntigo": 0,
       "garantia": "1 ano",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia.",
@@ -2124,9 +2050,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-18promax-256gb-bordeaux",
@@ -2140,6 +2064,7 @@
       "preco": 10250,
       "precoAntigo": 0,
       "garantia": "1 ano",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia.",
@@ -2168,9 +2093,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-18promax-256gb-preto",
@@ -2184,6 +2107,7 @@
       "preco": 9150,
       "precoAntigo": 0,
       "garantia": "1 ano",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia.",
@@ -2212,9 +2136,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-18promax-256gb-branco",
@@ -2228,6 +2150,7 @@
       "preco": 9150,
       "precoAntigo": 0,
       "garantia": "1 ano",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia.",
@@ -2256,9 +2179,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-18promax-256gb-azul",
@@ -2272,6 +2193,7 @@
       "preco": 9750,
       "precoAntigo": 0,
       "garantia": "1 ano",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia.",
@@ -2300,9 +2222,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-18promax-512gb-bordeaux",
@@ -2316,6 +2236,7 @@
       "preco": 11250,
       "precoAntigo": 0,
       "garantia": "1 ano",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia.",
@@ -2344,9 +2265,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-18promax-512gb-preto",
@@ -2360,6 +2279,7 @@
       "preco": 10400,
       "precoAntigo": 0,
       "garantia": "1 ano",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia.",
@@ -2388,9 +2308,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-18promax-512gb-azul",
@@ -2404,6 +2322,7 @@
       "preco": 10400,
       "precoAntigo": 0,
       "garantia": "1 ano",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia.",
@@ -2432,9 +2351,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "vitrine": false,
-      "topo": false
+      }
     },
     {
       "id": "p-macbookneo-256gb-silver",
@@ -2449,12 +2366,11 @@
       "preco": 5399,
       "precoAntigo": 0,
       "garantia": "1 ano",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "MacBook novo, lacrado, com 1 ano de garantia.",
-      "checklist": {},
-      "vitrine": false,
-      "topo": false
+      "checklist": {}
     },
     {
       "id": "p-macbookneo-256gb-indigo",
@@ -2469,12 +2385,11 @@
       "preco": 5399,
       "precoAntigo": 0,
       "garantia": "1 ano",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "MacBook novo, lacrado, com 1 ano de garantia.",
-      "checklist": {},
-      "vitrine": false,
-      "topo": false
+      "checklist": {}
     },
     {
       "id": "p-macbookneo-512gb-citrus",
@@ -2489,12 +2404,11 @@
       "preco": 5999,
       "precoAntigo": 0,
       "garantia": "1 ano",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "MacBook novo, lacrado, com 1 ano de garantia.",
-      "checklist": {},
-      "vitrine": false,
-      "topo": false
+      "checklist": {}
     },
     {
       "id": "p-macbookairm5-512gb-skyblue",
@@ -2509,12 +2423,11 @@
       "preco": 8500,
       "precoAntigo": 0,
       "garantia": "1 ano",
+      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "MacBook novo, lacrado, com 1 ano de garantia.",
-      "checklist": {},
-      "vitrine": false,
-      "topo": false
+      "checklist": {}
     }
   ],
   "textos": {},
