@@ -385,8 +385,9 @@
         av.modelos.map((m, i) =>
           '<div class="tm"><div class="tm-name">' + inp('avaliacao.modelos.' + i + '.nome', m.nome, 'placeholder="Modelo"') +
           '<button class="icon-btn" data-delm="' + i + '" title="Remover modelo">🗑</button></div>' +
+          '<label class="check sm"><input type="checkbox" data-bind="avaliacao.modelos.' + i + '.whatsapp"' + (m.whatsapp ? ' checked' : '') + '> Avaliar pelo WhatsApp (sem valor fixo no site)</label>' +
           '<div class="tm-vals">' + Object.keys(m.valores).map((a) =>
-            '<label class="tv"><span>' + esc(a) + 'GB</span>' + num('avaliacao.modelos.' + i + '.valores.' + a, m.valores[a], 'min="0"') +
+            '<label class="tv"><span>' + esc(RB.fmtGB(a)) + '</span>' + num('avaliacao.modelos.' + i + '.valores.' + a, m.valores[a], 'min="0"') +
             '<button class="icon-btn sm" data-dela="' + i + '|' + esc(a) + '" title="Remover">×</button></label>'
           ).join('') +
           '<button class="add-sm" data-adda="' + i + '">+ capacidade</button></div></div>'
@@ -422,7 +423,7 @@
       const [i, a] = b.dataset.dela.split('|'); delete av.modelos[i].valores[a]; re();
     }));
     $$('[data-adda]', el).forEach((b) => b.addEventListener('click', () => {
-      const a = (prompt('Capacidade em GB (ex.: 128, 256, 512, 1024):') || '').replace(/\D/g, '');
+      const a = (prompt('Capacidade em GB (ex.: 128, 256, 512; 1TB = 1024, 2TB = 2048):') || '').replace(/\D/g, '');
       if (a) { av.modelos[b.dataset.adda].valores[a] = 0; re(); }
     }));
     $('#addm', el).addEventListener('click', () => {

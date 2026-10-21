@@ -186,7 +186,7 @@
         "id": "16",
         "nome": "iPhone 16",
         "valores": {
-          "128": 3350,
+          "128": 3150,
           "256": 3399
         }
       },
@@ -213,6 +213,46 @@
           "256": 4600,
           "512": 4990
         }
+      },
+      {
+        "id": "17",
+        "nome": "iPhone 17",
+        "valores": {
+          "256": 0,
+          "512": 0
+        },
+        "whatsapp": true
+      },
+      {
+        "id": "air",
+        "nome": "iPhone Air",
+        "valores": {
+          "256": 0,
+          "512": 0,
+          "1024": 0
+        },
+        "whatsapp": true
+      },
+      {
+        "id": "17pro",
+        "nome": "iPhone 17 Pro",
+        "valores": {
+          "256": 0,
+          "512": 0,
+          "1024": 0
+        },
+        "whatsapp": true
+      },
+      {
+        "id": "17promax",
+        "nome": "iPhone 17 Pro Max",
+        "valores": {
+          "256": 0,
+          "512": 0,
+          "1024": 0,
+          "2048": 0
+        },
+        "whatsapp": true
       }
     ],
     "bateria": [

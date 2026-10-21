@@ -140,7 +140,7 @@
             av.modelos.map((m) => '<option value="' + esc(m.id) + '"' + (m.id === entrada.modeloId ? ' selected' : '') + '>' + esc(m.nome) + '</option>').join('') +
           '</select></label>' +
           '<label class="field"><span>Armazenamento</span><select data-k="arm"' + (modelo ? '' : ' disabled') + '>' +
-            arms.map((a) => '<option value="' + esc(a) + '"' + (a === entrada.armazenamento ? ' selected' : '') + '>' + esc(a) + 'GB</option>').join('') +
+            arms.map((a) => '<option value="' + esc(a) + '"' + (a === entrada.armazenamento ? ' selected' : '') + '>' + esc(RB.fmtGB(a)) + '</option>').join('') +
           '</select></label>' +
         '</div>' +
         '<fieldset class="field"><legend>Saúde da bateria <small>(Ajustes › Bateria)</small></legend><div class="pills">' +
@@ -179,9 +179,14 @@
       return '<div class="eval eval-bad"><strong>Não conseguimos aceitar este aparelho.</strong><p>' + esc(r.recusado) +
         '. Fale com a gente no WhatsApp para entender outras opções.</p></div>';
     }
+    if (r.consultar) {
+      return '<div class="eval eval-whats"><span class="sim-step">Avaliação pelo WhatsApp</span>' +
+        '<strong>' + esc(r.modelo) + ' ' + esc(RB.fmtGB(r.armazenamento)) + '</strong>' +
+        '<p>Este modelo é avaliado individualmente. Envie a proposta e respondemos com o valor do seu aparelho.</p></div>';
+    }
     return (
       '<div class="eval">' +
-        '<div class="eval-row"><span>' + esc(r.modelo) + ' ' + esc(r.armazenamento) + 'GB</span><span>' + money(r.base) + '</span></div>' +
+        '<div class="eval-row"><span>' + esc(r.modelo) + ' ' + esc(RB.fmtGB(r.armazenamento)) + '</span><span>' + money(r.base) + '</span></div>' +
         r.descontos.map((d) => '<div class="eval-row neg"><span>' + esc(d.label) + '</span><span>−' + money(d.valor) + '</span></div>').join('') +
         '<div class="eval-total"><span>Pré-avaliação do seu iPhone</span><strong>' + money(r.total) + '</strong></div>' +
         '<p class="hint">' + esc(cat.avaliacao.observacao) + '</p>' +
@@ -307,6 +312,7 @@
   function renderPagamento(p, r, pag) {
     const box = $('#sim-pay');
     const temEntrada = entrada.usar && r && !r.recusado && r.total > 0;
+    const consultar = entrada.usar && r && r.consultar;
     const valEntrada = temEntrada ? r.total : 0;
     const diferenca = Math.max(0, p.preco - valEntrada);
     const sobra = Math.max(0, valEntrada - p.preco);
@@ -331,7 +337,10 @@
           '<button data-aba="diferenca" class="' + (aba === 'diferenca' ? 'on' : '') + '">Pagar a diferença<small>' + money(diferenca) + '</small></button>' +
           '<button data-aba="total" class="' + (aba === 'total' ? 'on' : '') + '">Valor total sem entrada<small>' + money(p.preco) + '</small></button>' +
         '</div>';
-    } else {
+    } else if (consultar) {
+      html += '<div class="summary"><div><span>' + esc(RB.nomeProduto(p)) + '</span><span>' + money(p.preco) + '</span></div>' +
+        '<div class="neg"><span>Seu ' + esc(r.modelo) + ' de entrada</span><span>a avaliar</span></div>' +
+        '<p class="hint ok">Abaixo, o valor total. O valor do seu iPhone será descontado após a avaliação pelo WhatsApp.</p></div>';
     }
 
     if (valor <= 0) {
@@ -368,7 +377,7 @@
 
     const btn = $('#enviar', box);
     if (!pode) { btn.removeAttribute('href'); return; }
-    btn.href = RB.linkWhats(cat, mensagem(p, temEntrada ? r : null, aba, pag.parcela, valor, lista, pix));
+    btn.href = RB.linkWhats(cat, mensagem(p, temEntrada || consultar ? r : null, aba, pag.parcela, valor, lista, pix));
   }
 
   function mensagem(p, r, aba, parcela, valor, lista, pix) {
@@ -379,13 +388,13 @@
       const bat = cat.avaliacao.bateria.find((b) => b.id === entrada.bateriaId);
       const defs = entrada.defeitos.map((id) => (cat.avaliacao.defeitos.find((d) => d.id === id) || {}).label).filter(Boolean);
       linhas.push('');
-      linhas.push('🔁 *Entrada:* ' + r.modelo + ' ' + r.armazenamento + 'GB');
+      linhas.push('🔁 *Entrada:* ' + r.modelo + ' ' + RB.fmtGB(r.armazenamento));
       if (bat) linhas.push('Bateria: ' + bat.label);
       linhas.push('Estado: ' + (defs.length ? defs.join(', ') : 'sem defeitos'));
-      linhas.push('Pré-avaliação: ' + money(r.total));
+      linhas.push(r.consultar ? 'Pré-avaliação: quero avaliar pelo WhatsApp' : 'Pré-avaliação: ' + money(r.total));
     }
     linhas.push('');
-    const tipo = r && aba === 'diferenca' ? 'Pagar a diferença' : 'Valor total';
+    const tipo = r && r.consultar ? 'Valor total (antes de descontar a entrada)' : r && aba === 'diferenca' ? 'Pagar a diferença' : 'Valor total';
     if (valor <= 0) {
       linhas.push('💳 ' + tipo + ': nada a pagar');
     } else if (parcela === 0) {

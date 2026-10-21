@@ -396,3 +396,8 @@ button { cursor: pointer; }
 /* Avaliação da página inicial */
 .card-light.escuro { border: 2px solid var(--gold); }
 .card-light.escuro #aval-go { background: var(--yellow); color: #111; font-weight: 800; }
+
+.eval-whats { display: grid; gap: 6px; justify-items: start; }
+.eval-whats p { margin: 0; }
+.escuro .eval-whats { border: 2px solid var(--yellow); }
+.escuro .eval-whats strong { font-size: 18px; color: var(--yellow); }

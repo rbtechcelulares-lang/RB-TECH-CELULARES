@@ -69,8 +69,15 @@
       base,
       descontos,
       recusado,
-      total: recusado ? 0 : Math.max(0, base - totalDesc)
+      consultar: !!modelo.whatsapp && !recusado, // sem valor fixo: a loja avalia pelo WhatsApp
+      total: recusado || modelo.whatsapp ? 0 : Math.max(0, base - totalDesc)
     };
+  }
+
+  // '256' → '256GB', '1024' → '1TB'
+  function fmtGB(gb) {
+    const n = Number(gb);
+    return n >= 1024 && n % 1024 === 0 ? n / 1024 + 'TB' : gb + 'GB';
   }
 
   /* ---------- Pagamento ---------- */
@@ -128,6 +135,6 @@
   global.RB = {
     DRAFT_KEY, CHECKLIST_ITENS, STATUS,
     money, esc, lerRascunho, carregarCatalogo,
-    avaliar, parcelas, valorPix, linkWhats, nomeProduto, phoneSVG, sha256
+    avaliar, fmtGB, parcelas, valorPix, linkWhats, nomeProduto, phoneSVG, sha256
   };
 })(window);
