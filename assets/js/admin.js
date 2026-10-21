@@ -441,17 +441,17 @@
     const pg = cat.pagamento;
     el.innerHTML =
       '<div class="a-head"><div><h2>Parcelas e taxas da maquininha</h2>' +
-      '<p class="muted">Informe o acréscimo (%) cobrado do cliente em cada número de parcelas. O site calcula: valor × (1 + taxa).</p></div></div>' +
+      '<p class="muted">Informe o acréscimo (%) cobrado do cliente em cada número de parcelas. O site calcula: valor × (1 + taxa). Deixe em branco as parcelas que você não oferece.</p></div></div>' +
       '<div class="a-card"><div class="ed-grid">' +
         '<label class="field"><span>Desconto no Pix/dinheiro (%)</span>' + num('pagamento.descontoPix', pg.descontoPix, 'min="0" max="50"') + '</label>' +
         '<label class="field"><span>Máximo de parcelas</span><select data-bind="pagamento.maxParcelas" data-num>' +
-          Array.from({ length: 18 }, (_, i) => i + 1).map((n) => '<option' + (n === Number(pg.maxParcelas) ? ' selected' : '') + '>' + n + '</option>').join('') +
+          Array.from({ length: 24 }, (_, i) => i + 1).map((n) => '<option' + (n === Number(pg.maxParcelas) ? ' selected' : '') + '>' + n + '</option>').join('') +
         '</select></label>' +
         '<label class="field"><span>Simular com o valor (R$)</span><input id="sim-v" type="number" value="3000"></label>' +
       '</div></div>' +
       '<div class="a-card"><div class="taxas">' +
         Array.from({ length: Number(pg.maxParcelas) || 12 }, (_, i) => i + 1).map((n) =>
-          '<label class="tx"><span>' + n + 'x</span><span class="pct">' + num('pagamento.taxas.' + n, pg.taxas[n] ?? 0, 'min="0"') + '<i>%</i></span>' +
+          '<label class="tx"><span>' + n + 'x</span><span class="pct"><input data-tx="' + n + '" type="number" inputmode="decimal" step="any" min="0" placeholder="não oferece" value="' + esc(pg.taxas[n] ?? '') + '"><i>%</i></span>' +
           '<small id="tx-' + n + '"></small></label>'
         ).join('') +
       '</div></div>';
@@ -462,8 +462,14 @@
         const s = $('#tx-' + x.n);
         if (s) s.textContent = x.n + 'x ' + money(x.parcela) + ' = ' + money(x.total);
       });
+      $$('[data-tx]', el).forEach((i) => { if (i.value === '') $('#tx-' + i.dataset.tx).textContent = 'Não aparece no site'; });
     };
     bind(el, (inpEl) => { if (inpEl.tagName === 'SELECT') renderPagamento(); else sim(); });
+    $$('[data-tx]', el).forEach((i) => i.addEventListener('input', () => {
+      const v = i.value.trim().replace(',', '.');
+      if (v === '') delete pg.taxas[i.dataset.tx]; else pg.taxas[i.dataset.tx] = Number(v);
+      salvar(); sim();
+    }));
     $('#sim-v').addEventListener('input', sim);
     sim();
   }

@@ -81,16 +81,20 @@
   }
 
   /* ---------- Pagamento ---------- */
-  // Acréscimo da maquininha aplicado sobre o valor: total = valor × (1 + taxa%)
+  // Acréscimo da maquininha aplicado sobre o valor: total = valor × (1 + taxa%).
+  // Parcelas sem taxa cadastrada não são oferecidas.
   function parcelas(cat, valor) {
     const pg = cat.pagamento;
-    const max = Math.max(1, Math.min(18, Number(pg.maxParcelas) || 12));
+    const max = Math.max(1, Math.min(24, Number(pg.maxParcelas) || 12));
     const lista = [];
     for (let n = 1; n <= max; n++) {
-      const taxa = Number(pg.taxas[n]) || 0;
+      const t = pg.taxas[n];
+      if (t === undefined || t === null || t === '') continue;
+      const taxa = Number(t) || 0;
       const total = round2(valor * (1 + taxa / 100));
       lista.push({ n, taxa, total, parcela: round2(total / n) });
     }
+    if (!lista.length) lista.push({ n: 1, taxa: 0, total: round2(valor), parcela: round2(valor) });
     return lista;
   }
 
