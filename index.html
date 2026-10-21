@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>RB Tech Celulares · iPhones com garantia</title>
+  <meta name="description" content="iPhones novos e seminovos revisados, com checklist completo, garantia e seu aparelho usado como entrada.">
+  <meta name="theme-color" content="#14110f">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2314110f'/%3E%3Ctext x='16' y='21' font-family='Georgia' font-size='14' fill='%23c9a46a' text-anchor='middle'%3ERB%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <div id="preview-bar" class="preview-bar" hidden>Pré-visualização do rascunho do admin · <a href="index.html">ver site publicado</a></div>
+
+  <header class="topbar">
+    <div class="wrap topbar-in">
+      <a href="#" class="brand" aria-label="Início">
+        <span class="brand-mark">RB</span>
+        <span class="brand-name" data-loja="nome">RB Tech Celulares</span>
+      </a>
+      <nav class="topnav">
+        <a href="#vitrine">iPhones</a>
+        <a href="#avaliar">Avaliar meu iPhone</a>
+        <a href="#como">Como funciona</a>
+      </nav>
+      <a class="btn btn-gold btn-sm js-whats" href="#" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap hero-in">
+      <div class="hero-text">
+      <p class="eyebrow">iPhones novos e seminovos</p>
+      <h1 class="hero-title" data-loja="slogan">Seu próximo iPhone começa aqui.</h1>
+      <p class="hero-sub" data-loja="subtitulo"></p>
+      <div class="hero-cta">
+        <a href="#vitrine" class="btn btn-gold">Ver iPhones disponíveis</a>
+        <a href="#avaliar" class="btn btn-ghost-light">Quanto vale o meu?</a>
+      </div>
+      <ul class="hero-badges">
+        <li><strong>Checklist</strong> de 6 itens em cada aparelho</li>
+        <li><strong>Seu usado</strong> vale como entrada</li>
+        <li><strong>Até <span data-pg="max">12</span>x</strong> no cartão</li>
+      </ul>
+      </div>
+      <a class="hero-art" id="hero-art" href="#vitrine" aria-hidden="true" tabindex="-1"></a>
+    </div>
+  </section>
+
+  <main>
+    <section id="vitrine" class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow eyebrow-dark">Vitrine</p>
+            <h2 class="section-title">Escolha o seu iPhone</h2>
+            <p class="section-sub">Toque no aparelho para ver fotos, checklist e simular com o seu iPhone de entrada.</p>
+          </div>
+        </div>
+        <div class="filters">
+          <div class="search">
+            <input id="busca" type="search" placeholder="Buscar modelo, ex: 13 Pro" aria-label="Buscar modelo">
+          </div>
+          <div class="chips" id="chips" role="tablist" aria-label="Filtrar por linha"></div>
+          <select id="ordem" aria-label="Ordenar">
+            <option value="destaque">Destaques</option>
+            <option value="menor">Menor preço</option>
+            <option value="maior">Maior preço</option>
+            <option value="bateria">Melhor bateria</option>
+          </select>
+        </div>
+        <div id="grid" class="grid"></div>
+        <p id="vazio" class="empty" hidden>Nenhum iPhone encontrado com esse filtro.</p>
+      </div>
+    </section>
+
+    <section id="avaliar" class="section section-ink">
+      <div class="wrap avaliar-in">
+        <div>
+          <p class="eyebrow">Pré-avaliação online</p>
+          <h2 class="section-title light">Quanto vale o seu iPhone?</h2>
+          <p class="section-sub light">Responda em 30 segundos e veja quanto o seu aparelho abate no próximo. Depois é só escolher o iPhone na vitrine.</p>
+        </div>
+        <div class="card-light" id="avaliar-box"></div>
+      </div>
+    </section>
+
+    <section id="como" class="section">
+      <div class="wrap">
+        <p class="eyebrow eyebrow-dark">Simples assim</p>
+        <h2 class="section-title">Como funciona</h2>
+        <ol class="steps">
+          <li><span>1</span><h3>Escolha o iPhone</h3><p>Todos com fotos reais, saúde da bateria e checklist de Face ID, câmeras, tela, tampa e sistema.</p></li>
+          <li><span>2</span><h3>Simule a entrada</h3><p>Informe o seu iPhone usado e o estado dele. A pré-avaliação aparece na hora.</p></li>
+          <li><span>3</span><h3>Escolha como pagar</h3><p>Pague só a diferença ou o valor total, no Pix ou parcelado, com as parcelas já calculadas.</p></li>
+          <li><span>4</span><h3>Feche no WhatsApp</h3><p>Sua proposta vai pronta para o nosso WhatsApp. Confirmamos o aparelho na loja e pronto.</p></li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-in">
+      <div>
+        <div class="brand brand-footer"><span class="brand-mark">RB</span><span data-loja="nome">RB Tech Celulares</span></div>
+        <p class="muted" data-loja="slogan"></p>
+      </div>
+      <div class="footer-info">
+        <p><a class="js-whats" href="#" target="_blank" rel="noopener">WhatsApp <span data-loja="whatsFmt"></span></a></p>
+        <p id="f-insta"></p>
+        <p data-loja="endereco"></p>
+        <p data-loja="horario"></p>
+      </div>
+    </div>
+    <div class="wrap footer-legal">© <span id="ano"></span> <span data-loja="nome">RB Tech Celulares</span> · Valores e pré-avaliação sujeitos a confirmação na loja.</div>
+  </footer>
+
+  <a class="fab-whats js-whats" href="#" target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.5-.3z"/></svg>
+  </a>
+
+  <!-- Detalhe do produto + simulador -->
+  <div class="sheet" id="sheet" hidden>
+    <div class="sheet-backdrop" data-fechar></div>
+    <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+      <button class="sheet-close" data-fechar aria-label="Fechar">×</button>
+      <div id="sheet-body"></div>
+    </div>
+  </div>
+
+  <script src="assets/js/core.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
