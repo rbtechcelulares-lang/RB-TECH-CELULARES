@@ -239,6 +239,9 @@
   /* ---------- Textos editáveis do site ---------- */
   // *trecho* fica em amarelo; {parcelas} vira o máximo de parcelas.
   const TEXTOS = [
+    { grupo: 'Topo do site', itens: [
+      ['topoSlogan', 'Frase ao lado da logo', 'Procedência e *garantia* de verdade.']
+    ] },
     { grupo: 'Faixa de confiança (abaixo do topo)', itens: [
       ['conf1T', 'Item 1 · título', 'Aparelhos revisados'], ['conf1S', 'Item 1 · detalhe', 'Checklist completo em cada iPhone'],
       ['conf2T', 'Item 2 · título', 'Até {parcelas}x no cartão'], ['conf2S', 'Item 2 · detalhe', 'Pix, débito e crédito'],

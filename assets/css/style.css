@@ -741,3 +741,13 @@ body.loja {
   .hero-art > img { height: 260px; }
   .hero-art > img:nth-child(2) { height: 300px; }
 }
+
+/* Frase ao lado da logo */
+.top-slogan {
+  margin: 0; padding-left: 12px; border-left: 2px solid var(--gold, #d9a514);
+  font-family: 'Inter Tight', var(--sans); font-weight: 800; letter-spacing: -.01em; text-transform: uppercase;
+  font-size: 12px; line-height: 1.15; color: #fff; max-width: 132px;
+}
+.top-slogan .hl { color: var(--yellow, #f5c542); }
+@media (max-width: 359px) { .top-slogan { display: none; } }
+@media (min-width: 860px) { .top-slogan { font-size: 14px; max-width: 200px; } }
