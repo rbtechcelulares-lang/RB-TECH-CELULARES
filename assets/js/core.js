@@ -212,9 +212,18 @@
     return h;
   }
 
+  // Aceita o que vier colado da tela do Supabase (ex.: NEXT_PUBLIC_SUPABASE_URL=https://…, aspas, espaços)
+  function limparSupabase(url, chave) {
+    const semPrefixo = (v) => String(v || '').trim().replace(/^[A-Z0-9_]+\s*=\s*/, '').replace(/^["']|["';]$/g, '').trim();
+    const m = String(url || '').match(/https:\/\/[a-z0-9-]+\.supabase\.co/i);
+    return { url: m ? m[0] : semPrefixo(url).replace(/\/+$/, ''), chave: semPrefixo(chave) };
+  }
+
   // tipo: visita | clique | whatsapp | popup
   function registrar(cat, tipo, dados) {
-    const r = cat.rastreamento || {};
+    const r0 = cat.rastreamento || {};
+    const lim = limparSupabase(r0.supabaseUrl, r0.supabaseChave);
+    const r = { supabaseUrl: lim.url, supabaseChave: lim.chave };
     if (!r.supabaseUrl || !r.supabaseChave || registrar.desligado) return;
     const d = dados || {};
     const corpo = {
@@ -313,7 +322,7 @@
   global.RB = {
     DRAFT_KEY, CHECKLIST_ITENS, STATUS,
     money, esc, lerRascunho, carregarCatalogo,
-    TEXTOS, texto, formatar, registrar, abrirAviso, cabecalhosSupabase, campanhaVigente, abrirPopup,
+    TEXTOS, texto, formatar, registrar, limparSupabase, abrirAviso, cabecalhosSupabase, campanhaVigente, abrirPopup,
     avaliar, fmtGB, parcelas, valorPix, linkWhats, nomeProduto, phoneSVG, sha256
   };
 })(window);

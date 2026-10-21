@@ -635,6 +635,10 @@
     const rs = cat.rastreamento;
     let chave = '';
     try { chave = localStorage.getItem(PAINEL_KEY) || ''; } catch (e) { /* ignora */ }
+    const lim0 = RB.limparSupabase(rs.supabaseUrl, rs.supabaseChave);
+    if (lim0.url !== (rs.supabaseUrl || '') || lim0.chave !== (rs.supabaseChave || '')) {
+      rs.supabaseUrl = lim0.url; rs.supabaseChave = lim0.chave; salvar();
+    }
     const pronto = rs.supabaseUrl && rs.supabaseChave;
     el.innerHTML =
       '<div class="a-head"><div><h2>Cliques e propostas</h2><p class="muted">Quantas vezes cada iPhone foi aberto e quantas propostas foram enviadas para o WhatsApp.</p></div>' +
@@ -655,7 +659,17 @@
         '<label class="field"><span>Chave do painel (fica só neste navegador)</span><input type="password" id="painel-chave" value="' + esc(chave) + '" autocomplete="off"></label>' +
         '<button class="btn btn-sm btn-ink" id="painel-ok">Salvar e carregar</button>' +
       '</details>';
-    bind(el);
+    bind(el, (campo) => {
+      if (!/^rastreamento\./.test(campo.dataset.bind || '')) return;
+      const lim = RB.limparSupabase(cat.rastreamento.supabaseUrl, cat.rastreamento.supabaseChave);
+      if (lim.url !== cat.rastreamento.supabaseUrl || lim.chave !== cat.rastreamento.supabaseChave) {
+        cat.rastreamento.supabaseUrl = lim.url;
+        cat.rastreamento.supabaseChave = lim.chave;
+        campo.value = campo.dataset.bind.endsWith('Url') ? lim.url : lim.chave;
+        salvar();
+        toast('Ajustei o que foi colado: deixei só o endereço/chave.');
+      }
+    });
     $$('[data-per]', el).forEach((b) => b.addEventListener('click', () => { periodo = b.dataset.per; renderCliques(); }));
     $('#painel-ok').addEventListener('click', () => {
       try { localStorage.setItem(PAINEL_KEY, $('#painel-chave').value.trim()); } catch (e) { /* ignora */ }
