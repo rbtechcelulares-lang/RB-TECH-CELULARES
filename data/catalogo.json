@@ -343,7 +343,7 @@
     "texto": "Revisado, com garantia e checklist completo. Aceitamos seu usado na troca."
   },
   "popup": {
-    "ativo": true,
+    "ativo": false,
     "selo": "Só esta semana",
     "titulo": "Ganhe *R$ 100 OFF* no seu iPhone",
     "texto": "Toque em \"Salvar meu cupom\" e ganhe R$ 100 de desconto na compra de qualquer iPhone seminovo.",
@@ -409,7 +409,7 @@
           "nota": ""
         }
       },
-      "vitrine": true
+      "vitrine": false
     },
     {
       "id": "p-11-128gb",
@@ -422,7 +422,6 @@
       "preco": 1100,
       "precoAntigo": 0,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -451,7 +450,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "vitrine": true
     },
     {
       "id": "p-11pro-64gb",
@@ -493,7 +493,13 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "encomenda": true,
+      "categoria": "iphone",
+      "specs": "",
+      "topo": false,
+      "vitrine": false,
+      "prazo": "1 a 2 dias"
     },
     {
       "id": "p-11pro-256gb",
@@ -535,7 +541,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "encomenda": true
     },
     {
       "id": "p-11promax-256gb",
@@ -577,7 +584,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "encomenda": true
     },
     {
       "id": "p-12-64gb",
@@ -632,7 +640,6 @@
       "preco": 1499,
       "precoAntigo": 0,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -661,7 +668,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "vitrine": true
     },
     {
       "id": "p-12-256gb",
@@ -674,7 +682,6 @@
       "preco": 1699,
       "precoAntigo": 0,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -703,7 +710,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "vitrine": true
     },
     {
       "id": "p-12pro-128gb",
@@ -745,7 +753,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "encomenda": true
     },
     {
       "id": "p-12promax-128gb",
@@ -787,7 +796,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "encomenda": true
     },
     {
       "id": "p-12promax-256gb",
@@ -829,7 +839,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "encomenda": true
     },
     {
       "id": "p-13-128gb",
@@ -997,7 +1008,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "encomenda": true
     },
     {
       "id": "p-13promax-128gb",
@@ -1039,7 +1051,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "encomenda": true
     },
     {
       "id": "p-13promax-256gb",
@@ -2136,7 +2149,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "topo": true
     },
     {
       "id": "p-18promax-256gb-branco",
@@ -2370,7 +2384,8 @@
       "disponivel": true,
       "fotos": [],
       "observacoes": "MacBook novo, lacrado, com 1 ano de garantia.",
-      "checklist": {}
+      "checklist": {},
+      "encomenda": true
     },
     {
       "id": "p-macbookneo-256gb-indigo",
@@ -2389,7 +2404,8 @@
       "disponivel": true,
       "fotos": [],
       "observacoes": "MacBook novo, lacrado, com 1 ano de garantia.",
-      "checklist": {}
+      "checklist": {},
+      "encomenda": true
     },
     {
       "id": "p-macbookneo-512gb-citrus",
@@ -2408,7 +2424,8 @@
       "disponivel": true,
       "fotos": [],
       "observacoes": "MacBook novo, lacrado, com 1 ano de garantia.",
-      "checklist": {}
+      "checklist": {},
+      "encomenda": true
     },
     {
       "id": "p-macbookairm5-512gb-skyblue",
@@ -2427,7 +2444,8 @@
       "disponivel": true,
       "fotos": [],
       "observacoes": "MacBook novo, lacrado, com 1 ano de garantia.",
-      "checklist": {}
+      "checklist": {},
+      "encomenda": true
     }
   ],
   "textos": {},
