@@ -785,3 +785,11 @@ body.loja {
   .hero-art > :first-child { transform: rotate(-8deg); }
   .hero-art > :last-child { transform: rotate(8deg); }
 }
+
+/* Miniaturas pequenas: tamanho contido, cantos arredondados e sombra, sem esticar */
+.card-media img.img-mini, .pd-main img.img-mini, .arch img.img-mini {
+  left: 50%; top: 50%; width: auto; height: auto; max-width: 66%; max-height: 66%; transform: translate(-50%, -50%);
+  border-radius: 16px; box-shadow: 0 18px 40px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.06);
+}
+.pd-main img.img-mini, .arch img.img-mini { max-width: 52%; max-height: 52%; }
+.cat-art img.img-mini, .prow-img img.img-mini, .pc-img img.img-mini { left: 8%; top: 8%; width: 84%; height: 84%; border-radius: 8px; object-fit: cover; }

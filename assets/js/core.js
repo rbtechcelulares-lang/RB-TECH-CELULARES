@@ -201,7 +201,11 @@
   // Imagem do produto: foto própria > foto do modelo > ilustração
   function imagemProduto(p, lazy) {
     const alt = esc(nomeProduto(p));
-    if (p.fotos && p.fotos[0]) return '<img class="img-foto" src="' + esc(p.fotos[0]) + '" alt="' + alt + '"' + (lazy ? ' loading="lazy"' : '') + '>';
+    if (p.fotos && p.fotos[0]) {
+      // miniaturas pequenas (recortadas de arte) aparecem menores e centralizadas, para não ficarem borradas
+      const mini = /^img\/xiaomi\//.test(p.fotos[0]);
+      return '<img class="' + (mini ? 'img-modelo img-mini' : 'img-foto') + '" src="' + esc(p.fotos[0]) + '" alt="' + alt + '"' + (lazy ? ' loading="lazy"' : '') + '>';
+    }
     const m = fotoModelo(p);
     if (m) return '<img class="img-modelo" src="' + m + '" alt="' + alt + '"' + (lazy ? ' loading="lazy"' : '') + '>';
     return produtoSVG(p);
