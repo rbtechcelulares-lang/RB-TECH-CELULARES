@@ -18,7 +18,8 @@
     ['Rosa', '#f1cfd4'], ['Amarelo', '#f3e3a5'], ['(PRODUCT)RED', '#c2283b'], ['Grafite', '#4a4845'],
     ['Dourado', '#ead9b9'], ['Prateado', '#e3e3e0'], ['Titânio natural', '#bdb7ab'], ['Titânio preto', '#3a3836'],
     ['Titânio branco', '#ecebe7'], ['Titânio azul', '#3f4a5c'], ['Titânio deserto', '#c8ae93'], ['Ultramarino', '#5c6fd6'],
-    ['Verde-acinzentado', '#a9bfb6'], ['Laranja cósmico', '#d9793b'], ['Azul-intenso', '#2f3c5a']
+    ['Verde-acinzentado', '#a9bfb6'], ['Laranja cósmico', '#d9793b'], ['Azul-intenso', '#2f3c5a'],
+    ['Bordeaux', '#5b1a2a'], ['Silver', '#d9dadc'], ['Índigo', '#3a3f6b'], ['Citrus', '#d6d26a'], ['Sky Blue', '#a9c8e6']
   ];
   const MODELOS = [
     'iPhone 11', 'iPhone 11 Pro', 'iPhone 11 Pro Max', 'iPhone SE (2ª geração)', 'iPhone SE (3ª geração)',
@@ -27,7 +28,8 @@
     'iPhone 14', 'iPhone 14 Plus', 'iPhone 14 Pro', 'iPhone 14 Pro Max',
     'iPhone 15', 'iPhone 15 Plus', 'iPhone 15 Pro', 'iPhone 15 Pro Max',
     'iPhone 16e', 'iPhone 16', 'iPhone 16 Plus', 'iPhone 16 Pro', 'iPhone 16 Pro Max',
-    'iPhone 17', 'iPhone Air', 'iPhone 17 Pro', 'iPhone 17 Pro Max'
+    'iPhone 17', 'iPhone Air', 'iPhone 17 Pro', 'iPhone 17 Pro Max', 'iPhone 18 Pro', 'iPhone 18 Pro Max',
+    'MacBook Neo', 'MacBook Air M5', 'MacBook Air', 'MacBook Pro'
   ];
 
   let publicado = null; // catálogo que está no ar
@@ -177,9 +179,9 @@
         .map(({ p, i }) =>
           '<div class="prow' + (p.disponivel === false ? ' off' : '') + '">' +
             '<div class="prow-img" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
-              (p.fotos && p.fotos[0] ? '<img src="' + esc(p.fotos[0]) + '" alt="">' : RB.phoneSVG(p.corHex)) + '</div>' +
+              (p.fotos && p.fotos[0] ? '<img src="' + esc(p.fotos[0]) + '" alt="">' : RB.produtoSVG(p)) + '</div>' +
             '<div class="prow-info"><strong>' + esc(RB.nomeProduto(p)) + '</strong>' +
-              '<span>' + esc(p.cor) + ' · ' + esc(p.condicao) + ' · 🔋 ' + esc(RB.batTexto(p, cat)) + (p.destaque ? ' · ★ promoção' : '') + '</span>' +
+              '<span>' + esc(p.cor) + ' · ' + esc(p.condicao) + (RB.ehMac(p) ? (p.specs ? ' · ' + esc(p.specs) : '') : ' · 🔋 ' + esc(RB.batTexto(p, cat))) + (p.destaque ? ' · ★ promoção' : '') + '</span>' +
               '<span class="prow-price">' + money(p.preco) + '</span></div>' +
             '<label class="switch" title="Visível no site"><input type="checkbox" data-vis="' + i + '"' + (p.disponivel !== false ? ' checked' : '') + '><span></span></label>' +
             '<div class="prow-act">' +
@@ -254,6 +256,7 @@
         '<label class="field"><span>Armazenamento</span><select name="armazenamento">' + opt(ARMAZENAMENTOS, p.armazenamento) + '</select></label>' +
         '<label class="field"><span>Condição</span><select name="condicao">' + opt(CONDICOES, p.condicao) + '</select></label>' +
         '<label class="field"><span>Garantia</span><input name="garantia" value="' + esc(p.garantia) + '"></label>' +
+        '<label class="field ed-mac"><span>Configuração (MacBook)</span><input name="specs" value="' + esc(p.specs || '') + '" placeholder="Ex.: 16 GB de RAM · chip M5"></label>' +
       '</div>' +
       '<div class="field"><span>Cor</span><div class="colors">' +
         CORES.map(([n, h]) => '<button type="button" class="sw' + (n === p.cor ? ' on' : '') + '" data-c="' + esc(n) + '" data-h="' + h + '" title="' + esc(n) + '" style="background:' + h + '"></button>').join('') +
@@ -261,9 +264,9 @@
         '<input name="cor" value="' + esc(p.cor) + '" placeholder="Nome da cor">' +
         '<input name="corHex" type="color" value="' + esc(p.corHex || '#cccccc') + '" title="Tom da cor">' +
       '</div></div>' +
-      '<label class="field"><span>Saúde da bateria: <b id="bat-v">' + esc(RB.batTexto(p, cat)) + '</b></span>' +
+      '<div class="ed-iphone"><label class="field"><span>Saúde da bateria: <b id="bat-v">' + esc(RB.batTexto(p, cat)) + '</b></span>' +
         '<input name="bateria" type="range" min="50" max="100" value="' + esc(Number(p.bateria) > 0 ? p.bateria : 90) + '"' + (Number(p.bateria) > 0 ? '' : ' disabled') + '></label>' +
-      '<label class="check"><input type="checkbox" name="semBateria"' + (Number(p.bateria) > 0 ? '' : ' checked') + '> Não informar a porcentagem (usa a faixa da linha)</label>' +
+      '<label class="check"><input type="checkbox" name="semBateria"' + (Number(p.bateria) > 0 ? '' : ' checked') + '> Não informar a porcentagem (usa a faixa da linha)</label></div>' +
       '</div>' +
 
       '<div class="ed-sec"><h3>Valores</h3><div class="ed-grid">' +
@@ -271,7 +274,7 @@
         '<label class="field"><span>Preço "de" riscado (opcional)</span><input name="precoAntigo" type="number" inputmode="decimal" step="any" min="0" value="' + esc(p.precoAntigo || '') + '"></label>' +
       '</div><div id="ed-sim" class="hint"></div></div>' +
 
-      '<div class="ed-sec"><h3>Checklist</h3><div class="ck-ed">' +
+      '<div class="ed-sec ed-iphone"><h3>Checklist</h3><div class="ck-ed">' +
         RB.CHECKLIST_ITENS.map((it) => {
           const c = p.checklist[it.id];
           return '<div class="ck-row"><strong>' + esc(it.label) + '</strong><div class="seg">' +
@@ -326,6 +329,12 @@
       f.cor.value = b.dataset.c; f.corHex.value = b.dataset.h;
       $$('.sw', f).forEach((x) => x.classList.toggle('on', x === b));
     }));
+    const tipo = () => {
+      const mac = /macbook/i.test(f.modelo.value);
+      $$('.ed-iphone', f).forEach((x) => (x.hidden = mac));
+      $$('.ed-mac', f).forEach((x) => (x.hidden = !mac));
+    };
+    f.modelo.addEventListener('input', tipo); tipo();
     f.bateria.addEventListener('input', () => ($('#bat-v').textContent = f.bateria.value + '%'));
     f.semBateria.addEventListener('change', () => {
       f.bateria.disabled = f.semBateria.checked;
@@ -349,6 +358,8 @@
         modelo: f.modelo.value.trim(),
         armazenamento: f.armazenamento.value,
         condicao: f.condicao.value,
+        categoria: /macbook/i.test(f.modelo.value) ? 'macbook' : 'iphone',
+        specs: f.specs.value.trim(),
         garantia: f.garantia.value.trim(),
         cor: f.cor.value.trim(),
         corHex: f.corHex.value,

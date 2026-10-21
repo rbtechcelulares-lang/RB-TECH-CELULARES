@@ -665,3 +665,7 @@ body.loja {
 .cupom-ativo { border: 1.5px dashed #f5c542; background: #1a160a; color: #f5c542; border-radius: 12px; padding: 10px 12px; font-size: 14px; text-align: center; }
 .rbp-cupom button { white-space: nowrap; flex: none; }
 .rbp-cupom strong { min-width: 0; overflow-wrap: anywhere; }
+
+/* MacBook */
+.card-media .svg-mac, .pd-main .svg-mac, .arch .svg-mac { width: 84%; height: auto; filter: drop-shadow(0 14px 18px rgba(0,0,0,.35)); }
+.prow-img .svg-mac { width: 90%; height: auto; }

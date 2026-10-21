@@ -108,9 +108,12 @@
     return 'https://wa.me/' + num + (texto ? '?text=' + encodeURIComponent(texto) : '');
   }
 
+  const ehMac = (p) => p.categoria === 'macbook' || /macbook/i.test(p.modelo || '');
+
   // Saúde da bateria: % informada; aparelho novo = 100%; senão a faixa da linha
   // (Admin › iPhones, ex.: "80% a 83%"); sem nada disso, "revisada"
   function batTexto(p, cat) {
+    if (ehMac(p)) return '';
     if (Number(p.bateria) > 0) return Number(p.bateria) + '%';
     if (/^novo|lacrad/i.test(p.condicao || '')) return '100%';
     const m = String(p.modelo || '').match(/iPhone\s*(\d+)/i);
@@ -129,6 +132,27 @@
   }
 
   // Ilustração de iPhone usada quando o produto ainda não tem foto
+  // Ilustração de MacBook usada quando o produto ainda não tem foto
+  function laptopSVG(hex) {
+    const c = hex || '#d9dadc';
+    return (
+      '<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="svg-mac">' +
+      '<rect x="48" y="26" width="204" height="132" rx="10" fill="' + c + '"/>' +
+      '<rect x="56" y="34" width="188" height="116" rx="4" fill="#0d0d0d"/>' +
+      '<rect x="56" y="34" width="188" height="116" rx="4" fill="url(#mg)" opacity=".5"/>' +
+      '<defs><linearGradient id="mg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".18"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>' +
+      '<rect x="138" y="36" width="24" height="5" rx="2.5" fill="#000"/>' +
+      '<path d="M22 160h256l-10 14H32z" fill="' + c + '"/>' +
+      '<path d="M22 160h256l-10 14H32z" fill="#000" fill-opacity=".12"/>' +
+      '<rect x="128" y="160" width="44" height="4" rx="2" fill="#000" fill-opacity=".2"/>' +
+      '</svg>'
+    );
+  }
+
+  function produtoSVG(p) {
+    return ehMac(p) ? laptopSVG(p.corHex) : phoneSVG(p.corHex);
+  }
+
   function phoneSVG(hex) {
     const c = hex || '#2a2a2a';
     return (
@@ -339,6 +363,6 @@
     DRAFT_KEY, CHECKLIST_ITENS, STATUS,
     money, esc, lerRascunho, carregarCatalogo,
     TEXTOS, texto, formatar, registrar, limparSupabase, abrirAviso, cabecalhosSupabase, campanhaVigente, abrirPopup,
-    avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, batNumero, nomeProduto, phoneSVG, sha256
+    avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, batNumero, ehMac, nomeProduto, phoneSVG, produtoSVG, sha256
   };
 })(window);

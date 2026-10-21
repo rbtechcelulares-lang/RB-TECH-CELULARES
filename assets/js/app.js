@@ -43,7 +43,7 @@
     montarChips();
     renderGrid();
     const vitrine = ativos().slice().sort((a, b) => (b.destaque ? 1 : 0) - (a.destaque ? 1 : 0)).slice(0, 3);
-    $('#hero-art').innerHTML = vitrine.map((p) => RB.phoneSVG(p.corHex)).join('');
+    $('#hero-art').innerHTML = vitrine.filter((p) => !RB.ehMac(p)).map((p) => RB.phoneSVG(p.corHex)).join('');
     renderDestaque();
     montarAvaliacaoPagina();
     $('#busca').addEventListener('input', renderGrid);
@@ -156,13 +156,15 @@
 
   /* ---------- Vitrine ---------- */
   function linha(p) {
+    if (RB.ehMac(p)) return 'mac';
     const m = String(p.modelo).match(/iPhone\s*(\d+)/i);
     return m ? m[1] : 'outros';
   }
 
   function montarChips() {
-    const linhas = Array.from(new Set(ativos().map(linha))).sort((a, b) => Number(a) - Number(b));
-    const opts = [['todos', 'Todos'], ...linhas.map((n) => [n, n === 'outros' ? 'Outros' : 'iPhone ' + n])];
+    const ordem = (v) => (v === 'mac' ? 1000 : v === 'outros' ? 2000 : Number(v));
+    const linhas = Array.from(new Set(ativos().map(linha))).sort((a, b) => ordem(a) - ordem(b));
+    const opts = [['todos', 'Todos'], ...linhas.map((n) => [n, n === 'outros' ? 'Outros' : n === 'mac' ? 'MacBook' : 'iPhone ' + n])];
     $('#chips').innerHTML = opts.map(([v, t]) =>
       '<button class="chip' + (v === filtroLinha ? ' on' : '') + '" data-v="' + esc(v) + '" role="tab">' + esc(t) + '</button>'
     ).join('');
@@ -196,14 +198,15 @@
       return (
         '<a class="card" data-origem="vitrine" href="#p/' + encodeURIComponent(p.id) + '">' +
           '<div class="card-media" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
-            (p.fotos && p.fotos[0] ? '<img src="' + esc(p.fotos[0]) + '" alt="' + esc(RB.nomeProduto(p)) + '" loading="lazy">' : RB.phoneSVG(p.corHex)) +
+            (p.fotos && p.fotos[0] ? '<img src="' + esc(p.fotos[0]) + '" alt="' + esc(RB.nomeProduto(p)) + '" loading="lazy">' : RB.produtoSVG(p)) +
             '<span class="tag ' + (p.condicao === 'Seminovo' ? '' : 'tag-gold') + '">' + esc(p.condicao) + '</span>' +
             (p.destaque ? '<span class="tag tag-star">Promoção</span>' : '') +
           '</div>' +
           '<div class="card-body">' +
             '<h3>' + esc(p.modelo) + '</h3>' +
             '<p class="card-meta"><span class="dot" style="background:' + esc(p.corHex || '#ccc') + '"></span>' + esc(p.cor) + ' · ' + esc(p.armazenamento) + '</p>' +
-            '<p class="card-batt">' + (RB.batNumero(p, cat) ? batteryIcon(RB.batNumero(p, cat)) + ' ' : '🔋 ') + 'Bateria ' + esc(RB.batTexto(p, cat)) + '</p>' +
+            (RB.ehMac(p) ? '<p class="card-batt">💻 ' + esc(p.specs || p.condicao) + '</p>' :
+            '<p class="card-batt">' + (RB.batNumero(p, cat) ? batteryIcon(RB.batNumero(p, cat)) + ' ' : '🔋 ') + 'Bateria ' + esc(RB.batTexto(p, cat)) + '</p>') +
             (p.precoAntigo > p.preco ? '<p class="old">' + money(p.precoAntigo) + '</p>' : '') +
             '<p class="price">' + money(RB.valorPix(cat, p.preco)) + ' <small>à vista</small></p>' +
             '<p class="installment">ou ' + parc.n + 'x de ' + money(parc.parcela) + '</p>' +
@@ -227,13 +230,13 @@
     $('#spotlight').innerHTML =
       '<div class="spot">' +
         '<a class="spot-media" data-origem="promocao" href="#p/' + encodeURIComponent(p.id) + '"><div class="arch" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
-          (foto ? '<img src="' + esc(foto) + '" alt="' + esc(RB.nomeProduto(p)) + '">' : RB.phoneSVG(p.corHex)) + '</div></a>' +
+          (foto ? '<img src="' + esc(foto) + '" alt="' + esc(RB.nomeProduto(p)) + '">' : RB.produtoSVG(p)) + '</div></a>' +
         '<div class="spot-info">' +
           '<span class="ribbon">' + esc(promo.faixa || (off ? 'Oferta da semana' : 'Destaque da semana')) + '</span>' +
           '<p class="eyebrow">' + esc(p.condicao) + ' · garantia ' + esc(p.garantia || cat.loja.garantiaPadrao) + '</p>' +
           '<h2 class="spot-title">' + esc(RB.nomeProduto(p)) + '</h2>' +
           (promo.texto ? '<p class="spot-text">' + esc(promo.texto) + '</p>' : '') +
-          '<p class="spot-sub">' + esc(p.cor) + ' · bateria ' + esc(RB.batTexto(p, cat)) + ' · checklist completo</p>' +
+          '<p class="spot-sub">' + esc(p.cor) + (RB.ehMac(p) ? (p.specs ? ' · ' + esc(p.specs) : '') : ' · bateria ' + esc(RB.batTexto(p, cat)) + ' · checklist completo') + '</p>' +
           '<p class="spot-price">' + (off ? '<s>' + money(p.precoAntigo) + '</s> <small>por</small> ' : '') + '<strong>' + money(RB.valorPix(cat, p.preco)) + '</strong></p>' +
           (off ? '<span class="off-badge">−' + off + '% OFF</span>' : '') +
           '<p class="spot-parc">ou ' + ult.n + 'x de ' + money(ult.parcela) + ' no cartão · Pix, débito e crédito</p>' +
@@ -381,7 +384,7 @@
         else linha = '<span class="int-dif">' + money(RB.valorPix(cat, p.preco)) + '</span><small>ou ' + ult.n + 'x de ' + money(ult.parcela) + '</small>';
         return '<button type="button" class="int-item" data-id="' + esc(p.id) + '">' +
           '<span class="int-info"><strong>' + esc(RB.nomeProduto(p)) + '</strong>' +
-          '<small><span class="dot" style="background:' + esc(p.corHex || '#ccc') + '"></span> ' + esc(p.cor) + ' · ' + esc(p.condicao) + ' · bateria ' + esc(RB.batTexto(p, cat)) + '</small>' +
+          '<small><span class="dot" style="background:' + esc(p.corHex || '#ccc') + '"></span> ' + esc(p.cor) + ' · ' + esc(p.condicao) + (RB.ehMac(p) ? '' : ' · bateria ' + esc(RB.batTexto(p, cat))) + '</small>' +
           (valEntrada > 0 ? '<small>Valor do aparelho: ' + money(p.preco) + '</small>' : '') + '</span>' +
           '<span class="int-preco">' + linha + '</span>' +
           '<span class="int-cta">Ver e montar proposta →</span>' +
@@ -435,7 +438,7 @@
       '<div class="pd">' +
         '<div class="pd-gallery">' +
           '<div class="pd-main" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
-            (fotos[0] ? '<img src="' + esc(fotos[0]) + '" alt="' + esc(RB.nomeProduto(p)) + '">' : RB.phoneSVG(p.corHex)) +
+            (fotos[0] ? '<img src="' + esc(fotos[0]) + '" alt="' + esc(RB.nomeProduto(p)) + '">' : RB.produtoSVG(p)) +
           '</div>' +
           (fotos.length > 1 ? '<div class="pd-thumbs">' + fotos.map((f, i) =>
             '<button class="' + (i === 0 ? 'on' : '') + '" data-i="' + i + '"><img src="' + esc(f) + '" alt="Foto ' + (i + 1) + '"></button>').join('') + '</div>' : '') +
@@ -444,9 +447,10 @@
           '<p class="eyebrow eyebrow-dark">' + esc(p.condicao) + ' · Garantia ' + esc(p.garantia || cat.loja.garantiaPadrao) + '</p>' +
           '<h2 id="sheet-title" class="pd-title">' + esc(p.modelo) + '</h2>' +
           '<p class="card-meta"><span class="dot" style="background:' + esc(p.corHex || '#ccc') + '"></span>' + esc(p.cor) + ' · ' + esc(p.armazenamento) +
-            ' · ' + (RB.batNumero(p, cat) ? batteryIcon(RB.batNumero(p, cat)) + ' ' : '') + 'bateria ' + esc(RB.batTexto(p, cat)) + '</p>' +
+            (RB.ehMac(p) ? (p.specs ? ' · ' + esc(p.specs) : '') : ' · ' + (RB.batNumero(p, cat) ? batteryIcon(RB.batNumero(p, cat)) + ' ' : '') + 'bateria ' + esc(RB.batTexto(p, cat))) + '</p>' +
           (p.precoAntigo > p.preco ? '<p class="old">' + money(p.precoAntigo) + '</p>' : '') +
           '<p class="price price-lg">' + money(RB.valorPix(cat, p.preco)) + ' <small>à vista no Pix</small></p>' +
+          (RB.ehMac(p) ? specsMac(p) :
           '<h3 class="pd-h">Checklist do aparelho</h3>' +
           '<ul class="checklist">' + RB.CHECKLIST_ITENS.map((it) => {
             const c = Object.assign({ status: 'ok', nota: '' }, (p.checklist || {})[it.id]);
@@ -454,7 +458,7 @@
             const st = RB.STATUS[c.status] || RB.STATUS.ok;
             return '<li class="ck ck-' + esc(c.status) + '"><span class="ck-ic">' + st.icon + '</span><div><strong>' + esc(it.label) + '</strong>' +
               '<small>' + esc(c.nota || st.label) + '</small></div></li>';
-          }).join('') + '</ul>' +
+          }).join('') + '</ul>') +
           (p.observacoes ? '<p class="pd-obs">' + esc(p.observacoes) + '</p>' : '') +
         '</div>' +
       '</div>' +
@@ -613,9 +617,19 @@
     });
   }
 
+  // Ficha do MacBook no lugar do checklist de iPhone
+  function specsMac(p) {
+    const itens = [['Armazenamento', p.armazenamento], ['Configuração', p.specs], ['Cor', p.cor], ['Condição', p.condicao],
+      ['Garantia', p.garantia || cat.loja.garantiaPadrao]].filter((x) => x[1]);
+    return '<h3 class="pd-h">Especificações</h3><ul class="checklist">' + itens.map(([k, v]) =>
+      '<li class="ck ck-ok"><span class="ck-ic">✓</span><div><strong>' + esc(k) + '</strong><small>' + esc(v) + '</small></div></li>').join('') + '</ul>';
+  }
+
   function mensagem(p, r, aba, parcela, valor, lista, pix) {
     const linhas = ['Olá! Sou *' + nomeCliente.trim() + '* e montei uma proposta pelo site:', ''];
-    linhas.push('📱 *' + RB.nomeProduto(p) + '* · ' + p.cor + ' · ' + p.condicao + ' · bateria ' + RB.batTexto(p, cat));
+    linhas.push(RB.ehMac(p)
+      ? '💻 *' + RB.nomeProduto(p) + '* · ' + p.cor + ' · ' + p.condicao + (p.specs ? ' · ' + p.specs : '')
+      : '📱 *' + RB.nomeProduto(p) + '* · ' + p.cor + ' · ' + p.condicao + ' · bateria ' + RB.batTexto(p, cat));
     linhas.push('Valor: ' + money(p.preco));
     if (r) {
       const bat = cat.avaliacao.bateria.find((b) => b.id === entrada.bateriaId);
