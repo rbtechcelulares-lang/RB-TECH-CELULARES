@@ -44,12 +44,15 @@
 
   // Publicação pelo servidor (api/publicar na Vercel, com o token guardado lá)
   let servidorOk = null;
+  let motivoServidor = ''; // por que a publicação pelo servidor não está ativa
   async function modoServidor() {
     if (servidorOk !== null) return servidorOk;
     try {
       const r = await fetch('api/publicar', { cache: 'no-store' });
-      servidorOk = r.ok && (await r.json()).configurado === true;
-    } catch (e) { servidorOk = false; }
+      const d = r.ok ? await r.json().catch(() => ({})) : {};
+      servidorOk = d.configurado === true;
+      motivoServidor = !r.ok ? 'funcao' : servidorOk ? '' : 'variavel';
+    } catch (e) { servidorOk = false; motivoServidor = 'funcao'; }
     return servidorOk;
   }
 
@@ -900,7 +903,9 @@
       if (!$('#pub-modo')) return;
       $('#pub-modo').innerHTML = ok
         ? '🔒 Publicação pelo servidor ativada: não precisa de token, só da senha do admin.'
-        : '🔑 Publicando pelo token salvo neste navegador. Para não precisar mais dele, veja "Publicar sem token" abaixo.';
+        : motivoServidor === 'variavel'
+          ? '⚠️ O servidor está no ar, mas a Vercel não tem o GITHUB_TOKEN deste projeto. Confira o passo a passo abaixo (projeto certo, nome exato e Redeploy).'
+          : '⚠️ A função de publicação não respondeu neste endereço (' + location.host + '). Use o endereço do projeto principal e faça um Redeploy na Vercel.';
       $('#srv-info').hidden = ok;
       $('#gh-card').open = !ok;
       if (ok && !senhaSessao) $('#pub-senha-box').hidden = false;
