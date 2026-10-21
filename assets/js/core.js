@@ -339,6 +339,7 @@
     const lim = limparSupabase(r0.supabaseUrl, r0.supabaseChave);
     const r = { supabaseUrl: lim.url, supabaseChave: lim.chave };
     if (!r.supabaseUrl || !r.supabaseChave || registrar.desligado) return;
+    try { if (localStorage.getItem('rbtech_admin_dispositivo')) return; } catch (e) { /* ignora */ } // aparelho do lojista não conta
     const d = dados || {};
     const corpo = {
       tipo,

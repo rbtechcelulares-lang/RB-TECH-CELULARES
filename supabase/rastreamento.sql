@@ -49,6 +49,7 @@ begin
   end if;
 
   return json_build_object(
+    'ultimo', (select max(criado_em) from eventos),
     'totais', (
       select json_build_object(
         'visitas', count(*) filter (where tipo = 'visita'),
@@ -75,6 +76,28 @@ begin
   );
 end;
 $$;
+
+-- Zera a contagem (só com a senha do painel)
+create or replace function public.painel_zerar(chave text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  ok boolean;
+begin
+  select encode(sha256(convert_to(chave, 'UTF8')), 'hex') = c.chave_hash into ok
+  from painel_config c where c.id = 1;
+  if not coalesce(ok, false) then
+    perform pg_sleep(1);
+    raise exception 'chave do painel incorreta' using errcode = '28000';
+  end if;
+  delete from eventos where true;
+end;
+$$;
+revoke all on function public.painel_zerar(text) from public;
+grant execute on function public.painel_zerar(text) to anon, authenticated;
 
 revoke all on function public.painel_resumo(text, timestamptz) from public;
 grant execute on function public.painel_resumo(text, timestamptz) to anon, authenticated;
