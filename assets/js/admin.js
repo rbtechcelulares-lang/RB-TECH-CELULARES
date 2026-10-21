@@ -741,9 +741,25 @@
     try { return JSON.parse(localStorage.getItem(GH_KEY)) || {}; } catch (e) { return {}; }
   }
 
+  // Normaliza e confere a conexão antes de usar; devolve { cfg, erro }
+  function validarGH(c) {
+    const cfg = {
+      repo: String(c.repo || '').trim().replace(/^https?:\/\/github\.com\//i, '').replace(/\.git$/, '').replace(/\/+$/, ''),
+      branch: String(c.branch || '').trim(),
+      token: String(c.token || '').replace(/\s+/g, '')
+    };
+    if (!/^[\w.-]+\/[\w.-]+$/.test(cfg.repo)) return { cfg, erro: 'Repositório deve ficar como dono/nome, ex.: rbtechcelulares-lang/RB-TECH-CELULARES.' };
+    if (/[:\s]|supabase|^https?/i.test(cfg.branch)) return { cfg, erro: 'O campo Branch deve ficar vazio (parece que foi colado outro texto nele).' };
+    if (!cfg.token) return { cfg, erro: 'Cole o token do GitHub.' };
+    if (/^(sb_|eyJ)/.test(cfg.token)) return { cfg, erro: 'Esse token é uma chave do Supabase. Aqui vai o token do GitHub (começa com github_pat_).' };
+    if (!/^(github_pat_|ghp_)/.test(cfg.token)) return { cfg, erro: 'O token do GitHub começa com github_pat_ (ou ghp_). Confira se copiou o token inteiro.' };
+    return { cfg, erro: '' };
+  }
+
   function renderPublicar() {
     const el = $('[data-panel="publicar"]');
     const gh = Object.assign({ repo: 'rbtechcelulares-lang/RB-TECH-CELULARES', branch: '', token: '' }, lerGH());
+    if (/[:\s]|supabase/i.test(gh.branch || '')) gh.branch = ''; // corrige texto colado no lugar errado
     el.innerHTML =
       '<div class="a-head"><div><h2>Publicar alterações</h2>' +
       '<p class="muted">Publicar grava o catálogo e as fotos no GitHub. A Vercel atualiza o site em cerca de 1 minuto.</p></div></div>' +
@@ -754,14 +770,22 @@
         '<div id="pub-log" class="pub-log" hidden></div>' +
       '</div>' +
       '<div class="a-card"><h3>Conexão com o GitHub</h3>' +
-        '<p class="hint">Feito uma vez por aparelho. Crie um token em GitHub › Settings › Developer settings › Fine-grained tokens, ' +
-        'com acesso somente a este repositório e permissão <b>Contents: Read and write</b>. O token fica salvo só neste navegador.</p>' +
+        '<p class="hint">Feito uma vez em cada computador ou celular. O token fica salvo só neste navegador.</p>' +
+        '<ol class="steps-cfg">' +
+          '<li>Abra <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com › criar token (fine-grained)</a>, logado na conta dona do repositório.</li>' +
+          '<li><b>Token name</b>: "Admin site"; <b>Expiration</b>: o maior prazo disponível (ou "No expiration").</li>' +
+          '<li><b>Repository access</b>: <i>Only select repositories</i> › <b>RB-TECH-CELULARES</b>.</li>' +
+          '<li><b>Permissions › Repository permissions › Contents</b>: <b>Read and write</b>.</li>' +
+          '<li>Clique em <b>Generate token</b>, copie o código que começa com <code>github_pat_</code> e cole abaixo.</li>' +
+        '</ol>' +
         '<div class="ed-grid">' +
           '<label class="field"><span>Repositório</span><input id="gh-repo" value="' + esc(gh.repo) + '"></label>' +
           '<label class="field"><span>Branch (opcional)</span><input id="gh-branch" value="' + esc(gh.branch) + '" placeholder="em branco = branch principal do repositório"></label>' +
         '</div>' +
         '<label class="field"><span>Token</span><input id="gh-token" type="password" value="' + esc(gh.token) + '" placeholder="github_pat_…" autocomplete="off"></label>' +
-        '<button class="btn btn-sm btn-outline" id="gh-save">Salvar conexão</button>' +
+        '<div class="pub-act"><button class="btn btn-sm btn-ink" id="gh-test">Testar conexão</button>' +
+        '<button class="btn btn-sm btn-outline" id="gh-save">Salvar conexão</button></div>' +
+        '<p class="hint" id="gh-res"></p>' +
       '</div>' +
       '<div class="a-card"><h3>Backup</h3><p class="hint">Baixe uma cópia do catálogo ou restaure um backup.</p>' +
         '<div class="pub-act"><button class="btn btn-sm btn-outline" id="exp">Baixar backup (.json)</button>' +
@@ -770,7 +794,29 @@
       '</div>';
 
     const pegarGH = () => ({ repo: $('#gh-repo').value.trim(), branch: $('#gh-branch').value.trim(), token: $('#gh-token').value.trim() });
-    $('#gh-save').addEventListener('click', () => { localStorage.setItem(GH_KEY, JSON.stringify(pegarGH())); toast('Conexão salva neste navegador.'); });
+    $('#gh-save').addEventListener('click', () => {
+      const { cfg, erro } = validarGH(pegarGH());
+      if (erro) return toast(erro, true);
+      localStorage.setItem(GH_KEY, JSON.stringify(cfg)); toast('Conexão salva neste navegador.');
+    });
+    $('#gh-test').addEventListener('click', async () => {
+      const res = $('#gh-res');
+      const { cfg, erro } = validarGH(pegarGH());
+      if (erro) { res.innerHTML = '❌ ' + esc(erro); return; }
+      res.textContent = 'Testando…';
+      try {
+        const r = await fetch('https://api.github.com/repos/' + cfg.repo, { headers: { Authorization: 'Bearer ' + cfg.token, Accept: 'application/vnd.github+json' } });
+        if (r.status === 401) throw new Error('Token inválido ou expirado. Gere um novo token e cole de novo.');
+        if (r.status === 404) throw new Error('O token não tem acesso a ' + cfg.repo + '. Em "Repository access", selecione esse repositório.');
+        const d = await r.json();
+        if (!d.permissions || !d.permissions.push) throw new Error('O token só lê o repositório. Em Permissions › Contents, escolha "Read and write".');
+        localStorage.setItem(GH_KEY, JSON.stringify(cfg));
+        $('#gh-repo').value = cfg.repo; $('#gh-branch').value = cfg.branch; $('#gh-token').value = cfg.token;
+        res.innerHTML = '✅ Conexão funcionando. Publicando na branch <b>' + esc(cfg.branch || d.default_branch) + '</b>. Já pode publicar.';
+      } catch (e) {
+        res.innerHTML = '❌ ' + esc(e.message);
+      }
+    });
     $('#pub').addEventListener('click', () => publicar(pegarGH()));
     $('#exp').addEventListener('click', () => {
       const a = document.createElement('a');
@@ -817,8 +863,9 @@
     return res.json();
   }
 
-  async function publicar(cfg) {
-    if (!cfg.token || !cfg.repo) { toast('Preencha a conexão com o GitHub abaixo.', true); return; }
+  async function publicar(cfg0) {
+    const { cfg, erro } = validarGH(cfg0);
+    if (erro) { toast(erro, true); const r = $('#gh-res'); if (r) r.innerHTML = '❌ ' + esc(erro); return; }
     localStorage.setItem(GH_KEY, JSON.stringify(cfg));
     const log = $('#pub-log');
     const btn = $('#pub');
