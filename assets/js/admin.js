@@ -151,6 +151,18 @@
       '<div class="a-head"><div><h2>iPhones à venda</h2><p class="muted">' + lista.length + ' cadastrados · ' +
       lista.filter((p) => p.disponivel !== false).length + ' visíveis no site</p></div>' +
       '<button class="btn btn-ink" id="novo">+ Cadastrar iPhone</button></div>' +
+      '<div class="a-card promo-card"><h3>⭐ Promoção em evidência no início da página</h3>' +
+        '<div class="ed-grid">' +
+          '<label class="field"><span>iPhone da promoção</span><select data-bind="promocao.produtoId">' +
+            '<option value="">Automático (um dos marcados como destaque)</option>' +
+            lista.map((p) => '<option value="' + esc(p.id) + '"' + (p.id === (cat.promocao || {}).produtoId ? ' selected' : '') + '>' +
+              esc(RB.nomeProduto(p) + ' · ' + p.cor + ' · ' + money(p.preco)) + (p.disponivel === false ? ' (oculto)' : '') + '</option>').join('') +
+          '</select></label>' +
+          '<label class="field"><span>Texto da faixa</span>' + inp('promocao.faixa', (cat.promocao || {}).faixa || '', 'placeholder="Oferta da semana"') + '</label>' +
+        '</div>' +
+        '<label class="field"><span>Frase da promoção</span>' + inp('promocao.texto', (cat.promocao || {}).texto || '', 'placeholder="Ex.: Últimas unidades com 10% off"') + '</label>' +
+        '<p class="hint">Para mostrar preço "de/por" e a % de desconto, preencha o "Preço de riscado" no cadastro do iPhone.</p>' +
+      '</div>' +
       '<div class="a-search"><input type="search" id="a-busca" placeholder="Buscar…"></div>' +
       '<div class="plist" id="plist"></div>';
 
@@ -190,6 +202,7 @@
         lista.splice(Number(b.dataset.del), 1); salvar(); renderProdutos();
       }));
     };
+    bind($('.promo-card', el));
     $('#a-busca').addEventListener('input', desenhar);
     $('#novo').addEventListener('click', () => abrirEditor(-1));
     desenhar();

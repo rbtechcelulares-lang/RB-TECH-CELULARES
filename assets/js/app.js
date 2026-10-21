@@ -127,8 +127,10 @@
 
   // Um aparelho em evidência, como a vitrine da Durah
   function renderDestaque() {
-    const lista = ativos().filter((p) => p.destaque);
-    const p = lista.sort((a, b) => (b.precoAntigo > b.preco ? 1 : 0) - (a.precoAntigo > a.preco ? 1 : 0))[0];
+    const promo = cat.promocao || {};
+    const auto = ativos().filter((p) => p.destaque)
+      .sort((a, b) => (b.precoAntigo > b.preco ? 1 : 0) - (a.precoAntigo > a.preco ? 1 : 0))[0];
+    const p = ativos().find((x) => x.id === promo.produtoId) || auto;
     if (!p) return;
     const ult = RB.parcelas(cat, p.preco).slice(-1)[0];
     const off = p.precoAntigo > p.preco ? Math.round((1 - p.preco / p.precoAntigo) * 100) : 0;
@@ -138,12 +140,14 @@
         '<a class="spot-media" href="#p/' + encodeURIComponent(p.id) + '"><div class="arch" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
           (foto ? '<img src="' + esc(foto) + '" alt="' + esc(RB.nomeProduto(p)) + '">' : RB.phoneSVG(p.corHex)) + '</div></a>' +
         '<div class="spot-info">' +
-          '<span class="ribbon">' + (off ? 'Oferta da semana' : 'Destaque da semana') + '</span>' +
+          '<span class="ribbon">' + esc(promo.faixa || (off ? 'Oferta da semana' : 'Destaque da semana')) + '</span>' +
           '<p class="eyebrow">' + esc(p.condicao) + ' · garantia ' + esc(p.garantia || cat.loja.garantiaPadrao) + '</p>' +
-          '<h2 class="spot-title">' + esc(RB.nomeProduto(p)) + (off ? ' <span class="hl">' + off + '% off</span>' : '') + '</h2>' +
+          '<h2 class="spot-title">' + esc(RB.nomeProduto(p)) + '</h2>' +
+          (promo.texto ? '<p class="spot-text">' + esc(promo.texto) + '</p>' : '') +
           '<p class="spot-sub">' + esc(p.cor) + ' · bateria ' + esc(p.bateria) + '% · checklist completo</p>' +
           '<p class="spot-price">' + (off ? '<s>' + money(p.precoAntigo) + '</s> <small>por</small> ' : '') + '<strong>' + money(RB.valorPix(cat, p.preco)) + '</strong></p>' +
-          '<p class="spot-parc">ou ' + ult.n + 'x de ' + money(ult.parcela) + ' no cartão · aceitamos seu usado na troca</p>' +
+          (off ? '<span class="off-badge">−' + off + '% OFF</span>' : '') +
+          '<p class="spot-parc">ou ' + ult.n + 'x de ' + money(ult.parcela) + ' no cartão · Pix, débito e crédito</p>' +
           '<div class="spot-cta"><a class="btn btn-gold" href="#p/' + encodeURIComponent(p.id) + '">Quero o meu</a>' +
           '<a class="btn btn-ghost-light" href="#p/' + encodeURIComponent(p.id) + '">Ver detalhes</a></div>' +
         '</div>' +

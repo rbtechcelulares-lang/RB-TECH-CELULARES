@@ -606,3 +606,15 @@ body.loja {
 .fi { color: var(--yellow); display: inline-grid; }
 .footer-legal a { color: rgba(255,255,255,.6); }
 @media (max-width: 480px) { .footer-cols { grid-template-columns: 1fr; } }
+
+/* Promoção em evidência: faixa dourada em curva, como vitrine de oferta */
+.spot { isolation: isolate; }
+.spot::before {
+  content: ''; position: absolute; z-index: -1; right: -30%; top: -10%; width: 85%; height: 120%;
+  border-radius: 50%; background: linear-gradient(160deg, #f7d774 0%, #d9a514 55%, #a87b10 100%); opacity: .9;
+}
+@media (max-width: 859px) { .spot::before { right: -45%; top: 34%; width: 120%; height: 80%; } }
+.spot-info { background: rgba(10,10,10,.82); border: 1px solid rgba(245,197,66,.35); border-radius: 18px; padding: 18px; backdrop-filter: blur(4px); }
+.spot-text { margin: 0 0 8px; font-size: 16px; color: #fff; }
+.off-badge { display: inline-block; background: var(--yellow); color: #111; font-weight: 800; font-size: 12px; padding: 3px 8px; border-radius: 4px; margin-top: 6px; }
+@media (max-width: 859px) { .arch { max-width: 230px; } }

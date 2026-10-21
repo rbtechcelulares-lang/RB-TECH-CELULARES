@@ -22,6 +22,7 @@
       "5": 6.4,
       "6": 7.9,
       "7": 8.3,
+      "8": 9,
       "9": 9.5,
       "10": 9.59,
       "11": 10.99,
@@ -331,6 +332,11 @@
         "recusa": true
       }
     ]
+  },
+  "promocao": {
+    "produtoId": "p-14-128-azul",
+    "faixa": "Oferta da semana",
+    "texto": "Revisado, com garantia e checklist completo. Aceitamos seu usado na troca."
   },
   "produtos": [
     {
