@@ -9,7 +9,11 @@
     "endereco": "",
     "horario": "Seg a Sáb · 9h às 19h",
     "garantiaPadrao": "90 dias",
-    "senhaHash": "647ea150890db8f45ee615240fbf6c0b7c3319c5ec086fc454ebbab9cb177c18"
+    "senhaHash": "647ea150890db8f45ee615240fbf6c0b7c3319c5ec086fc454ebbab9cb177c18",
+    "tiktok": "",
+    "facebook": "",
+    "email": "",
+    "mapsLink": ""
   },
   "pagamento": {
     "descontoPix": 0,
@@ -338,6 +342,22 @@
     "faixa": "Oferta da semana",
     "texto": "Revisado, com garantia e checklist completo. Aceitamos seu usado na troca."
   },
+  "popup": {
+    "ativo": false,
+    "selo": "Só esta semana",
+    "titulo": "Ganhe *R$ 100 OFF* no seu iPhone",
+    "texto": "Mostre o cupom no WhatsApp e ganhe R$ 100 de desconto na compra de qualquer iPhone seminovo.",
+    "cupom": "RBTECH100",
+    "botaoTexto": "Quero meu desconto",
+    "acao": "whatsapp",
+    "produtoId": "",
+    "link": "",
+    "imagem": "",
+    "frequencia": "sessao",
+    "atraso": 2,
+    "inicio": "",
+    "fim": ""
+  },
   "produtos": [
     {
       "id": "p-13-128-meianoite",
@@ -591,5 +611,10 @@
         }
       }
     }
-  ]
+  ],
+  "textos": {},
+  "rastreamento": {
+    "supabaseUrl": "",
+    "supabaseChave": ""
+  }
 }

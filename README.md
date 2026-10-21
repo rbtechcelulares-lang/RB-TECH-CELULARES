@@ -7,9 +7,13 @@ mais um painel administrativo. Site estático: funciona direto na Vercel, sem se
 
 - `index.html` — vitrine, detalhe do produto com checklist, pré-avaliação do usado e simulação de pagamento
   (pagar a diferença ou valor total, Pix e 1x–18x com a taxa da maquininha), envio da proposta pelo WhatsApp.
-- `admin.html` — painel: cadastrar/editar iPhones (fotos, cor, modelo, bateria, preço, checklist de Face ID,
-  bateria, sistema, câmeras, tela e tampa traseira), tabela de avaliação dos usados, descontos por defeito,
-  taxas de parcelamento e dados da loja.
+- `admin.html` (aberto em `/admin`) — painel com as abas:
+  - **iPhones**: cadastrar/editar (fotos, cor, modelo, bateria, preço, checklist de Face ID, bateria, sistema,
+    câmeras, tela e tampa traseira);
+  - **Promoções**: iPhone em evidência no início da página e pop-up de campanha (título, texto, cupom, botão,
+    imagem, frequência e datas);
+  - **Cliques**: painel com visitas, cliques por aparelho e propostas enviadas ao WhatsApp;
+  - **Avaliação de entrada**, **Parcelas e taxas**, **Loja e contatos**, **Textos do site** e **Publicar**.
 
 Todos os dados ficam em `data/catalogo.json`.
 
@@ -23,6 +27,18 @@ Todos os dados ficam em `data/catalogo.json`.
    (ou na branch informada no painel); a Vercel faz o deploy sozinha em ~1 minuto.
 
 A senha do painel é só uma barreira de tela: quem realmente pode alterar o site é quem tem o token.
+
+## Registro de cliques (opcional)
+
+O site registra visitas, cliques em cada iPhone, propostas enviadas ao WhatsApp e cliques no pop-up num
+projeto do [Supabase](https://supabase.com) (plano grátis):
+
+1. Crie um projeto, abra **SQL Editor**, cole `supabase/rastreamento.sql`, troque `TROQUE-ESTA-CHAVE` pela
+   senha do painel e rode.
+2. No admin, aba **Cliques**, cole a *Project URL* e a chave *anon public* e publique.
+3. Digite a senha do passo 1 em "Chave do painel".
+
+A chave pública só permite gravar eventos; os números só saem pela função `painel_resumo`, com a senha.
 
 ## Cálculo das parcelas
 

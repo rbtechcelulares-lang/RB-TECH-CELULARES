@@ -5,8 +5,10 @@
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
 
-  const preview = new URLSearchParams(location.search).has('preview');
+  const params = new URLSearchParams(location.search);
+  const preview = params.has('preview');
   let cat = null;
+  let origemClique = 'link'; // de onde veio o clique que abriu o aparelho
   let filtroLinha = 'todos';
 
   // Entrada compartilhada entre a avaliação da página e o detalhe do produto
@@ -20,6 +22,7 @@
   async function init() {
     cat = await RB.carregarCatalogo({ preferirRascunho: preview });
     if (preview && RB.lerRascunho()) $('#preview-bar').hidden = false;
+    if (preview) RB.registrar.desligado = true; // pré-visualização do admin não conta clique
     entrada.bateriaId = (cat.avaliacao.bateria[0] || {}).id || '';
     preencherLoja();
     montarChips();
@@ -33,7 +36,62 @@
     window.addEventListener('hashchange', rota);
     $$('[data-fechar]').forEach((el) => el.addEventListener('click', fecharSheet));
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fecharSheet(); });
+    document.addEventListener('click', (e) => {
+      const o = e.target.closest('[data-origem]');
+      if (o) origemClique = o.dataset.origem;
+    }, true);
+    $$('.js-whats').forEach((a) => a.addEventListener('click', () => RB.registrar(cat, 'whatsapp', { origem: a.dataset.origem || 'geral' })));
+    $('#ajuda-btn').addEventListener('click', () => RB.registrar(cat, 'whatsapp', { origem: 'consultoria' }));
+    registrarVisita();
     rota();
+    agendarPopup();
+  }
+
+  function registrarVisita() {
+    try {
+      if (sessionStorage.getItem('rbtech_visita')) return;
+      sessionStorage.setItem('rbtech_visita', '1');
+    } catch (e) { /* sem storage: conta a cada carregamento */ }
+    RB.registrar(cat, 'visita', { origem: document.referrer ? new URL(document.referrer).hostname : 'direto' });
+  }
+
+  /* ---------- Pop-up de campanha ---------- */
+  function agendarPopup() {
+    const pp = cat.popup || {};
+    const forcar = params.has('popup');
+    if (!forcar && !RB.campanhaVigente(pp)) return;
+    // a chave muda quando a campanha muda, para a nova aparecer de novo
+    const chave = 'rbtech_popup_' + [pp.titulo, pp.cupom, pp.texto].join('|').length + '_' + String(pp.titulo || '').slice(0, 20);
+    const hoje = new Date().toDateString();
+    try {
+      if (!forcar && pp.frequencia === 'sessao' && sessionStorage.getItem(chave)) return;
+      if (!forcar && pp.frequencia === 'dia' && localStorage.getItem(chave) === hoje) return;
+      if (!forcar && pp.frequencia === 'uma' && localStorage.getItem(chave)) return;
+    } catch (e) { /* sem storage: mostra */ }
+    setTimeout(() => {
+      try {
+        sessionStorage.setItem(chave, '1');
+        localStorage.setItem(chave, hoje);
+      } catch (e) { /* ignora */ }
+      RB.abrirPopup(cat, acaoPopup);
+    }, Math.max(0, Number(pp.atraso) || 0) * 1000);
+  }
+
+  function acaoPopup(pp, fechar) {
+    RB.registrar(cat, 'popup', { origem: pp.acao || 'fechar', detalhe: pp.titulo });
+    fechar();
+    if (pp.acao === 'whatsapp') {
+      const msg = 'Olá! Vi a promoção "' + String(pp.titulo || '').replace(/\*/g, '') + '" no site' + (pp.cupom ? ' e quero usar o cupom ' + pp.cupom : '') + '.';
+      RB.registrar(cat, 'whatsapp', { origem: 'popup' });
+      window.open(RB.linkWhats(cat, msg), '_blank', 'noopener');
+    } else if (pp.acao === 'produto' && pp.produtoId) {
+      origemClique = 'popup';
+      location.hash = '#p/' + encodeURIComponent(pp.produtoId);
+    } else if (pp.acao === 'link' && pp.link) {
+      window.open(pp.link, '_blank', 'noopener');
+    } else if (pp.acao === 'vitrine') {
+      $('#vitrine').scrollIntoView({ behavior: 'smooth' });
+    }
   }
 
   /* ---------- Loja ---------- */
@@ -51,16 +109,24 @@
       else if (v) el.textContent = String(v).replace(/\*/g, ''); else if (el.dataset.loja !== 'slogan' && el.dataset.loja !== 'nome') el.hidden = true;
     });
     $$('[data-pg="max"]').forEach((el) => (el.textContent = cat.pagamento.maxParcelas));
-    const msg = 'Olá! Vim pelo site da ' + l.nome + ' e gostaria de atendimento.';
+    $$('[data-txt]').forEach((el) => (el.innerHTML = RB.formatar(cat, RB.texto(cat, el.dataset.txt))));
+    const msg = RB.texto(cat, 'msgGeral');
     $$('.js-whats').forEach((a) => (a.href = RB.linkWhats(cat, msg)));
     if (l.instagram) {
       const u = l.instagram.replace(/^@/, '');
       $('#f-insta').innerHTML = '<a href="https://instagram.com/' + esc(u) + '" target="_blank" rel="noopener">' +
         '<span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/></svg></span>@' + esc(u) + '</a>';
     }
+    const ic = (d) => '<span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true">' + d + '</svg></span>';
+    const extras = [];
+    if (l.email) extras.push('<a href="mailto:' + esc(l.email) + '">' + ic('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>') + esc(l.email) + '</a>');
+    if (l.facebook) extras.push('<a href="' + esc(/^https?:/.test(l.facebook) ? l.facebook : 'https://facebook.com/' + l.facebook.replace(/^@/, '')) + '" target="_blank" rel="noopener">' + ic('<path d="M14 8h3V4h-3a4 4 0 0 0-4 4v3H7v4h3v6h4v-6h3l1-4h-4V8z"/>') + 'Facebook</a>');
+    if (l.tiktok) extras.push('<a href="https://www.tiktok.com/@' + esc(l.tiktok.replace(/^@/, '')) + '" target="_blank" rel="noopener">' + ic('<path d="M14 3v11a3 3 0 1 1-3-3M14 3c.5 2.5 2.5 4.5 5 5"/>') + '@' + esc(l.tiktok.replace(/^@/, '')) + '</a>');
+    if (l.mapsLink) extras.push('<a href="' + esc(l.mapsLink) + '" target="_blank" rel="noopener">' + ic('<path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>') + 'Abrir no Google Maps</a>');
+    $('#f-extra').innerHTML = extras.join('');
     // linhas do rodapé sem informação somem por inteiro
     $$('.footer-info p').forEach((p) => { if (!p.querySelector('[data-loja]:not([hidden])')) p.hidden = true; });
-    $('#ajuda-btn').href = RB.linkWhats(cat, 'Olá! Não sei qual iPhone escolher. Pode me ajudar?');
+    $('#ajuda-btn').href = RB.linkWhats(cat, RB.texto(cat, 'consultaMsg'));
     $('#ano').textContent = new Date().getFullYear();
     document.title = l.nome + ' · ' + (l.slogan || 'iPhones com garantia').replace(/\*/g, '');
   }
@@ -105,7 +171,7 @@
     $('#grid').innerHTML = lista.map((p) => {
       const parc = RB.parcelas(cat, p.preco).slice(-1)[0];
       return (
-        '<a class="card" href="#p/' + encodeURIComponent(p.id) + '">' +
+        '<a class="card" data-origem="vitrine" href="#p/' + encodeURIComponent(p.id) + '">' +
           '<div class="card-media" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
             (p.fotos && p.fotos[0] ? '<img src="' + esc(p.fotos[0]) + '" alt="' + esc(RB.nomeProduto(p)) + '" loading="lazy">' : RB.phoneSVG(p.corHex)) +
             '<span class="tag ' + (p.condicao === 'Seminovo' ? '' : 'tag-gold') + '">' + esc(p.condicao) + '</span>' +
@@ -137,7 +203,7 @@
     const foto = p.fotos && p.fotos[0];
     $('#spotlight').innerHTML =
       '<div class="spot">' +
-        '<a class="spot-media" href="#p/' + encodeURIComponent(p.id) + '"><div class="arch" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
+        '<a class="spot-media" data-origem="promocao" href="#p/' + encodeURIComponent(p.id) + '"><div class="arch" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
           (foto ? '<img src="' + esc(foto) + '" alt="' + esc(RB.nomeProduto(p)) + '">' : RB.phoneSVG(p.corHex)) + '</div></a>' +
         '<div class="spot-info">' +
           '<span class="ribbon">' + esc(promo.faixa || (off ? 'Oferta da semana' : 'Destaque da semana')) + '</span>' +
@@ -148,8 +214,8 @@
           '<p class="spot-price">' + (off ? '<s>' + money(p.precoAntigo) + '</s> <small>por</small> ' : '') + '<strong>' + money(RB.valorPix(cat, p.preco)) + '</strong></p>' +
           (off ? '<span class="off-badge">−' + off + '% OFF</span>' : '') +
           '<p class="spot-parc">ou ' + ult.n + 'x de ' + money(ult.parcela) + ' no cartão · Pix, débito e crédito</p>' +
-          '<div class="spot-cta"><a class="btn btn-gold" href="#p/' + encodeURIComponent(p.id) + '">Quero o meu</a>' +
-          '<a class="btn btn-ghost-light" href="#p/' + encodeURIComponent(p.id) + '">Ver detalhes</a></div>' +
+          '<div class="spot-cta"><a class="btn btn-gold" data-origem="promocao" href="#p/' + encodeURIComponent(p.id) + '">Quero o meu</a>' +
+          '<a class="btn btn-ghost-light" data-origem="promocao" href="#p/' + encodeURIComponent(p.id) + '">Ver detalhes</a></div>' +
         '</div>' +
       '</div>';
     $('#destaque').hidden = false;
@@ -301,6 +367,7 @@
       $$('#int-lista .int-item').forEach((b) => b.addEventListener('click', () => {
         const rr = avaliacaoAtual();
         entrada.usar = rr && !rr.recusado ? true : null;
+        origemClique = 'avaliacao';
         location.hash = '#p/' + encodeURIComponent(b.dataset.id);
       }));
     };
@@ -334,6 +401,8 @@
   }
 
   function abrirProduto(p) {
+    RB.registrar(cat, 'clique', { produto: p, origem: origemClique });
+    origemClique = 'link';
     const s = $('#sheet');
     const fotos = (p.fotos || []).filter(Boolean);
     const body = $('#sheet-body');
@@ -481,6 +550,11 @@
     const btn = $('#enviar', box);
     if (!pode) { btn.removeAttribute('href'); return; }
     btn.href = RB.linkWhats(cat, mensagem(p, temEntrada || consultar ? r : null, aba, pag.parcela, valor, lista, pix));
+    btn.addEventListener('click', () => {
+      const forma = valor <= 0 ? 'sem pagamento' : pag.parcela === 0 ? 'à vista' : pag.parcela ? pag.parcela + 'x' : 'a definir';
+      const ent = r && (temEntrada || consultar) ? 'entrada ' + r.modelo + ' · ' : 'sem entrada · ';
+      RB.registrar(cat, 'whatsapp', { produto: p, origem: 'proposta', detalhe: ent + forma + ' · ' + money(valor) });
+    });
   }
 
   function mensagem(p, r, aba, parcela, valor, lista, pix) {

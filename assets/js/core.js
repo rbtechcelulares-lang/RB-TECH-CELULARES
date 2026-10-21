@@ -136,9 +136,144 @@
     return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
   }
 
+  /* ---------- Textos editáveis do site ---------- */
+  // *trecho* fica em amarelo; {parcelas} vira o máximo de parcelas.
+  const TEXTOS = [
+    { grupo: 'Faixa de confiança (abaixo do topo)', itens: [
+      ['conf1T', 'Item 1 · título', 'Aparelhos revisados'], ['conf1S', 'Item 1 · detalhe', 'Checklist completo em cada iPhone'],
+      ['conf2T', 'Item 2 · título', 'Até {parcelas}x no cartão'], ['conf2S', 'Item 2 · detalhe', 'Pix, débito e crédito'],
+      ['conf3T', 'Item 3 · título', 'Seu usado vale como entrada'], ['conf3S', 'Item 3 · detalhe', 'Pré-avaliação na hora'],
+      ['conf4T', 'Item 4 · título', 'Atendimento personalizado'], ['conf4S', 'Item 4 · detalhe', 'Tire dúvidas pelo WhatsApp']
+    ] },
+    { grupo: 'Vitrine', itens: [
+      ['vitrineT', 'Título', 'Escolha o seu iPhone'],
+      ['vitrineS', 'Texto', 'Toque no aparelho para ver fotos, checklist e simular com o seu iPhone de entrada.']
+    ] },
+    { grupo: 'Consultoria ("Não sabe qual escolher?")', itens: [
+      ['consultaT', 'Título', 'Não sabe qual *escolher?*'],
+      ['consultaS', 'Texto', 'Diga como você usa o celular — fotos, jogos, trabalho, bateria — e a gente indica o iPhone ideal para o seu bolso.'],
+      ['consultaB', 'Botão', 'Me ajude a escolher'],
+      ['consultaMsg', 'Mensagem enviada no WhatsApp', 'Olá! Não sei qual iPhone escolher. Pode me ajudar?']
+    ] },
+    { grupo: 'Avaliação do usado', itens: [
+      ['avaliarT', 'Título', 'Quanto vale o seu iPhone?'],
+      ['avaliarS', 'Texto', 'Responda em 30 segundos e veja quanto o seu aparelho abate no próximo. Depois é só escolher o iPhone na vitrine.']
+    ] },
+    { grupo: 'Por que escolher', itens: [
+      ['porqueT', 'Título', 'Por que escolher a *RB Tech*'],
+      ['porque1T', 'Item 1 · título', 'Aparelhos revisados'], ['porque1S', 'Item 1 · texto', 'Cada iPhone passa por checklist de Face ID, bateria, sistema, câmeras, tela e tampa traseira.'],
+      ['porque2T', 'Item 2 · título', 'Atendimento personalizado'], ['porque2S', 'Item 2 · texto', 'Ajudamos você a escolher o modelo certo e tiramos todas as dúvidas pelo WhatsApp.'],
+      ['porque3T', 'Item 3 · título', 'Seu usado na troca'], ['porque3S', 'Item 3 · texto', 'Pré-avaliação online do seu iPhone na hora, abatendo do valor do próximo.'],
+      ['porque4T', 'Item 4 · título', 'Pagamento facilitado'], ['porque4S', 'Item 4 · texto', 'Pix, débito ou crédito em até {parcelas}x, com as parcelas já calculadas no site.']
+    ] },
+    { grupo: 'Chamada final (bloco amarelo)', itens: [
+      ['ctaT', 'Título', 'Seu próximo iPhone pode estar a uma mensagem de distância.'],
+      ['ctaS', 'Texto', 'Encontre o modelo ideal para você.'],
+      ['ctaB', 'Botão', 'Falar no WhatsApp']
+    ] },
+    { grupo: 'Mensagens de WhatsApp', itens: [
+      ['msgGeral', 'Botões gerais de WhatsApp', 'Olá! Vim pelo site e gostaria de atendimento.']
+    ] }
+  ];
+
+  function texto(cat, chave) {
+    const t = (cat.textos || {})[chave];
+    if (t != null && String(t).trim() !== '') return String(t);
+    for (const g of TEXTOS) for (const it of g.itens) if (it[0] === chave) return it[2];
+    return '';
+  }
+
+  // Escapa, aplica *destaque* e {parcelas}
+  function formatar(cat, str) {
+    return esc(str)
+      .replace(/\{parcelas\}/g, String(cat.pagamento.maxParcelas))
+      .replace(/\*([^*]+)\*/g, '<span class="hl">$1</span>')
+      .replace(/\n/g, '<br>');
+  }
+
+  /* ---------- Registro de cliques (Supabase) ---------- */
+  function sessao() {
+    try {
+      let id = sessionStorage.getItem('rbtech_sessao');
+      if (!id) { id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8); sessionStorage.setItem('rbtech_sessao', id); }
+      return id;
+    } catch (e) { return ''; }
+  }
+
+  // tipo: visita | clique | whatsapp | popup
+  function registrar(cat, tipo, dados) {
+    const r = cat.rastreamento || {};
+    if (!r.supabaseUrl || !r.supabaseChave || registrar.desligado) return;
+    const d = dados || {};
+    const corpo = {
+      tipo,
+      produto_id: d.produto ? d.produto.id : null,
+      produto_nome: d.produto ? nomeProduto(d.produto) + ' ' + (d.produto.cor || '') : null,
+      origem: (d.origem || '').slice(0, 39) || null,
+      detalhe: (d.detalhe || '').slice(0, 199) || null,
+      sessao: sessao()
+    };
+    try {
+      fetch(r.supabaseUrl.replace(/\/+$/, '') + '/rest/v1/eventos', {
+        method: 'POST',
+        keepalive: true,
+        headers: { apikey: r.supabaseChave, Authorization: 'Bearer ' + r.supabaseChave, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify(corpo)
+      }).catch(() => {});
+    } catch (e) { /* registro nunca atrapalha o cliente */ }
+  }
+
+  /* ---------- Pop-up de campanha ---------- */
+  function campanhaVigente(pp) {
+    if (!pp || !pp.ativo) return false;
+    const hoje = new Date();
+    const dia = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0') + '-' + String(hoje.getDate()).padStart(2, '0');
+    if (pp.inicio && dia < pp.inicio) return false;
+    if (pp.fim && dia > pp.fim) return false;
+    return true;
+  }
+
+  // Monta o pop-up na tela. onAcao(popup) é chamado no botão principal.
+  function abrirPopup(cat, onAcao) {
+    const pp = cat.popup || {};
+    const antigo = document.getElementById('rb-popup');
+    if (antigo) antigo.remove();
+    const el = document.createElement('div');
+    el.id = 'rb-popup';
+    el.className = 'rbp';
+    el.innerHTML =
+      '<div class="rbp-back" data-x></div>' +
+      '<div class="rbp-box" role="dialog" aria-modal="true" aria-labelledby="rbp-t">' +
+        '<button class="rbp-close" data-x aria-label="Fechar">×</button>' +
+        (pp.imagem ? '<img class="rbp-img" src="' + esc(pp.imagem) + '" alt="">' : '') +
+        '<div class="rbp-body">' +
+          (pp.selo ? '<span class="rbp-selo">' + esc(pp.selo) + '</span>' : '') +
+          '<h2 id="rbp-t">' + formatar(cat, pp.titulo || '') + '</h2>' +
+          (pp.texto ? '<p class="rbp-txt">' + formatar(cat, pp.texto) + '</p>' : '') +
+          (pp.cupom ? '<div class="rbp-cupom"><span>Cupom</span><strong>' + esc(pp.cupom) + '</strong><button type="button" data-copiar>Copiar</button></div>' : '') +
+          (pp.botaoTexto ? '<button type="button" class="rbp-btn" data-acao>' + esc(pp.botaoTexto) + '</button>' : '') +
+          '<button type="button" class="rbp-no" data-x>Agora não</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(el);
+    const fechar = () => { el.remove(); document.removeEventListener('keydown', esc_); };
+    const esc_ = (e) => { if (e.key === 'Escape') fechar(); };
+    document.addEventListener('keydown', esc_);
+    el.querySelectorAll('[data-x]').forEach((b) => b.addEventListener('click', fechar));
+    const cp = el.querySelector('[data-copiar]');
+    if (cp) cp.addEventListener('click', () => {
+      const ok = () => { cp.textContent = 'Copiado!'; };
+      if (navigator.clipboard) navigator.clipboard.writeText(pp.cupom).then(ok, ok); else ok();
+    });
+    const ac = el.querySelector('[data-acao]');
+    if (ac) ac.addEventListener('click', () => { if (onAcao) onAcao(pp, fechar); else fechar(); });
+    return el;
+  }
+
   global.RB = {
     DRAFT_KEY, CHECKLIST_ITENS, STATUS,
     money, esc, lerRascunho, carregarCatalogo,
+    TEXTOS, texto, formatar, registrar, campanhaVigente, abrirPopup,
     avaliar, fmtGB, parcelas, valorPix, linkWhats, nomeProduto, phoneSVG, sha256
   };
 })(window);

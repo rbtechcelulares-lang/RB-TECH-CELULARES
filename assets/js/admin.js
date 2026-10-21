@@ -81,7 +81,10 @@
   }
 
   function render() {
-    ({ produtos: renderProdutos, avaliacao: renderAvaliacao, pagamento: renderPagamento, loja: renderLoja, publicar: renderPublicar })[aba]();
+    ({
+      produtos: renderProdutos, promocoes: renderPromocoes, cliques: renderCliques, avaliacao: renderAvaliacao,
+      pagamento: renderPagamento, loja: renderLoja, textos: renderTextos, publicar: renderPublicar
+    })[aba]();
   }
 
   /* ---------- Rascunho ---------- */
@@ -151,18 +154,6 @@
       '<div class="a-head"><div><h2>iPhones à venda</h2><p class="muted">' + lista.length + ' cadastrados · ' +
       lista.filter((p) => p.disponivel !== false).length + ' visíveis no site</p></div>' +
       '<button class="btn btn-ink" id="novo">+ Cadastrar iPhone</button></div>' +
-      '<div class="a-card promo-card"><h3>⭐ Promoção em evidência no início da página</h3>' +
-        '<div class="ed-grid">' +
-          '<label class="field"><span>iPhone da promoção</span><select data-bind="promocao.produtoId">' +
-            '<option value="">Automático (um dos marcados como destaque)</option>' +
-            lista.map((p) => '<option value="' + esc(p.id) + '"' + (p.id === (cat.promocao || {}).produtoId ? ' selected' : '') + '>' +
-              esc(RB.nomeProduto(p) + ' · ' + p.cor + ' · ' + money(p.preco)) + (p.disponivel === false ? ' (oculto)' : '') + '</option>').join('') +
-          '</select></label>' +
-          '<label class="field"><span>Texto da faixa</span>' + inp('promocao.faixa', (cat.promocao || {}).faixa || '', 'placeholder="Oferta da semana"') + '</label>' +
-        '</div>' +
-        '<label class="field"><span>Frase da promoção</span>' + inp('promocao.texto', (cat.promocao || {}).texto || '', 'placeholder="Ex.: Últimas unidades com 10% off"') + '</label>' +
-        '<p class="hint">Para mostrar preço "de/por" e a % de desconto, preencha o "Preço de riscado" no cadastro do iPhone.</p>' +
-      '</div>' +
       '<div class="a-search"><input type="search" id="a-busca" placeholder="Buscar…"></div>' +
       '<div class="plist" id="plist"></div>';
 
@@ -202,7 +193,6 @@
         lista.splice(Number(b.dataset.del), 1); salvar(); renderProdutos();
       }));
     };
-    bind($('.promo-card', el));
     $('#a-busca').addEventListener('input', desenhar);
     $('#novo').addEventListener('click', () => abrirEditor(-1));
     desenhar();
@@ -494,18 +484,24 @@
     const campo = (k, rotulo, extra = '', dica = '') =>
       '<label class="field"><span>' + rotulo + '</span>' + inp('loja.' + k, l[k] || '', extra) + (dica ? '<small class="hint">' + dica + '</small>' : '') + '</label>';
     el.innerHTML =
-      '<div class="a-head"><div><h2>Dados da loja</h2><p class="muted">Aparecem no topo, rodapé e nas mensagens de WhatsApp.</p></div></div>' +
+      '<div class="a-head"><div><h2>Loja e contatos</h2><p class="muted">Aparecem no topo, no rodapé e nas mensagens de WhatsApp.</p></div></div>' +
       '<div class="a-card"><div class="ed-grid">' +
         campo('nome', 'Nome da loja') +
         campo('whatsapp', 'WhatsApp (com DDI e DDD)', 'inputmode="tel" placeholder="5511999999999"', 'Apenas números. Ex.: 55 + DDD + número.') +
         campo('slogan', 'Slogan', '', 'Coloque *entre asteriscos* o trecho que fica em amarelo.') +
         campo('regiao', 'Região (aparece acima do slogan)') +
-        campo('instagram', 'Instagram', 'placeholder="@sualoja"') +
-        campo('endereco', 'Endereço') +
-        campo('horario', 'Horário de atendimento') +
         campo('garantiaPadrao', 'Garantia padrão dos seminovos') +
       '</div><label class="field"><span>Texto de apresentação</span><textarea data-bind="loja.subtitulo" rows="2">' + esc(l.subtitulo) + '</textarea></label>' +
       '<p class="hint" id="wa-test"></p></div>' +
+      '<div class="a-card"><h3>Contatos e redes</h3><p class="hint">Deixe em branco o que não quiser mostrar no rodapé.</p><div class="ed-grid">' +
+        campo('instagram', 'Instagram', 'placeholder="@sualoja"') +
+        campo('tiktok', 'TikTok', 'placeholder="@sualoja"') +
+        campo('facebook', 'Facebook', 'placeholder="link ou @pagina"') +
+        campo('email', 'E-mail', 'type="email" placeholder="contato@sualoja.com"') +
+        campo('endereco', 'Endereço') +
+        campo('mapsLink', 'Link do Google Maps', 'placeholder="https://maps.app.goo.gl/…"') +
+        campo('horario', 'Horário de atendimento') +
+      '</div></div>' +
       '<div class="a-card"><h3>Trocar senha do admin</h3><div class="ed-grid">' +
         '<label class="field"><span>Nova senha</span><input type="password" id="ns1" autocomplete="new-password"></label>' +
         '<label class="field"><span>Repita a nova senha</span><input type="password" id="ns2" autocomplete="new-password"></label>' +
@@ -527,6 +523,203 @@
       salvar(); $('#ns1').value = $('#ns2').value = '';
       toast('Senha alterada no rascunho. Publique para valer.');
     });
+  }
+
+
+  /* ---------- Promoções: destaque do topo e pop-up ---------- */
+  function renderPromocoes() {
+    const el = $('[data-panel="promocoes"]');
+    cat.promocao = cat.promocao || {};
+    cat.popup = cat.popup || {};
+    const pr = cat.promocao, pp = cat.popup;
+    const optProdutos = (sel) => cat.produtos.map((p) => '<option value="' + esc(p.id) + '"' + (p.id === sel ? ' selected' : '') + '>' +
+      esc(RB.nomeProduto(p) + ' · ' + p.cor + ' · ' + money(p.preco)) + (p.disponivel === false ? ' (oculto)' : '') + '</option>').join('');
+    const opt = (pares, v) => pares.map(([k, t]) => '<option value="' + k + '"' + (k === v ? ' selected' : '') + '>' + t + '</option>').join('');
+    el.innerHTML =
+      '<div class="a-head"><div><h2>Promoções</h2><p class="muted">O destaque do início da página e o pop-up que abre quando o cliente entra no site.</p></div></div>' +
+
+      '<div class="a-card"><h3>⭐ Promoção em evidência no início da página</h3>' +
+        '<div class="ed-grid">' +
+          '<label class="field"><span>iPhone da promoção</span><select data-bind="promocao.produtoId">' +
+            '<option value="">Automático (um dos marcados como destaque)</option>' + optProdutos(pr.produtoId) + '</select></label>' +
+          '<label class="field"><span>Texto da faixa</span>' + inp('promocao.faixa', pr.faixa || '', 'placeholder="Oferta da semana"') + '</label>' +
+        '</div>' +
+        '<label class="field"><span>Frase da promoção</span>' + inp('promocao.texto', pr.texto || '', 'placeholder="Ex.: Últimas unidades com 10% off"') + '</label>' +
+        '<p class="hint">Para mostrar preço "de/por" e a % de desconto, preencha o "Preço de riscado" no cadastro do iPhone.</p>' +
+      '</div>' +
+
+      '<div class="a-card"><div class="pop-head"><h3>📣 Pop-up de campanha</h3>' +
+        '<label class="switch" title="Ligar pop-up"><input type="checkbox" data-bind="popup.ativo"' + (pp.ativo ? ' checked' : '') + '><span></span></label></div>' +
+        '<p class="hint" id="pop-status"></p>' +
+        '<div class="ed-grid">' +
+          '<label class="field"><span>Selo (opcional)</span>' + inp('popup.selo', pp.selo || '', 'placeholder="Ex.: Só esta semana"') + '</label>' +
+          '<label class="field"><span>Cupom (opcional)</span>' + inp('popup.cupom', pp.cupom || '', 'placeholder="Ex.: RBTECH100"') + '</label>' +
+        '</div>' +
+        '<label class="field"><span>Título</span>' + inp('popup.titulo', pp.titulo || '', 'placeholder="Ex.: Ganhe *R$ 100 OFF* no seu iPhone"') +
+          '<small class="hint">Coloque *entre asteriscos* o trecho que fica em amarelo.</small></label>' +
+        '<label class="field"><span>Texto</span><textarea data-bind="popup.texto" rows="3" placeholder="Escreva aqui a promoção, as regras do cupom etc.">' + esc(pp.texto || '') + '</textarea></label>' +
+        '<div class="ed-grid">' +
+          '<label class="field"><span>Texto do botão</span>' + inp('popup.botaoTexto', pp.botaoTexto || '', 'placeholder="Ex.: Quero aproveitar"') + '</label>' +
+          '<label class="field"><span>Ao clicar no botão</span><select data-bind="popup.acao" id="pop-acao">' +
+            opt([['whatsapp', 'Abrir WhatsApp com a promoção'], ['produto', 'Abrir um iPhone'], ['vitrine', 'Ir para a vitrine'], ['link', 'Abrir um link'], ['fechar', 'Só fechar']], pp.acao || 'whatsapp') +
+          '</select></label>' +
+          '<label class="field" id="pop-prod"><span>iPhone</span><select data-bind="popup.produtoId"><option value="">Selecione…</option>' + optProdutos(pp.produtoId) + '</select></label>' +
+          '<label class="field" id="pop-link"><span>Link</span>' + inp('popup.link', pp.link || '', 'placeholder="https://…"') + '</label>' +
+        '</div>' +
+        '<div class="field"><span>Imagem (opcional)</span><div class="photo-add">' +
+          '<span id="pop-img"></span>' +
+          '<label class="btn btn-outline btn-sm">📷 Escolher imagem<input type="file" accept="image/*" id="pop-up" hidden></label>' +
+          '<button type="button" class="btn btn-sm btn-outline" id="pop-img-x">Remover</button>' +
+        '</div></div>' +
+        '<div class="ed-grid">' +
+          '<label class="field"><span>Mostrar para o cliente</span><select data-bind="popup.frequencia">' +
+            opt([['sessao', 'Uma vez a cada visita'], ['dia', 'Uma vez por dia'], ['uma', 'Só uma vez'], ['sempre', 'Sempre que abrir a página']], pp.frequencia || 'sessao') +
+          '</select></label>' +
+          '<label class="field"><span>Abrir depois de (segundos)</span>' + num('popup.atraso', pp.atraso ?? 2, 'min="0" max="60"') + '</label>' +
+          '<label class="field"><span>Começa em (opcional)</span><input type="date" data-bind="popup.inicio" value="' + esc(pp.inicio || '') + '"></label>' +
+          '<label class="field"><span>Termina em (opcional)</span><input type="date" data-bind="popup.fim" value="' + esc(pp.fim || '') + '"></label>' +
+        '</div>' +
+        '<div class="pub-act"><button type="button" class="btn btn-ink" id="pop-ver">👁 Ver como fica</button>' +
+        '<a class="btn btn-outline" href="index.html?preview=1&popup=1" target="_blank">Ver no site (pré-visualização)</a></div>' +
+      '</div>';
+
+    const ajustar = () => {
+      $('#pop-prod').hidden = (cat.popup.acao || 'whatsapp') !== 'produto';
+      $('#pop-link').hidden = cat.popup.acao !== 'link';
+      $('#pop-img').innerHTML = cat.popup.imagem ? '<img class="pop-thumb" src="' + esc(cat.popup.imagem) + '" alt="">' : '<small class="hint">Sem imagem</small>';
+      $('#pop-img-x').hidden = !cat.popup.imagem;
+      const vig = RB.campanhaVigente(cat.popup);
+      $('#pop-status').innerHTML = !cat.popup.ativo ? '⚪ Pop-up desligado.'
+        : vig ? '🟢 Ligado: aparece para os clientes depois de publicar.' : '🟡 Ligado, mas fora das datas escolhidas.';
+    };
+    bind(el, ajustar);
+    ajustar();
+    $('#pop-up').addEventListener('change', async (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      try { cat.popup.imagem = await comprimir(f); salvar(); ajustar(); } catch (err) { toast('Não foi possível ler a imagem.', true); }
+      e.target.value = '';
+    });
+    $('#pop-img-x').addEventListener('click', () => { cat.popup.imagem = ''; salvar(); ajustar(); });
+    $('#pop-ver').addEventListener('click', () => {
+      if (!cat.popup.titulo) return toast('Escreva um título para o pop-up.', true);
+      RB.abrirPopup(cat, (p, fechar) => { fechar(); toast('No site, o botão vai: ' + $('#pop-acao').selectedOptions[0].textContent.toLowerCase() + '.'); });
+    });
+  }
+
+  /* ---------- Textos do site ---------- */
+  function renderTextos() {
+    const el = $('[data-panel="textos"]');
+    cat.textos = cat.textos || {};
+    el.innerHTML =
+      '<div class="a-head"><div><h2>Textos do site</h2><p class="muted">Use *asteriscos* para destacar em amarelo e {parcelas} para o número máximo de parcelas. Campo vazio volta ao texto padrão.</p></div></div>' +
+      RB.TEXTOS.map((g) =>
+        '<div class="a-card"><h3>' + esc(g.grupo) + '</h3>' +
+        g.itens.map(([k, rotulo, padrao]) => {
+          const v = cat.textos[k] != null ? cat.textos[k] : padrao;
+          const longo = padrao.length > 60;
+          return '<label class="field"><span>' + esc(rotulo) + '</span>' +
+            (longo ? '<textarea data-bind="textos.' + k + '" rows="2">' + esc(v) + '</textarea>' : inp('textos.' + k, v)) + '</label>';
+        }).join('') + '</div>'
+      ).join('');
+    bind(el);
+  }
+
+  /* ---------- Cliques: painel de desempenho ---------- */
+  const PAINEL_KEY = 'rbtech_painel_chave';
+  let periodo = '30';
+
+  function renderCliques() {
+    const el = $('[data-panel="cliques"]');
+    cat.rastreamento = cat.rastreamento || { supabaseUrl: '', supabaseChave: '' };
+    const rs = cat.rastreamento;
+    let chave = '';
+    try { chave = localStorage.getItem(PAINEL_KEY) || ''; } catch (e) { /* ignora */ }
+    const pronto = rs.supabaseUrl && rs.supabaseChave;
+    el.innerHTML =
+      '<div class="a-head"><div><h2>Cliques e propostas</h2><p class="muted">Quantas vezes cada iPhone foi aberto e quantas propostas foram enviadas para o WhatsApp.</p></div>' +
+      '<div class="periodo" role="tablist">' + [['1', 'Hoje'], ['7', '7 dias'], ['30', '30 dias'], ['0', 'Tudo']].map(([v, t]) =>
+        '<button data-per="' + v + '" class="' + (v === periodo ? 'on' : '') + '">' + t + '</button>').join('') + '</div></div>' +
+      '<div id="dash">' + (pronto && chave ? '<p class="hint">Carregando…</p>' : '') + '</div>' +
+      '<details class="a-card" ' + (pronto && chave ? '' : 'open') + '><summary><h3>⚙️ Configuração do registro de cliques</h3></summary>' +
+        '<ol class="steps-cfg">' +
+          '<li>Crie uma conta grátis em <a href="https://supabase.com" target="_blank" rel="noopener">supabase.com</a> e um projeto novo.</li>' +
+          '<li>No projeto, abra <b>SQL Editor</b>, cole o conteúdo do arquivo <code>supabase/rastreamento.sql</code> do repositório, troque <code>TROQUE-ESTA-CHAVE</code> por uma senha sua e clique em <b>Run</b>.</li>' +
+          '<li>Em <b>Project Settings › API</b>, copie a <b>Project URL</b> e a chave <b>anon public</b> e cole abaixo. Depois publique o site.</li>' +
+          '<li>Digite a senha que você escolheu no passo 2 em "Chave do painel".</li>' +
+        '</ol>' +
+        '<div class="ed-grid">' +
+          '<label class="field"><span>Project URL</span>' + inp('rastreamento.supabaseUrl', rs.supabaseUrl || '', 'placeholder="https://xxxx.supabase.co"') + '</label>' +
+          '<label class="field"><span>Chave anon public</span>' + inp('rastreamento.supabaseChave', rs.supabaseChave || '', 'placeholder="eyJhbGciOi…"') + '</label>' +
+        '</div>' +
+        '<label class="field"><span>Chave do painel (fica só neste navegador)</span><input type="password" id="painel-chave" value="' + esc(chave) + '" autocomplete="off"></label>' +
+        '<button class="btn btn-sm btn-ink" id="painel-ok">Salvar e carregar</button>' +
+      '</details>';
+    bind(el);
+    $$('[data-per]', el).forEach((b) => b.addEventListener('click', () => { periodo = b.dataset.per; renderCliques(); }));
+    $('#painel-ok').addEventListener('click', () => {
+      try { localStorage.setItem(PAINEL_KEY, $('#painel-chave').value.trim()); } catch (e) { /* ignora */ }
+      renderCliques();
+    });
+    if (pronto && chave) carregarPainel(rs, chave);
+  }
+
+  async function carregarPainel(rs, chave) {
+    const dash = $('#dash');
+    let desde = null;
+    if (periodo !== '0') {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - (Number(periodo) - 1));
+      desde = d.toISOString();
+    }
+    let dados;
+    try {
+      const res = await fetch(rs.supabaseUrl.replace(/\/+$/, '') + '/rest/v1/rpc/painel_resumo', {
+        method: 'POST',
+        headers: { apikey: rs.supabaseChave, Authorization: 'Bearer ' + rs.supabaseChave, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chave, desde })
+      });
+      if (!res.ok) {
+        const t = await res.json().catch(() => ({}));
+        throw new Error(/chave/i.test(t.message || '') ? 'Chave do painel incorreta.' : (t.message || 'Erro ' + res.status));
+      }
+      dados = await res.json();
+    } catch (e) {
+      dash.innerHTML = '<div class="a-card err-card">Não foi possível carregar: ' + esc(e.message) + '</div>';
+      $('[data-panel="cliques"] details').open = true;
+      return;
+    }
+    const t = dados.totais || {};
+    const nomes = {};
+    cat.produtos.forEach((p) => (nomes[p.id] = RB.nomeProduto(p) + ' · ' + p.cor));
+    const prods = (dados.produtos || []).map((x) => Object.assign({}, x, { nome: nomes[x.produto_id] || x.produto_nome || x.produto_id }));
+    const max = Math.max(1, ...prods.map((x) => Math.max(x.cliques, x.whatsapp)));
+    const pct = (a, b) => (b ? Math.round((a / b) * 100) + '%' : '—');
+    const tile = (rotulo, valor, sub) => '<div class="kpi"><span>' + rotulo + '</span><strong>' + valor + '</strong>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>';
+    const bar = (v, cls) => '<div class="bar-cell" title="' + v + '"><div class="track"><div class="bar ' + cls + '" style="width:' + Math.max(v ? 3 : 0, (v / max) * 100) + '%"></div></div><span>' + v + '</span></div>';
+
+    dash.innerHTML =
+      '<div class="kpis">' +
+        tile('Visitas', t.visitas || 0, 'pessoas que entraram no site') +
+        tile('Cliques em iPhones', t.cliques || 0, 'aparelhos abertos') +
+        tile('Propostas no WhatsApp', t.propostas || 0, pct(t.propostas || 0, t.cliques || 0) + ' dos cliques') +
+        tile('Outros cliques no WhatsApp', t.whatsapp_geral || 0, 'botões gerais e consultoria') +
+        tile('Cliques no pop-up', t.popup || 0, '') +
+      '</div>' +
+      '<div class="a-card"><h3>Por aparelho</h3>' +
+        (prods.length
+          ? '<div class="rank"><div class="rank-row rank-head"><span>iPhone</span><span>Cliques</span><span>Propostas WhatsApp</span><span>Conversão</span></div>' +
+            prods.map((x) => '<div class="rank-row"><span class="rank-name">' + esc(x.nome) + '</span>' +
+              bar(x.cliques, 'bar-c') + bar(x.whatsapp, 'bar-w') + '<span class="rank-pct">' + pct(x.whatsapp, x.cliques) + '</span></div>').join('') +
+            '</div>'
+          : '<p class="hint">Ainda não há cliques neste período.</p>') +
+      '</div>' +
+      (dados.ultimas && dados.ultimas.length
+        ? '<div class="a-card"><h3>Últimas propostas enviadas</h3><div class="ult">' + dados.ultimas.map((u) =>
+            '<div><b>' + esc(nomes[u.produto_id] || u.produto_nome || '') + '</b><span>' + esc(u.detalhe || '') + '</span><small>' +
+            new Date(u.criado_em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) + '</small></div>').join('') + '</div></div>'
+        : '');
   }
 
   /* ---------- Publicar ---------- */
@@ -630,6 +823,14 @@
         linha('Enviando foto ' + (k + 1) + ' de ' + pendentes.length + '…');
         await gh(cfg, caminho, 'PUT', { message: 'Foto: ' + RB.nomeProduto(p), content: data.split(',')[1], branch: cfg.branch || undefined });
         p.fotos[i] = caminho;
+        salvar();
+      }
+      if (cat.popup && String(cat.popup.imagem || '').startsWith('data:')) {
+        const data = cat.popup.imagem;
+        const caminho = 'img/promo/popup-' + Date.now().toString(36) + '.' + (data.startsWith('data:image/webp') ? 'webp' : 'jpg');
+        linha('Enviando imagem do pop-up…');
+        await gh(cfg, caminho, 'PUT', { message: 'Imagem do pop-up', content: data.split(',')[1], branch: cfg.branch || undefined });
+        cat.popup.imagem = caminho;
         salvar();
       }
       // 2) grava o catálogo
