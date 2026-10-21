@@ -19,7 +19,8 @@ Todos os dados ficam em `data/catalogo.json`.
 2. As alterações ficam num rascunho no navegador. Use **Pré-visualizar** para ver o site com elas.
 3. Em **Publicar**, informe uma vez o token do GitHub (fine-grained token com acesso só a este
    repositório e permissão *Contents: Read and write*). Ao publicar, o painel grava
-   `data/catalogo.json` e as fotos em `img/produtos/`; a Vercel faz o deploy sozinha em ~1 minuto.
+   `data/catalogo.json` e as fotos em `img/produtos/` na branch principal do repositório
+   (ou na branch informada no painel); a Vercel faz o deploy sozinha em ~1 minuto.
 
 A senha do painel é só uma barreira de tela: quem realmente pode alterar o site é quem tem o token.
 

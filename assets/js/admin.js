@@ -536,7 +536,7 @@
 
   function renderPublicar() {
     const el = $('[data-panel="publicar"]');
-    const gh = Object.assign({ repo: 'rbtechcelulares-lang/RB-TECH-CELULARES', branch: 'main', token: '' }, lerGH());
+    const gh = Object.assign({ repo: 'rbtechcelulares-lang/RB-TECH-CELULARES', branch: '', token: '' }, lerGH());
     el.innerHTML =
       '<div class="a-head"><div><h2>Publicar alterações</h2>' +
       '<p class="muted">Publicar grava o catálogo e as fotos no GitHub. A Vercel atualiza o site em cerca de 1 minuto.</p></div></div>' +
@@ -551,7 +551,7 @@
         'com acesso somente a este repositório e permissão <b>Contents: Read and write</b>. O token fica salvo só neste navegador.</p>' +
         '<div class="ed-grid">' +
           '<label class="field"><span>Repositório</span><input id="gh-repo" value="' + esc(gh.repo) + '"></label>' +
-          '<label class="field"><span>Branch publicada pela Vercel</span><input id="gh-branch" value="' + esc(gh.branch) + '"></label>' +
+          '<label class="field"><span>Branch (opcional)</span><input id="gh-branch" value="' + esc(gh.branch) + '" placeholder="em branco = branch principal do repositório"></label>' +
         '</div>' +
         '<label class="field"><span>Token</span><input id="gh-token" type="password" value="' + esc(gh.token) + '" placeholder="github_pat_…" autocomplete="off"></label>' +
         '<button class="btn btn-sm btn-outline" id="gh-save">Salvar conexão</button>' +
@@ -562,7 +562,7 @@
         '<button class="btn btn-sm btn-danger" id="desc">Descartar rascunho</button></div>' +
       '</div>';
 
-    const pegarGH = () => ({ repo: $('#gh-repo').value.trim(), branch: $('#gh-branch').value.trim() || 'main', token: $('#gh-token').value.trim() });
+    const pegarGH = () => ({ repo: $('#gh-repo').value.trim(), branch: $('#gh-branch').value.trim(), token: $('#gh-token').value.trim() });
     $('#gh-save').addEventListener('click', () => { localStorage.setItem(GH_KEY, JSON.stringify(pegarGH())); toast('Conexão salva neste navegador.'); });
     $('#pub').addEventListener('click', () => publicar(pegarGH()));
     $('#exp').addEventListener('click', () => {
@@ -597,7 +597,7 @@
   }
 
   async function gh(cfg, path, metodo, corpo) {
-    const res = await fetch('https://api.github.com/repos/' + cfg.repo + '/contents/' + path + (metodo === 'GET' ? '?ref=' + encodeURIComponent(cfg.branch) : ''), {
+    const res = await fetch('https://api.github.com/repos/' + cfg.repo + '/contents/' + path + (metodo === 'GET' && cfg.branch ? '?ref=' + encodeURIComponent(cfg.branch) : ''), {
       method: metodo,
       headers: { Authorization: 'Bearer ' + cfg.token, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
       body: corpo ? JSON.stringify(corpo) : undefined
@@ -628,7 +628,7 @@
         const ext = data.startsWith('data:image/webp') ? 'webp' : 'jpg';
         const caminho = 'img/produtos/' + p.id + '-' + Date.now().toString(36) + k + '.' + ext;
         linha('Enviando foto ' + (k + 1) + ' de ' + pendentes.length + '…');
-        await gh(cfg, caminho, 'PUT', { message: 'Foto: ' + RB.nomeProduto(p), content: data.split(',')[1], branch: cfg.branch });
+        await gh(cfg, caminho, 'PUT', { message: 'Foto: ' + RB.nomeProduto(p), content: data.split(',')[1], branch: cfg.branch || undefined });
         p.fotos[i] = caminho;
         salvar();
       }
@@ -637,7 +637,7 @@
       const atual = await gh(cfg, 'data/catalogo.json', 'GET');
       const texto = JSON.stringify(cat, null, 2) + '\n';
       await gh(cfg, 'data/catalogo.json', 'PUT', {
-        message: 'Atualiza catálogo pelo painel admin', content: b64(texto), branch: cfg.branch, sha: atual ? atual.sha : undefined
+        message: 'Atualiza catálogo pelo painel admin', content: b64(texto), branch: cfg.branch || undefined, sha: atual ? atual.sha : undefined
       });
       localStorage.setItem(PUB_KEY, JSON.stringify(cat));
       publicado = clone(cat);
