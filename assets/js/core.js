@@ -108,9 +108,20 @@
     return 'https://wa.me/' + num + (texto ? '?text=' + encodeURIComponent(texto) : '');
   }
 
-  // Saúde da bateria: "88%" ou "revisada" quando a loja não informou a porcentagem
-  function batTexto(p) {
-    return Number(p.bateria) > 0 ? Number(p.bateria) + '%' : 'revisada';
+  // Saúde da bateria: % informada; aparelho novo = 100%; senão a faixa da linha
+  // (Admin › iPhones, ex.: "80% a 83%"); sem nada disso, "revisada"
+  function batTexto(p, cat) {
+    if (Number(p.bateria) > 0) return Number(p.bateria) + '%';
+    if (/^novo|lacrad/i.test(p.condicao || '')) return '100%';
+    const m = String(p.modelo || '').match(/iPhone\s*(\d+)/i);
+    const faixa = m && cat && cat.bateriaLinha ? String(cat.bateriaLinha[m[1]] || '').trim() : '';
+    return faixa || 'revisada';
+  }
+
+  // Número usado no ícone e na ordenação (o maior da faixa)
+  function batNumero(p, cat) {
+    const ns = (batTexto(p, cat).match(/\d+/g) || []).map(Number);
+    return ns.length ? Math.max(...ns) : 0;
   }
 
   function nomeProduto(p) {
@@ -328,6 +339,6 @@
     DRAFT_KEY, CHECKLIST_ITENS, STATUS,
     money, esc, lerRascunho, carregarCatalogo,
     TEXTOS, texto, formatar, registrar, limparSupabase, abrirAviso, cabecalhosSupabase, campanhaVigente, abrirPopup,
-    avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, nomeProduto, phoneSVG, sha256
+    avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, batNumero, nomeProduto, phoneSVG, sha256
   };
 })(window);

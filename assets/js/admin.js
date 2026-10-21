@@ -162,6 +162,11 @@
       '<div class="a-head"><div><h2>iPhones à venda</h2><p class="muted">' + lista.length + ' cadastrados · ' +
       lista.filter((p) => p.disponivel !== false).length + ' visíveis no site</p></div>' +
       '<button class="btn btn-ink" id="novo">+ Cadastrar iPhone</button></div>' +
+      '<details class="a-card bat-linha"><summary><h3>🔋 Saúde da bateria por linha</h3> <small class="hint">usada nos seminovos sem % informada</small></summary>' +
+        '<div class="bl-grid">' + ['11', '12', '13', '14', '15', '16', '17'].map((n) =>
+          '<label class="field"><span>iPhone ' + n + '</span>' + inp('bateriaLinha.' + n, (cat.bateriaLinha || {})[n] || '', 'placeholder="ex.: 80% a 83%"') + '</label>').join('') +
+        '</div><p class="hint">Aparelhos "Novo lacrado" sempre mostram 100%. Se você informar a % no cadastro do aparelho, vale a do cadastro.</p>' +
+      '</details>' +
       '<div class="a-search"><input type="search" id="a-busca" placeholder="Buscar…"></div>' +
       '<div class="plist" id="plist"></div>';
 
@@ -174,7 +179,7 @@
             '<div class="prow-img" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
               (p.fotos && p.fotos[0] ? '<img src="' + esc(p.fotos[0]) + '" alt="">' : RB.phoneSVG(p.corHex)) + '</div>' +
             '<div class="prow-info"><strong>' + esc(RB.nomeProduto(p)) + '</strong>' +
-              '<span>' + esc(p.cor) + ' · ' + esc(p.condicao) + ' · 🔋 ' + esc(RB.batTexto(p)) + (p.destaque ? ' · ★ promoção' : '') + '</span>' +
+              '<span>' + esc(p.cor) + ' · ' + esc(p.condicao) + ' · 🔋 ' + esc(RB.batTexto(p, cat)) + (p.destaque ? ' · ★ promoção' : '') + '</span>' +
               '<span class="prow-price">' + money(p.preco) + '</span></div>' +
             '<label class="switch" title="Visível no site"><input type="checkbox" data-vis="' + i + '"' + (p.disponivel !== false ? ' checked' : '') + '><span></span></label>' +
             '<div class="prow-act">' +
@@ -201,6 +206,7 @@
         lista.splice(Number(b.dataset.del), 1); salvar(); renderProdutos();
       }));
     };
+    bind($('.bat-linha', el), () => desenhar());
     $('#a-busca').addEventListener('input', desenhar);
     $('#novo').addEventListener('click', () => abrirEditor(-1));
     desenhar();
@@ -255,9 +261,9 @@
         '<input name="cor" value="' + esc(p.cor) + '" placeholder="Nome da cor">' +
         '<input name="corHex" type="color" value="' + esc(p.corHex || '#cccccc') + '" title="Tom da cor">' +
       '</div></div>' +
-      '<label class="field"><span>Saúde da bateria: <b id="bat-v">' + esc(RB.batTexto(p)) + '</b></span>' +
+      '<label class="field"><span>Saúde da bateria: <b id="bat-v">' + esc(RB.batTexto(p, cat)) + '</b></span>' +
         '<input name="bateria" type="range" min="50" max="100" value="' + esc(Number(p.bateria) > 0 ? p.bateria : 90) + '"' + (Number(p.bateria) > 0 ? '' : ' disabled') + '></label>' +
-      '<label class="check"><input type="checkbox" name="semBateria"' + (Number(p.bateria) > 0 ? '' : ' checked') + '> Não informar a porcentagem (aparece "bateria revisada")</label>' +
+      '<label class="check"><input type="checkbox" name="semBateria"' + (Number(p.bateria) > 0 ? '' : ' checked') + '> Não informar a porcentagem (usa a faixa da linha)</label>' +
       '</div>' +
 
       '<div class="ed-sec"><h3>Valores</h3><div class="ed-grid">' +
@@ -323,7 +329,7 @@
     f.bateria.addEventListener('input', () => ($('#bat-v').textContent = f.bateria.value + '%'));
     f.semBateria.addEventListener('change', () => {
       f.bateria.disabled = f.semBateria.checked;
-      $('#bat-v').textContent = f.semBateria.checked ? 'revisada' : f.bateria.value + '%';
+      $('#bat-v').textContent = f.semBateria.checked ? RB.batTexto(Object.assign({}, p, { bateria: null, modelo: f.modelo.value, condicao: f.condicao.value }), cat) : f.bateria.value + '%';
     });
     const sim = () => {
       const v = Number(f.preco.value) || 0;

@@ -359,6 +359,15 @@
     "fim": "",
     "mensagem": "Olá! Quero ativar meu cupom *{cupom}* da promoção \"{titulo}\". 🎟️"
   },
+  "bateriaLinha": {
+    "11": "78% a 80%",
+    "12": "80% a 83%",
+    "13": "84% a 88%",
+    "14": "88% a 90%",
+    "15": "88% a 91%",
+    "16": "90% a 93%",
+    "17": "100%"
+  },
   "produtos": [
     {
       "id": "p-11-64gb",
