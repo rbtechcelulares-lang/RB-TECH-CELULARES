@@ -349,7 +349,7 @@
     "texto": "Toque em \"Salvar meu cupom\" e ganhe R$ 100 de desconto na compra de qualquer iPhone seminovo.",
     "cupom": "RBTECH100",
     "botaoTexto": "Salvar meu cupom",
-    "acao": "whatsapp",
+    "acao": "vitrine",
     "produtoId": "",
     "link": "",
     "imagem": "",
@@ -380,7 +380,6 @@
       "preco": 950,
       "precoAntigo": 0,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -409,7 +408,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "vitrine": true
     },
     {
       "id": "p-11-128gb",
