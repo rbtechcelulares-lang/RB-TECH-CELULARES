@@ -10,7 +10,7 @@
   let filtroLinha = 'todos';
 
   // Entrada compartilhada entre a avaliação da página e o detalhe do produto
-  const entrada = { usar: false, modeloId: '', armazenamento: '', bateriaId: '', defeitos: [] };
+  const entrada = { usar: null, modeloId: '', armazenamento: '', bateriaId: '', defeitos: [] };
 
   init().catch((e) => {
     console.error(e);
@@ -259,13 +259,18 @@
       '</div>' +
       '<div class="sim">' +
         '<h3 class="sim-title">Monte sua proposta</h3>' +
-        '<p class="sim-q">Você tem um iPhone para dar de entrada?</p>' +
-        '<div class="toggle" role="radiogroup">' +
-          '<button data-entrada="1" role="radio">Sim, tenho</button>' +
-          '<button data-entrada="0" role="radio">Não, sem entrada</button>' +
+        '<div class="sim-ask">' +
+          '<span class="sim-step">Passo 1</span>' +
+          '<p class="sim-q">Você quer dar o seu iPhone de entrada?</p>' +
+          '<p class="sim-q-sub">Seu usado abate no valor deste aparelho.</p>' +
         '</div>' +
-        '<div id="sim-trade" hidden><div id="sim-form"></div><div id="sim-eval"></div></div>' +
-        '<div id="sim-pay"></div>' +
+        '<div class="toggle" role="radiogroup" aria-label="Dar iPhone de entrada">' +
+          '<button data-entrada="1" role="radio"><b>✓ Sim</b><small>Quero dar meu iPhone</small></button>' +
+          '<button data-entrada="0" role="radio"><b>✕ Não</b><small>Comprar sem entrada</small></button>' +
+        '</div>' +
+        '<div id="sim-trade" hidden><h4 class="sim-h"><span class="sim-step">Passo 2</span> Conte como está o seu iPhone</h4>' +
+          '<div id="sim-form"></div><div id="sim-eval"></div></div>' +
+        '<div id="sim-pay" hidden></div>' +
       '</div>';
 
     $$('.pd-thumbs button', body).forEach((b) => b.addEventListener('click', () => {
@@ -275,11 +280,12 @@
 
     const atualizar = () => {
       $$('.toggle button', body).forEach((b) => {
-        const on = (b.dataset.entrada === '1') === entrada.usar;
+        const on = entrada.usar !== null && (b.dataset.entrada === '1') === entrada.usar;
         b.classList.toggle('on', on);
         b.setAttribute('aria-checked', on);
       });
       $('#sim-trade', body).hidden = !entrada.usar;
+      $('#sim-pay', body).hidden = entrada.usar === null;
       const r = entrada.usar ? avaliacaoAtual() : null;
       if (entrada.usar) $('#sim-eval', body).innerHTML = resultadoEntradaHTML(r);
       renderPagamento(p, r, pag);
@@ -312,7 +318,7 @@
     const desc = Number(cat.pagamento.descontoPix) || 0;
 
     let html = '';
-    html += '<div class="pay">';
+    html += '<div class="pay"><h4 class="sim-h"><span class="sim-step">Passo ' + (entrada.usar ? 3 : 2) + '</span> Escolha como pagar</h4>';
     if (temEntrada) {
       html +=
         '<div class="summary">' +
@@ -326,7 +332,6 @@
           '<button data-aba="total" class="' + (aba === 'total' ? 'on' : '') + '">Valor total sem entrada<small>' + money(p.preco) + '</small></button>' +
         '</div>';
     } else {
-      html += '<h4 class="pay-h">Formas de pagamento' + (entrada.usar ? '' : ' · valor total') + '</h4>';
     }
 
     if (valor <= 0) {

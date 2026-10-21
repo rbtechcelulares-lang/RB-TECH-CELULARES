@@ -72,7 +72,8 @@ input[type=range] { accent-color: var(--ink); padding: 0 !important; border: 0 !
 .ck-row > input { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); width: 100%; }
 @media (min-width: 640px) { .ck-row { grid-template-columns: 110px auto 1fr; align-items: center; } }
 .seg { display: flex; gap: 4px; flex-wrap: wrap; }
-.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label { position: relative; }
+.seg input { position: absolute; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .seg span { display: inline-block; padding: 7px 10px; border-radius: 10px; border: 1px solid var(--line); font-size: 13px; cursor: pointer; background: #fff; white-space: nowrap; }
 .seg-ok input:checked + span { background: var(--ok); color: #fff; border-color: var(--ok); }
 .seg-obs input:checked + span { background: var(--warn); color: #fff; border-color: var(--warn); }
