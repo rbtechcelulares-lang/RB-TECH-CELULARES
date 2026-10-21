@@ -108,6 +108,11 @@
     return 'https://wa.me/' + num + (texto ? '?text=' + encodeURIComponent(texto) : '');
   }
 
+  // Saúde da bateria: "88%" ou "revisada" quando a loja não informou a porcentagem
+  function batTexto(p) {
+    return Number(p.bateria) > 0 ? Number(p.bateria) + '%' : 'revisada';
+  }
+
   function nomeProduto(p) {
     return [p.modelo, p.armazenamento].filter(Boolean).join(' ');
   }
@@ -323,6 +328,6 @@
     DRAFT_KEY, CHECKLIST_ITENS, STATUS,
     money, esc, lerRascunho, carregarCatalogo,
     TEXTOS, texto, formatar, registrar, limparSupabase, abrirAviso, cabecalhosSupabase, campanhaVigente, abrirPopup,
-    avaliar, fmtGB, parcelas, valorPix, linkWhats, nomeProduto, phoneSVG, sha256
+    avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, nomeProduto, phoneSVG, sha256
   };
 })(window);

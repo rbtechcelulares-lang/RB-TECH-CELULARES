@@ -203,7 +203,7 @@
           '<div class="card-body">' +
             '<h3>' + esc(p.modelo) + '</h3>' +
             '<p class="card-meta"><span class="dot" style="background:' + esc(p.corHex || '#ccc') + '"></span>' + esc(p.cor) + ' · ' + esc(p.armazenamento) + '</p>' +
-            '<p class="card-batt">' + batteryIcon(p.bateria) + ' Bateria ' + esc(p.bateria) + '%</p>' +
+            '<p class="card-batt">' + (Number(p.bateria) > 0 ? batteryIcon(p.bateria) + ' ' : '🔋 ') + 'Bateria ' + esc(RB.batTexto(p)) + '</p>' +
             (p.precoAntigo > p.preco ? '<p class="old">' + money(p.precoAntigo) + '</p>' : '') +
             '<p class="price">' + money(RB.valorPix(cat, p.preco)) + ' <small>à vista</small></p>' +
             '<p class="installment">ou ' + parc.n + 'x de ' + money(parc.parcela) + '</p>' +
@@ -233,7 +233,7 @@
           '<p class="eyebrow">' + esc(p.condicao) + ' · garantia ' + esc(p.garantia || cat.loja.garantiaPadrao) + '</p>' +
           '<h2 class="spot-title">' + esc(RB.nomeProduto(p)) + '</h2>' +
           (promo.texto ? '<p class="spot-text">' + esc(promo.texto) + '</p>' : '') +
-          '<p class="spot-sub">' + esc(p.cor) + ' · bateria ' + esc(p.bateria) + '% · checklist completo</p>' +
+          '<p class="spot-sub">' + esc(p.cor) + ' · bateria ' + esc(RB.batTexto(p)) + ' · checklist completo</p>' +
           '<p class="spot-price">' + (off ? '<s>' + money(p.precoAntigo) + '</s> <small>por</small> ' : '') + '<strong>' + money(RB.valorPix(cat, p.preco)) + '</strong></p>' +
           (off ? '<span class="off-badge">−' + off + '% OFF</span>' : '') +
           '<p class="spot-parc">ou ' + ult.n + 'x de ' + money(ult.parcela) + ' no cartão · Pix, débito e crédito</p>' +
@@ -381,7 +381,7 @@
         else linha = '<span class="int-dif">' + money(RB.valorPix(cat, p.preco)) + '</span><small>ou ' + ult.n + 'x de ' + money(ult.parcela) + '</small>';
         return '<button type="button" class="int-item" data-id="' + esc(p.id) + '">' +
           '<span class="int-info"><strong>' + esc(RB.nomeProduto(p)) + '</strong>' +
-          '<small><span class="dot" style="background:' + esc(p.corHex || '#ccc') + '"></span> ' + esc(p.cor) + ' · ' + esc(p.condicao) + ' · bateria ' + esc(p.bateria) + '%</small>' +
+          '<small><span class="dot" style="background:' + esc(p.corHex || '#ccc') + '"></span> ' + esc(p.cor) + ' · ' + esc(p.condicao) + ' · bateria ' + esc(RB.batTexto(p)) + '</small>' +
           (valEntrada > 0 ? '<small>Valor do aparelho: ' + money(p.preco) + '</small>' : '') + '</span>' +
           '<span class="int-preco">' + linha + '</span>' +
           '<span class="int-cta">Ver e montar proposta →</span>' +
@@ -444,7 +444,7 @@
           '<p class="eyebrow eyebrow-dark">' + esc(p.condicao) + ' · Garantia ' + esc(p.garantia || cat.loja.garantiaPadrao) + '</p>' +
           '<h2 id="sheet-title" class="pd-title">' + esc(p.modelo) + '</h2>' +
           '<p class="card-meta"><span class="dot" style="background:' + esc(p.corHex || '#ccc') + '"></span>' + esc(p.cor) + ' · ' + esc(p.armazenamento) +
-            ' · ' + batteryIcon(p.bateria) + ' ' + esc(p.bateria) + '%</p>' +
+            ' · ' + (Number(p.bateria) > 0 ? batteryIcon(p.bateria) + ' ' + esc(p.bateria) + '%' : 'bateria revisada') + '</p>' +
           (p.precoAntigo > p.preco ? '<p class="old">' + money(p.precoAntigo) + '</p>' : '') +
           '<p class="price price-lg">' + money(RB.valorPix(cat, p.preco)) + ' <small>à vista no Pix</small></p>' +
           '<h3 class="pd-h">Checklist do aparelho</h3>' +
@@ -614,7 +614,7 @@
 
   function mensagem(p, r, aba, parcela, valor, lista, pix) {
     const linhas = ['Olá! Sou *' + nomeCliente.trim() + '* e montei uma proposta pelo site:', ''];
-    linhas.push('📱 *' + RB.nomeProduto(p) + '* · ' + p.cor + ' · ' + p.condicao + ' · bateria ' + p.bateria + '%');
+    linhas.push('📱 *' + RB.nomeProduto(p) + '* · ' + p.cor + ' · ' + p.condicao + ' · bateria ' + RB.batTexto(p));
     linhas.push('Valor: ' + money(p.preco));
     if (r) {
       const bat = cat.avaliacao.bateria.find((b) => b.id === entrada.bateriaId);

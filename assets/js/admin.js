@@ -174,7 +174,7 @@
             '<div class="prow-img" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
               (p.fotos && p.fotos[0] ? '<img src="' + esc(p.fotos[0]) + '" alt="">' : RB.phoneSVG(p.corHex)) + '</div>' +
             '<div class="prow-info"><strong>' + esc(RB.nomeProduto(p)) + '</strong>' +
-              '<span>' + esc(p.cor) + ' · ' + esc(p.condicao) + ' · 🔋 ' + esc(p.bateria) + '%' + (p.destaque ? ' · ★ destaque' : '') + '</span>' +
+              '<span>' + esc(p.cor) + ' · ' + esc(p.condicao) + ' · 🔋 ' + esc(RB.batTexto(p)) + (p.destaque ? ' · ★ destaque' : '') + '</span>' +
               '<span class="prow-price">' + money(p.preco) + '</span></div>' +
             '<label class="switch" title="Visível no site"><input type="checkbox" data-vis="' + i + '"' + (p.disponivel !== false ? ' checked' : '') + '><span></span></label>' +
             '<div class="prow-act">' +
@@ -255,8 +255,9 @@
         '<input name="cor" value="' + esc(p.cor) + '" placeholder="Nome da cor">' +
         '<input name="corHex" type="color" value="' + esc(p.corHex || '#cccccc') + '" title="Tom da cor">' +
       '</div></div>' +
-      '<label class="field"><span>Saúde da bateria: <b id="bat-v">' + esc(p.bateria) + '%</b></span>' +
-        '<input name="bateria" type="range" min="50" max="100" value="' + esc(p.bateria) + '"></label>' +
+      '<label class="field"><span>Saúde da bateria: <b id="bat-v">' + esc(RB.batTexto(p)) + '</b></span>' +
+        '<input name="bateria" type="range" min="50" max="100" value="' + esc(Number(p.bateria) > 0 ? p.bateria : 90) + '"' + (Number(p.bateria) > 0 ? '' : ' disabled') + '></label>' +
+      '<label class="check"><input type="checkbox" name="semBateria"' + (Number(p.bateria) > 0 ? '' : ' checked') + '> Não informar a porcentagem (aparece "bateria revisada")</label>' +
       '</div>' +
 
       '<div class="ed-sec"><h3>Valores</h3><div class="ed-grid">' +
@@ -320,6 +321,10 @@
       $$('.sw', f).forEach((x) => x.classList.toggle('on', x === b));
     }));
     f.bateria.addEventListener('input', () => ($('#bat-v').textContent = f.bateria.value + '%'));
+    f.semBateria.addEventListener('change', () => {
+      f.bateria.disabled = f.semBateria.checked;
+      $('#bat-v').textContent = f.semBateria.checked ? 'revisada' : f.bateria.value + '%';
+    });
     const sim = () => {
       const v = Number(f.preco.value) || 0;
       const l = RB.parcelas(cat, v);
@@ -341,7 +346,7 @@
         garantia: f.garantia.value.trim(),
         cor: f.cor.value.trim(),
         corHex: f.corHex.value,
-        bateria: Number(f.bateria.value),
+        bateria: f.semBateria.checked ? null : Number(f.bateria.value),
         preco: Number(f.preco.value) || 0,
         precoAntigo: Number(f.precoAntigo.value) || 0,
         observacoes: f.observacoes.value.trim(),
