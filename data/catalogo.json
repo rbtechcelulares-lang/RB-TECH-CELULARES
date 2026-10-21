@@ -343,7 +343,7 @@
     "texto": "Revisado, com garantia e checklist completo. Aceitamos seu usado na troca."
   },
   "popup": {
-    "ativo": false,
+    "ativo": true,
     "selo": "Só esta semana",
     "titulo": "Ganhe *R$ 100 OFF* no seu iPhone",
     "texto": "Toque em \"Salvar meu cupom\" e ganhe R$ 100 de desconto na compra de qualquer iPhone seminovo.",
