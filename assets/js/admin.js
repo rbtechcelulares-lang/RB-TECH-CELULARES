@@ -174,7 +174,7 @@
             '<div class="prow-img" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
               (p.fotos && p.fotos[0] ? '<img src="' + esc(p.fotos[0]) + '" alt="">' : RB.phoneSVG(p.corHex)) + '</div>' +
             '<div class="prow-info"><strong>' + esc(RB.nomeProduto(p)) + '</strong>' +
-              '<span>' + esc(p.cor) + ' · ' + esc(p.condicao) + ' · 🔋 ' + esc(RB.batTexto(p)) + (p.destaque ? ' · ★ destaque' : '') + '</span>' +
+              '<span>' + esc(p.cor) + ' · ' + esc(p.condicao) + ' · 🔋 ' + esc(RB.batTexto(p)) + (p.destaque ? ' · ★ promoção' : '') + '</span>' +
               '<span class="prow-price">' + money(p.preco) + '</span></div>' +
             '<label class="switch" title="Visível no site"><input type="checkbox" data-vis="' + i + '"' + (p.disponivel !== false ? ' checked' : '') + '><span></span></label>' +
             '<div class="prow-act">' +
@@ -279,7 +279,7 @@
       '<div class="ed-sec"><h3>Outros</h3>' +
         '<label class="field"><span>Observações para o cliente</span><textarea name="observacoes" rows="2">' + esc(p.observacoes) + '</textarea></label>' +
         '<div class="ed-checks">' +
-          '<label class="check"><input type="checkbox" name="destaque"' + (p.destaque ? ' checked' : '') + '> Mostrar como destaque</label>' +
+          '<label class="check"><input type="checkbox" name="destaque"' + (p.destaque ? ' checked' : '') + '> Em promoção (selo "Promoção" na vitrine)</label>' +
           '<label class="check"><input type="checkbox" name="disponivel"' + (p.disponivel !== false ? ' checked' : '') + '> Visível no site</label>' +
         '</div></div>' +
 
@@ -554,7 +554,7 @@
       '<div class="a-card"><h3>⭐ Promoção em evidência no início da página</h3>' +
         '<div class="ed-grid">' +
           '<label class="field"><span>iPhone da promoção</span><select data-bind="promocao.produtoId">' +
-            '<option value="">Automático (um dos marcados como destaque)</option>' + optProdutos(pr.produtoId) + '</select></label>' +
+            '<option value="">Automático (um dos marcados como promoção)</option>' + optProdutos(pr.produtoId) + '</select></label>' +
           '<label class="field"><span>Texto da faixa</span>' + inp('promocao.faixa', pr.faixa || '', 'placeholder="Oferta da semana"') + '</label>' +
         '</div>' +
         '<label class="field"><span>Frase da promoção</span>' + inp('promocao.texto', pr.texto || '', 'placeholder="Ex.: Últimas unidades com 10% off"') + '</label>' +

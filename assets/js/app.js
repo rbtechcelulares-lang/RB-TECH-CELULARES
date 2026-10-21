@@ -198,7 +198,7 @@
           '<div class="card-media" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
             (p.fotos && p.fotos[0] ? '<img src="' + esc(p.fotos[0]) + '" alt="' + esc(RB.nomeProduto(p)) + '" loading="lazy">' : RB.phoneSVG(p.corHex)) +
             '<span class="tag ' + (p.condicao === 'Seminovo' ? '' : 'tag-gold') + '">' + esc(p.condicao) + '</span>' +
-            (p.destaque ? '<span class="tag tag-star">Destaque</span>' : '') +
+            (p.destaque ? '<span class="tag tag-star">Promoção</span>' : '') +
           '</div>' +
           '<div class="card-body">' +
             '<h3>' + esc(p.modelo) + '</h3>' +
