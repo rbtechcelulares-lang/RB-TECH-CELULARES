@@ -1854,7 +1854,7 @@
     },
     {
       "id": "p-16pro-256gb-novo",
-      "modelo": "iPhone 16 Pro",
+      "modelo": "iPhone 17 Pro",
       "armazenamento": "256GB",
       "cor": "Cores variadas",
       "corHex": "#c8ae93",
@@ -1892,11 +1892,17 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "categoria": "iphone",
+      "specs": "",
+      "topo": false,
+      "vitrine": false,
+      "encomenda": false,
+      "prazo": ""
     },
     {
       "id": "p-16promax-256gb-novo",
-      "modelo": "iPhone 16 Pro Max",
+      "modelo": "iPhone 17 Pro Max",
       "armazenamento": "256GB",
       "cor": "Cores variadas",
       "corHex": "#c8ae93",
@@ -1934,7 +1940,13 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "categoria": "iphone",
+      "specs": "",
+      "topo": false,
+      "vitrine": false,
+      "encomenda": false,
+      "prazo": ""
     },
     {
       "id": "p-18pro-256gb-bordeaux",
