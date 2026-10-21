@@ -759,3 +759,29 @@ body.loja {
 .enc-aviso p { margin: 0 0 4px; color: #fff; font-size: 14px; }
 .enc-aviso small { color: rgba(255,255,255,.7); font-size: 13px; }
 .enc-aviso .hl { color: #f5c542; }
+
+/* Fotos dos modelos sempre centralizadas: fora do cálculo da grade (corrige o Safari do iPhone) */
+.card-media, .pd-main, .arch, .cat-art, .prow-img { position: relative; }
+.card-media img.img-modelo, .pd-main img.img-modelo, .arch img.img-modelo, .cat-art img.img-modelo, .prow-img img.img-modelo {
+  position: absolute; left: 7%; top: 9%; width: 86%; height: 82%; max-width: none;
+  object-fit: contain; object-position: center;
+}
+.arch img.img-modelo { left: 10%; top: 12%; width: 80%; height: 76%; }
+.cat-art img.img-modelo, .prow-img img.img-modelo { left: 6%; top: 6%; width: 88%; height: 88%; }
+.card-media .tag { z-index: 1; }
+
+/* Celular: os 3 iPhones do topo esmaecidos atrás do texto, no canto direito */
+@media (max-width: 959px) {
+  .hero-in { position: relative; }
+  .hero-text { position: relative; z-index: 1; }
+  .hero-art {
+    display: flex; position: absolute; z-index: 0; right: -18px; top: 70px; height: 300px;
+    align-items: flex-end; opacity: .32; pointer-events: none;
+    -webkit-mask-image: linear-gradient(to left, #000 70%, transparent 100%); mask-image: linear-gradient(to left, #000 70%, transparent 100%);
+  }
+  .hero-art > * { height: 200px; width: auto; object-fit: contain; margin: 0 -14px; }
+  .hero-art > :nth-child(2) { height: 245px; position: relative; z-index: 1; transform: translateY(-24px); }
+  .hero-art > svg { width: 120px; }
+  .hero-art > :first-child { transform: rotate(-8deg); }
+  .hero-art > :last-child { transform: rotate(8deg); }
+}
