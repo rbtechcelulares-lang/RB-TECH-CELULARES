@@ -171,6 +171,11 @@
       ['ctaS', 'Texto', 'Encontre o modelo ideal para você.'],
       ['ctaB', 'Botão', 'Falar no WhatsApp']
     ] },
+    { grupo: 'Aviso ao enviar a proposta', itens: [
+      ['avisoT', 'Título', 'Nos vemos no *WhatsApp* ❤️'],
+      ['avisoS', 'Texto', 'Os valores da proposta são apenas simulações.\nA avaliação do seu usado pode mudar conforme a avaliação do consultor!'],
+      ['avisoB', 'Botão', 'Continuar para o WhatsApp']
+    ] },
     { grupo: 'Mensagens de WhatsApp', itens: [
       ['msgGeral', 'Botões gerais de WhatsApp', 'Olá! Vim pelo site e gostaria de atendimento.']
     ] }
@@ -277,10 +282,38 @@
     return el;
   }
 
+  // Aviso simples com confirmação (usa o mesmo visual do pop-up). titulo/texto já formatados.
+  function abrirAviso(o) {
+    const antigo = document.getElementById('rb-aviso');
+    if (antigo) antigo.remove();
+    const el = document.createElement('div');
+    el.id = 'rb-aviso';
+    el.className = 'rbp';
+    el.innerHTML =
+      '<div class="rbp-back" data-x></div>' +
+      '<div class="rbp-box" role="dialog" aria-modal="true" aria-labelledby="rba-t">' +
+        '<button class="rbp-close" data-x aria-label="Fechar">×</button>' +
+        '<div class="rbp-body">' +
+          '<span class="rbp-ic" aria-hidden="true">!</span>' +
+          '<h2 id="rba-t">' + o.titulo + '</h2>' +
+          (o.texto ? '<p class="rbp-txt">' + o.texto + '</p>' : '') +
+          '<button type="button" class="rbp-btn" data-ok>' + esc(o.botao || 'Continuar') + '</button>' +
+          '<button type="button" class="rbp-no" data-x>Voltar e revisar</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(el);
+    const fechar = () => { el.remove(); document.removeEventListener('keydown', tecla); };
+    const tecla = (e) => { if (e.key === 'Escape') fechar(); };
+    document.addEventListener('keydown', tecla);
+    el.querySelectorAll('[data-x]').forEach((b) => b.addEventListener('click', fechar));
+    el.querySelector('[data-ok]').addEventListener('click', () => { fechar(); if (o.onOk) o.onOk(); });
+    el.querySelector('[data-ok]').focus();
+  }
+
   global.RB = {
     DRAFT_KEY, CHECKLIST_ITENS, STATUS,
     money, esc, lerRascunho, carregarCatalogo,
-    TEXTOS, texto, formatar, registrar, cabecalhosSupabase, campanhaVigente, abrirPopup,
+    TEXTOS, texto, formatar, registrar, abrirAviso, cabecalhosSupabase, campanhaVigente, abrirPopup,
     avaliar, fmtGB, parcelas, valorPix, linkWhats, nomeProduto, phoneSVG, sha256
   };
 })(window);

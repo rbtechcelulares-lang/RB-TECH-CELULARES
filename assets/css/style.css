@@ -652,3 +652,6 @@ body.loja {
 .logo-img { height: 54px; width: auto; display: block; }
 .logo-footer { width: 190px; height: auto; display: block; }
 @media (min-width: 860px) { .loja .topbar-in { height: 76px; } .logo-img { height: 64px; } }
+
+.rbp-ic { width: 46px; height: 46px; border-radius: 50%; border: 2px solid #f5c542; color: #f5c542; display: grid; place-items: center; font-weight: 900; font-size: 22px; }
+#rb-aviso .rbp-txt { font-size: 16px; color: #fff; }

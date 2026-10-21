@@ -550,10 +550,22 @@
     const btn = $('#enviar', box);
     if (!pode) { btn.removeAttribute('href'); return; }
     btn.href = RB.linkWhats(cat, mensagem(p, temEntrada || consultar ? r : null, aba, pag.parcela, valor, lista, pix));
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const url = btn.href;
       const forma = valor <= 0 ? 'sem pagamento' : pag.parcela === 0 ? 'à vista' : pag.parcela ? pag.parcela + 'x' : 'a definir';
       const ent = r && (temEntrada || consultar) ? 'entrada ' + r.modelo + ' · ' : 'sem entrada · ';
-      RB.registrar(cat, 'whatsapp', { produto: p, origem: 'proposta', detalhe: ent + forma + ' · ' + money(valor) });
+      // aviso antes de ir para o WhatsApp: valores são simulação
+      RB.abrirAviso({
+        titulo: RB.formatar(cat, RB.texto(cat, 'avisoT')),
+        texto: RB.formatar(cat, RB.texto(cat, 'avisoS')),
+        botao: RB.texto(cat, 'avisoB'),
+        onOk: () => {
+          RB.registrar(cat, 'whatsapp', { produto: p, origem: 'proposta', detalhe: ent + forma + ' · ' + money(valor) });
+          const w = window.open(url, '_blank');
+          if (w) w.opener = null; else location.href = url;
+        }
+      });
     });
   }
 
