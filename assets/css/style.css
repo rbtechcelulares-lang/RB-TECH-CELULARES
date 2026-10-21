@@ -717,3 +717,11 @@ body.loja {
 @media (min-width: 860px) { .loja .filters:has(.chips[hidden]) { grid-template-columns: 280px 1fr 190px; } }
 .topnav a[aria-current="page"] { color: var(--yellow); opacity: 1; }
 .card-media .svg-tab, .pd-main .svg-tab, .arch .svg-tab { width: 62%; height: 80%; filter: drop-shadow(0 14px 18px rgba(0,0,0,.35)); }
+
+/* Carrossel da promoção do topo */
+.spot-track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: 26px; }
+.spot-track::-webkit-scrollbar { display: none; }
+.spot-track > .spot { flex: 0 0 100%; scroll-snap-align: start; }
+.spot-dots { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
+.spot-dots button { width: 9px; height: 9px; border-radius: 99px; border: 0; padding: 0; background: #444; transition: .25s; }
+.spot-dots button.on { width: 26px; background: var(--yellow); }

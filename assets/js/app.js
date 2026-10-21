@@ -45,7 +45,7 @@
       montarCatalogo();
     } else {
       renderInicio();
-      const vitrine = ativos().filter((p) => RB.ehIphone(p)).sort((a, b) => (b.destaque ? 1 : 0) - (a.destaque ? 1 : 0)).slice(0, 3);
+      const vitrine = todos().filter((p) => RB.ehIphone(p)).sort((a, b) => (RB.emPromocao(b) ? 1 : 0) - (RB.emPromocao(a) ? 1 : 0)).slice(0, 3);
       $('#hero-art').innerHTML = vitrine.map((p) => RB.phoneSVG(p.corHex)).join('');
       renderDestaque();
       montarAvaliacaoPagina();
@@ -157,7 +157,8 @@
   }
 
   /* ---------- Vitrine ---------- */
-  const ativos = () => cat.produtos.filter((p) => p.disponivel !== false);
+  const ativos = () => cat.produtos.filter(RB.noCatalogo); // o que aparece no catálogo
+  const todos = () => cat.produtos.filter(RB.ativo); // tudo que aparece em algum lugar do site
 
   // Linha usada nos filtros: número do iPhone ("13") ou o nome do modelo nas outras categorias
   function linha(p) {
@@ -177,7 +178,7 @@
         '<div class="card-media" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
           (p.fotos && p.fotos[0] ? '<img src="' + esc(p.fotos[0]) + '" alt="' + esc(RB.nomeProduto(p)) + '" loading="lazy">' : RB.produtoSVG(p)) +
           '<span class="tag ' + (p.condicao === 'Seminovo' ? '' : 'tag-gold') + '">' + esc(p.condicao) + '</span>' +
-          (p.destaque ? '<span class="tag tag-star">Promoção</span>' : '') +
+          (RB.emPromocao(p) ? '<span class="tag tag-star">Promoção</span>' : '') +
         '</div>' +
         '<div class="card-body">' +
           '<h3>' + esc(p.modelo) + '</h3>' +
@@ -206,10 +207,13 @@
 
   // Página inicial: só as promoções + atalhos para o catálogo
   function renderInicio() {
-    let lista = ativos().filter((p) => p.destaque);
-    if (!lista.length) lista = ativos().slice().sort((a, b) => a.preco - b.preco).slice(0, 4);
+    const lista = todos().filter(RB.naVitrine);
+    $('#vitrine').hidden = !lista.length && !grupos().some((g) => g.itens.length);
     $('#grid').innerHTML = lista.map(cardHTML).join('');
-    $('#vazio').hidden = lista.length > 0;
+    // sem nada marcado como "Vitrine", some o bloco de promoções e ficam só as categorias
+    $('#vitrine .section-head').hidden = !lista.length;
+    $('#grid').hidden = !lista.length;
+    $('#vazio').hidden = true;
     $('#cats').innerHTML = grupos().filter((g) => g.itens.length).map((g) => {
       const menor = Math.min(...g.itens.map((p) => p.preco));
       const amostra = g.itens.slice().sort((x, y) => y.preco - x.preco)[0];
@@ -292,7 +296,7 @@
       return [p.modelo, p.armazenamento, p.cor, p.condicao, p.specs].join(' ').toLowerCase().includes(q);
     });
     const sorters = {
-      destaque: (a, b) => (b.destaque ? 1 : 0) - (a.destaque ? 1 : 0),
+      destaque: (a, b) => (RB.emPromocao(b) ? 1 : 0) - (RB.emPromocao(a) ? 1 : 0),
       menor: (a, b) => a.preco - b.preco,
       maior: (a, b) => b.preco - a.preco,
       bateria: (a, b) => RB.batNumero(b, cat) - RB.batNumero(a, cat)
@@ -320,19 +324,42 @@
     return href + (href.includes('?') ? '&' : '?') + 'preview=1';
   }
 
-  // Um aparelho em evidência, como a vitrine da Durah
+  // Promoção do topo: os aparelhos marcados como "Promoção (topo)"; com mais de um, vira carrossel
+  let timerSpot = null;
   function renderDestaque() {
     const promo = cat.promocao || {};
-    const auto = ativos().filter((p) => p.destaque)
-      .sort((a, b) => (b.precoAntigo > b.preco ? 1 : 0) - (a.precoAntigo > a.preco ? 1 : 0))[0];
-    const p = ativos().find((x) => x.id === promo.produtoId) || auto;
-    if (!p) return;
+    let lista = todos().filter(RB.noTopo);
+    if (!lista.length && promo.produtoId) lista = todos().filter((x) => x.id === promo.produtoId); // formato antigo
+    if (!lista.length) { $('#destaque').hidden = true; return; }
+    $('#spotlight').innerHTML = '<div class="spot-track" id="spot-track">' + lista.map((p) => slideSpot(p, promo)).join('') + '</div>' +
+      (lista.length > 1 ? '<div class="spot-dots" role="tablist">' + lista.map((p, k) =>
+        '<button data-k="' + k + '" class="' + (k ? '' : 'on') + '" aria-label="Promoção ' + (k + 1) + '"></button>').join('') + '</div>' : '');
+    $('#destaque').hidden = false;
+    if (lista.length < 2) return;
+    const track = $('#spot-track');
+    const dots = $$('.spot-dots button');
+    const ir = (k) => track.scrollTo({ left: k * track.clientWidth, behavior: 'smooth' });
+    dots.forEach((d) => d.addEventListener('click', () => { parar(); ir(Number(d.dataset.k)); }));
+    track.addEventListener('scroll', () => {
+      const k = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+      dots.forEach((d, n) => d.classList.toggle('on', n === k));
+    }, { passive: true });
+    const parar = () => { clearInterval(timerSpot); timerSpot = null; };
+    ['pointerdown', 'touchstart', 'wheel'].forEach((ev) => track.addEventListener(ev, parar, { passive: true }));
+    timerSpot = setInterval(() => {
+      const k = Math.round(track.scrollLeft / track.clientWidth);
+      ir((k + 1) % lista.length);
+    }, 6000);
+  }
+
+  function slideSpot(p, promo) {
     const ult = RB.parcelas(cat, p.preco).slice(-1)[0];
     const off = p.precoAntigo > p.preco ? Math.round((1 - p.preco / p.precoAntigo) * 100) : 0;
     const foto = p.fotos && p.fotos[0];
-    $('#spotlight').innerHTML =
+    const link = '#p/' + encodeURIComponent(p.id);
+    return (
       '<div class="spot">' +
-        '<a class="spot-media" data-origem="promocao" href="#p/' + encodeURIComponent(p.id) + '"><div class="arch" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
+        '<a class="spot-media" data-origem="promocao" href="' + link + '"><div class="arch" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
           (foto ? '<img src="' + esc(foto) + '" alt="' + esc(RB.nomeProduto(p)) + '">' : RB.produtoSVG(p)) + '</div></a>' +
         '<div class="spot-info">' +
           '<span class="ribbon">' + esc(promo.faixa || (off ? 'Oferta da semana' : 'Destaque da semana')) + '</span>' +
@@ -343,11 +370,11 @@
           '<p class="spot-price">' + (off ? '<s>' + money(p.precoAntigo) + '</s> <small>por</small> ' : '') + '<strong>' + money(RB.valorPix(cat, p.preco)) + '</strong></p>' +
           (off ? '<span class="off-badge">−' + off + '% OFF</span>' : '') +
           '<p class="spot-parc">ou ' + ult.n + 'x de ' + money(ult.parcela) + ' no cartão · Pix, débito e crédito</p>' +
-          '<div class="spot-cta"><a class="btn btn-gold" data-origem="promocao" href="#p/' + encodeURIComponent(p.id) + '">Quero o meu</a>' +
-          '<a class="btn btn-ghost-light" data-origem="promocao" href="#p/' + encodeURIComponent(p.id) + '">Ver detalhes</a></div>' +
+          '<div class="spot-cta"><a class="btn btn-gold" data-origem="promocao" href="' + link + '">Quero o meu</a>' +
+          '<a class="btn btn-ghost-light" data-origem="promocao" href="' + link + '">Ver detalhes</a></div>' +
         '</div>' +
-      '</div>';
-    $('#destaque').hidden = false;
+      '</div>'
+    );
   }
 
   function batteryIcon(v) {
@@ -461,7 +488,7 @@
 
     const renderInteresse = () => {
       const r = avaliacaoAtual();
-      const disp = ativos();
+      const disp = todos();
       const modelos = Array.from(new Set(disp.map((p) => p.modelo)))
         .sort((a, b) => Math.min(...disp.filter((p) => p.modelo === a).map((p) => p.preco)) - Math.min(...disp.filter((p) => p.modelo === b).map((p) => p.preco)));
       if (!modelos.includes(interesse.modelo)) interesse.modelo = '';

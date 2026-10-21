@@ -167,7 +167,8 @@
     const lista = cat.produtos;
     el.innerHTML =
       '<div class="a-head"><div><h2>Produtos à venda</h2><p class="muted">' + lista.length + ' cadastrados · ' +
-      lista.filter((p) => p.disponivel !== false).length + ' visíveis no site</p></div>' +
+      lista.filter(RB.noTopo).length + ' na promoção do topo · ' + lista.filter(RB.naVitrine).length + ' na vitrine · ' +
+      lista.filter(RB.noCatalogo).length + ' no catálogo</p></div>' +
       '<button class="btn btn-ink" id="novo">+ Cadastrar produto</button></div>' +
       '<div class="cat-filtro" id="cat-filtro">' + [{ id: 'todas', nome: 'Todos' }].concat(RB.CATEGORIAS).map((c) =>
         '<button data-cf="' + c.id + '" class="' + (c.id === filtroCat ? 'on' : '') + '">' + (c.icone ? c.icone + ' ' : '') + esc(c.nome) +
@@ -186,13 +187,17 @@
         .filter(({ p }) => filtroCat === 'todas' || RB.categoria(p) === filtroCat)
         .filter(({ p }) => !q || [p.modelo, p.cor, p.armazenamento, p.condicao].join(' ').toLowerCase().includes(q))
         .map(({ p, i }) =>
-          '<div class="prow' + (p.disponivel === false ? ' off' : '') + '">' +
+          '<div class="prow' + (RB.ativo(p) ? '' : ' off') + '">' +
             '<div class="prow-img" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
               (p.fotos && p.fotos[0] ? '<img src="' + esc(p.fotos[0]) + '" alt="">' : RB.produtoSVG(p)) + '</div>' +
             '<div class="prow-info"><strong>' + esc(RB.nomeProduto(p)) + '</strong>' +
-              '<span>' + esc(p.cor) + ' · ' + esc(p.condicao) + (!RB.ehIphone(p) ? (p.specs ? ' · ' + esc(p.specs) : '') : ' · 🔋 ' + esc(RB.batTexto(p, cat))) + (p.destaque ? ' · ★ promoção' : '') + '</span>' +
+              '<span>' + esc(p.cor) + ' · ' + esc(p.condicao) + (!RB.ehIphone(p) ? (p.specs ? ' · ' + esc(p.specs) : '') : ' · 🔋 ' + esc(RB.batTexto(p, cat))) + '</span>' +
               '<span class="prow-price">' + money(p.preco) + '</span></div>' +
-            '<label class="switch" title="Visível no site"><input type="checkbox" data-vis="' + i + '"' + (p.disponivel !== false ? ' checked' : '') + '><span></span></label>' +
+            '<div class="onde" role="group" aria-label="Onde aparece">' +
+              '<button data-onde="topo" data-i="' + i + '" class="' + (RB.noTopo(p) ? 'on' : '') + '" title="Promoção do topo da página inicial">⭐ Topo</button>' +
+              '<button data-onde="vitrine" data-i="' + i + '" class="' + (RB.naVitrine(p) ? 'on' : '') + '" title="Vitrine logo abaixo, na página inicial">🏠 Vitrine</button>' +
+              '<button data-onde="catalogo" data-i="' + i + '" class="' + (RB.noCatalogo(p) ? 'on' : '') + '" title="Página Catálogo">📚 Catálogo</button>' +
+            '</div>' +
             '<div class="prow-act">' +
               '<button class="btn btn-sm btn-outline" data-ed="' + i + '">Editar</button>' +
               '<button class="btn btn-sm btn-outline" data-dup="' + i + '" title="Duplicar">⧉</button>' +
@@ -201,8 +206,12 @@
           '</div>'
         ).join('') || '<p class="empty">Nenhum iPhone.</p>';
 
-      $$('[data-vis]').forEach((c) => c.addEventListener('change', () => {
-        lista[c.dataset.vis].disponivel = c.checked; salvar(); desenhar();
+      $$('[data-onde]').forEach((b) => b.addEventListener('click', () => {
+        const p = lista[b.dataset.i];
+        if (b.dataset.onde === 'topo') p.topo = !RB.noTopo(p);
+        if (b.dataset.onde === 'vitrine') { p.vitrine = !RB.naVitrine(p); delete p.destaque; }
+        if (b.dataset.onde === 'catalogo') p.disponivel = !RB.noCatalogo(p);
+        salvar(); renderProdutos();
       }));
       $$('[data-ed]').forEach((b) => b.addEventListener('click', () => abrirEditor(Number(b.dataset.ed))));
       $$('[data-dup]').forEach((b) => b.addEventListener('click', () => {
@@ -239,7 +248,7 @@
       id: '', categoria: c, modelo: MODELOS[c][iph ? 9 : 0], armazenamento: iph ? '128GB' : '256GB', cor: iph ? 'Meia-noite' : 'Preto', corHex: iph ? '#1f2430' : '#1c1c1e',
       condicao: iph ? 'Seminovo' : 'Novo lacrado', specs: '',
       bateria: iph ? null : 100, preco: 0, precoAntigo: 0, garantia: iph ? cat.loja.garantiaPadrao || '90 dias' : '1 ano',
-      destaque: false, disponivel: true, fotos: [], observacoes: '', checklist: ck
+      topo: false, vitrine: false, disponivel: true, fotos: [], observacoes: '', checklist: ck
     };
   }
 
@@ -303,8 +312,9 @@
       '<div class="ed-sec"><h3>Outros</h3>' +
         '<label class="field"><span>Observações para o cliente</span><textarea name="observacoes" rows="2">' + esc(p.observacoes) + '</textarea></label>' +
         '<div class="ed-checks">' +
-          '<label class="check"><input type="checkbox" name="destaque"' + (p.destaque ? ' checked' : '') + '> Em promoção (selo "Promoção" na vitrine)</label>' +
-          '<label class="check"><input type="checkbox" name="disponivel"' + (p.disponivel !== false ? ' checked' : '') + '> Visível no site</label>' +
+          '<label class="check"><input type="checkbox" name="topo"' + (RB.noTopo(p) ? ' checked' : '') + '> ⭐ Promoção (topo da página inicial)</label>' +
+          '<label class="check"><input type="checkbox" name="vitrine"' + (RB.naVitrine(p) ? ' checked' : '') + '> 🏠 Vitrine (logo abaixo, na página inicial)</label>' +
+          '<label class="check"><input type="checkbox" name="disponivel"' + (RB.noCatalogo(p) ? ' checked' : '') + '> 📚 Visível no catálogo</label>' +
         '</div></div>' +
 
       '<div class="ed-foot"><button type="button" class="btn btn-outline" data-x>Cancelar</button>' +
@@ -384,7 +394,8 @@
         preco: Number(f.preco.value) || 0,
         precoAntigo: Number(f.precoAntigo.value) || 0,
         observacoes: f.observacoes.value.trim(),
-        destaque: f.destaque.checked,
+        topo: f.topo.checked,
+        vitrine: f.vitrine.checked,
         disponivel: f.disponivel.checked
       });
       RB.CHECKLIST_ITENS.forEach((it) => {
@@ -585,10 +596,13 @@
     el.innerHTML =
       '<div class="a-head"><div><h2>Promoções</h2><p class="muted">O destaque do início da página e o pop-up que abre quando o cliente entra no site.</p></div></div>' +
 
-      '<div class="a-card"><h3>⭐ Promoção em evidência no início da página</h3>' +
+      '<div class="a-card"><h3>⭐ Promoção do topo da página inicial</h3>' +
+        '<p class="hint">Aparecem aqui os aparelhos marcados com <b>⭐ Topo</b> na aba iPhones. Com mais de um, vira um carrossel que passa sozinho.</p>' +
+        '<div class="topo-lista">' + (cat.produtos.filter(RB.noTopo).map((p) =>
+          '<span class="topo-item">' + esc(RB.nomeProduto(p) + ' · ' + p.cor + ' · ' + money(p.preco)) +
+          ' <button type="button" data-tira="' + esc(p.id) + '" title="Tirar do topo">×</button></span>').join('') ||
+          '<span class="hint">Nenhum aparelho marcado. Use o botão ⭐ Topo na lista de aparelhos.</span>') + '</div>' +
         '<div class="ed-grid">' +
-          '<label class="field"><span>iPhone da promoção</span><select data-bind="promocao.produtoId">' +
-            '<option value="">Automático (um dos marcados como promoção)</option>' + optProdutos(pr.produtoId) + '</select></label>' +
           '<label class="field"><span>Texto da faixa</span>' + inp('promocao.faixa', pr.faixa || '', 'placeholder="Oferta da semana"') + '</label>' +
         '</div>' +
         '<label class="field"><span>Frase da promoção</span>' + inp('promocao.texto', pr.texto || '', 'placeholder="Ex.: Últimas unidades com 10% off"') + '</label>' +
@@ -646,6 +660,10 @@
     };
     bind(el, ajustar);
     ajustar();
+    $$('[data-tira]', el).forEach((b) => b.addEventListener('click', () => {
+      const p = cat.produtos.find((x) => x.id === b.dataset.tira);
+      if (p) { p.topo = false; salvar(); renderPromocoes(); }
+    }));
     $('#pop-up').addEventListener('change', async (e) => {
       const f = e.target.files[0];
       if (!f) return;

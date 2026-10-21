@@ -127,6 +127,13 @@
   const ehMac = (p) => categoria(p) === 'macbook';
   const ehNovo = (p) => /^novo|lacrad/i.test(p.condicao || '');
 
+  // Onde o aparelho aparece: promoção do topo, vitrine da página inicial e catálogo
+  const noTopo = (p) => !!p.topo;
+  const naVitrine = (p) => (p.vitrine != null ? !!p.vitrine : !!p.destaque);
+  const noCatalogo = (p) => p.disponivel !== false;
+  const ativo = (p) => noTopo(p) || naVitrine(p) || noCatalogo(p);
+  const emPromocao = (p) => noTopo(p) || naVitrine(p);
+
   // Saúde da bateria: % informada; aparelho novo = 100%; senão a faixa da linha
   // (Admin › iPhones, ex.: "80% a 83%"); sem nada disso, "revisada"
   function batTexto(p, cat) {
@@ -403,6 +410,6 @@
     DRAFT_KEY, CHECKLIST_ITENS, STATUS,
     money, esc, lerRascunho, carregarCatalogo,
     TEXTOS, texto, formatar, registrar, limparSupabase, abrirAviso, cabecalhosSupabase, campanhaVigente, abrirPopup,
-    avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, batNumero, CATEGORIAS, categoria, ehIphone, ehMac, ehNovo, nomeProduto, phoneSVG, produtoSVG, sha256
+    avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, batNumero, CATEGORIAS, categoria, ehIphone, ehMac, ehNovo, noTopo, naVitrine, noCatalogo, ativo, emPromocao, nomeProduto, phoneSVG, produtoSVG, sha256
   };
 })(window);

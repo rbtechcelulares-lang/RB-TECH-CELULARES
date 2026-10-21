@@ -41,7 +41,7 @@ body.admin { background: #f3efe8; }
 .prow-info strong { color: var(--text); font-size: 15px; }
 .prow-price { color: var(--text); font-weight: 700; font-size: 15px; }
 .prow-act { grid-column: 1 / -1; display: flex; gap: 6px; justify-content: flex-end; }
-@media (min-width: 720px) { .prow { grid-template-columns: 64px 1fr auto auto; } .prow-act { grid-column: auto; } }
+@media (min-width: 900px) { .prow { grid-template-columns: 64px 1fr auto auto; } .prow-act { grid-column: auto; } }
 .switch { position: relative; width: 46px; height: 26px; flex: none; }
 .switch input { opacity: 0; width: 0; height: 0; }
 .switch span { position: absolute; inset: 0; background: #cfc6b8; border-radius: 99px; transition: .2s; cursor: pointer; }
@@ -198,3 +198,13 @@ details.a-card summary h3 { display: inline; }
 .cat-filtro button small { color: var(--muted); font-weight: 600; }
 .cat-filtro button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
 .cat-filtro button.on small { color: rgba(255,255,255,.7); }
+
+/* Onde o aparelho aparece */
+.onde { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.onde button { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 10px; font-size: 12px; font-weight: 700; color: var(--muted); opacity: .75; }
+.onde button.on { background: var(--ink); color: #fff; border-color: var(--ink); opacity: 1; }
+.onde button[data-onde="topo"].on { background: #c9971b; border-color: #c9971b; color: #111; }
+@media (max-width: 899px) { .onde { grid-column: 1 / -1; justify-content: flex-start; } }
+.topo-lista { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 14px; }
+.topo-item { display: inline-flex; align-items: center; gap: 6px; background: var(--gold-soft); border: 1px solid #e6d3b2; border-radius: 999px; padding: 6px 6px 6px 12px; font-size: 13px; font-weight: 600; }
+.topo-item button { border: 0; background: #fff; width: 22px; height: 22px; border-radius: 50%; font-weight: 800; line-height: 1; }
