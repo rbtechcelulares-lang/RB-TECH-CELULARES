@@ -15,7 +15,7 @@ Todos os dados ficam em `data/catalogo.json`.
 
 ## Como o admin publica
 
-1. Acesse `/admin.html` (senha inicial: `rbtech2026`; troque em **Dados da loja**).
+1. Acesse `/admin` (senha inicial: `rbtech2026`; troque em **Dados da loja**).
 2. As alterações ficam num rascunho no navegador. Use **Pré-visualizar** para ver o site com elas.
 3. Em **Publicar**, informe uma vez o token do GitHub (fine-grained token com acesso só a este
    repositório e permissão *Contents: Read and write*). Ao publicar, o painel grava
