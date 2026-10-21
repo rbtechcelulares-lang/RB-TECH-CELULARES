@@ -414,8 +414,8 @@
         (modelo ?
           '<fieldset class="field"><legend>Seu iPhone tem algum detalhe ou defeito?</legend>' +
             '<div class="yesno">' +
-              '<button type="button" data-det="0" class="' + (entrada.temDetalhe === false ? 'on' : '') + '">Não, está perfeito</button>' +
-              '<button type="button" data-det="1" class="' + (entrada.temDetalhe === true ? 'on' : '') + '">Sim, tem detalhe</button>' +
+              '<button type="button" data-det="0" class="' + (entrada.temDetalhe === false ? 'on' : '') + '">Está perfeito</button>' +
+              '<button type="button" data-det="1" class="' + (entrada.temDetalhe === true ? 'on' : '') + '">Tem alguns detalhes</button>' +
             '</div>' +
             (entrada.temDetalhe ?
               '<div class="defects-box"><p class="defects-q">Quais detalhes? <small>Pode marcar mais de um.</small></p><div class="defects">' +
