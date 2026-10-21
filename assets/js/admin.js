@@ -748,18 +748,25 @@
       branch: String(c.branch || '').trim(),
       token: String(c.token || '').replace(/\s+/g, '')
     };
+    // token colado no campo Branch: move para o lugar certo
+    if (/^(github_pat_|ghp_)/.test(cfg.branch.replace(/\s+/g, '')) && !/^(github_pat_|ghp_)/.test(cfg.token)) {
+      cfg.token = cfg.branch.replace(/\s+/g, '');
+      cfg.branch = '';
+    }
     if (!/^[\w.-]+\/[\w.-]+$/.test(cfg.repo)) return { cfg, erro: 'Repositório deve ficar como dono/nome, ex.: rbtechcelulares-lang/RB-TECH-CELULARES.' };
     if (/[:\s]|supabase|^https?/i.test(cfg.branch)) return { cfg, erro: 'O campo Branch deve ficar vazio (parece que foi colado outro texto nele).' };
     if (!cfg.token) return { cfg, erro: 'Cole o token do GitHub.' };
     if (/^(sb_|eyJ)/.test(cfg.token)) return { cfg, erro: 'Esse token é uma chave do Supabase. Aqui vai o token do GitHub (começa com github_pat_).' };
-    if (!/^(github_pat_|ghp_)/.test(cfg.token)) return { cfg, erro: 'O token do GitHub começa com github_pat_ (ou ghp_). Confira se copiou o token inteiro.' };
+    if (!/^(github_pat_|ghp_)/.test(cfg.token)) return { cfg, erro: 'O token do GitHub começa com github_pat_. Apague o campo Token (o navegador pode ter colocado sua senha nele) e cole o token.' };
     return { cfg, erro: '' };
   }
 
   function renderPublicar() {
     const el = $('[data-panel="publicar"]');
     const gh = Object.assign({ repo: 'rbtechcelulares-lang/RB-TECH-CELULARES', branch: '', token: '' }, lerGH());
-    if (/[:\s]|supabase/i.test(gh.branch || '')) gh.branch = ''; // corrige texto colado no lugar errado
+    if (/^(github_pat_|ghp_)/.test(gh.branch || '') && !/^(github_pat_|ghp_)/.test(gh.token || '')) { gh.token = gh.branch; gh.branch = ''; }
+    if (/[:\s]|supabase|^(github_pat_|ghp_)/i.test(gh.branch || '')) gh.branch = ''; // corrige texto colado no lugar errado
+    if (gh.token && !/^(github_pat_|ghp_)/.test(gh.token)) gh.token = ''; // senha preenchida pelo navegador
     el.innerHTML =
       '<div class="a-head"><div><h2>Publicar alterações</h2>' +
       '<p class="muted">Publicar grava o catálogo e as fotos no GitHub. A Vercel atualiza o site em cerca de 1 minuto.</p></div></div>' +
@@ -782,7 +789,7 @@
           '<label class="field"><span>Repositório</span><input id="gh-repo" value="' + esc(gh.repo) + '"></label>' +
           '<label class="field"><span>Branch (opcional)</span><input id="gh-branch" value="' + esc(gh.branch) + '" placeholder="em branco = branch principal do repositório"></label>' +
         '</div>' +
-        '<label class="field"><span>Token</span><input id="gh-token" type="password" value="' + esc(gh.token) + '" placeholder="github_pat_…" autocomplete="off"></label>' +
+        '<label class="field"><span>Token do GitHub</span><input id="gh-token" class="mascarado" type="text" name="gh-token-rb" value="' + esc(gh.token) + '" placeholder="cole aqui o github_pat_…" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore></label>' +
         '<div class="pub-act"><button class="btn btn-sm btn-ink" id="gh-test">Testar conexão</button>' +
         '<button class="btn btn-sm btn-outline" id="gh-save">Salvar conexão</button></div>' +
         '<p class="hint" id="gh-res"></p>' +
@@ -797,11 +804,14 @@
     $('#gh-save').addEventListener('click', () => {
       const { cfg, erro } = validarGH(pegarGH());
       if (erro) return toast(erro, true);
-      localStorage.setItem(GH_KEY, JSON.stringify(cfg)); toast('Conexão salva neste navegador.');
+      localStorage.setItem(GH_KEY, JSON.stringify(cfg));
+      $('#gh-branch').value = cfg.branch; $('#gh-token').value = cfg.token;
+      toast('Conexão salva neste navegador.');
     });
     $('#gh-test').addEventListener('click', async () => {
       const res = $('#gh-res');
       const { cfg, erro } = validarGH(pegarGH());
+      $('#gh-branch').value = cfg.branch; $('#gh-token').value = cfg.token;
       if (erro) { res.innerHTML = '❌ ' + esc(erro); return; }
       res.textContent = 'Testando…';
       try {
