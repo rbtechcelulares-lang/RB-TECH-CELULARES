@@ -108,12 +108,29 @@
     return 'https://wa.me/' + num + (texto ? '?text=' + encodeURIComponent(texto) : '');
   }
 
-  const ehMac = (p) => p.categoria === 'macbook' || /macbook/i.test(p.modelo || '');
+  /* ---------- Categorias ---------- */
+  const CATEGORIAS = [
+    { id: 'iphone', nome: 'iPhones', icone: '📱' },
+    { id: 'macbook', nome: 'MacBooks', icone: '💻' },
+    { id: 'xiaomi', nome: 'Xiaomi', icone: '📱' },
+    { id: 'ipad', nome: 'iPads', icone: '📲' }
+  ];
+  function categoria(p) {
+    if (p.categoria) return p.categoria;
+    const m = String(p.modelo || '');
+    if (/macbook/i.test(m)) return 'macbook';
+    if (/ipad/i.test(m)) return 'ipad';
+    if (/xiaomi|redmi|poco/i.test(m)) return 'xiaomi';
+    return 'iphone';
+  }
+  const ehIphone = (p) => categoria(p) === 'iphone';
+  const ehMac = (p) => categoria(p) === 'macbook';
+  const ehNovo = (p) => /^novo|lacrad/i.test(p.condicao || '');
 
   // Saúde da bateria: % informada; aparelho novo = 100%; senão a faixa da linha
   // (Admin › iPhones, ex.: "80% a 83%"); sem nada disso, "revisada"
   function batTexto(p, cat) {
-    if (ehMac(p)) return '';
+    if (!ehIphone(p)) return Number(p.bateria) > 0 ? Number(p.bateria) + '%' : '';
     if (Number(p.bateria) > 0) return Number(p.bateria) + '%';
     if (/^novo|lacrad/i.test(p.condicao || '')) return '100%';
     const m = String(p.modelo || '').match(/iPhone\s*(\d+)/i);
@@ -149,11 +166,28 @@
     );
   }
 
-  function produtoSVG(p) {
-    return ehMac(p) ? laptopSVG(p.corHex) : phoneSVG(p.corHex);
+  // Ilustração de iPad
+  function tabletSVG(hex) {
+    const c = hex || '#d9dadc';
+    return (
+      '<svg viewBox="0 0 240 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="svg-tab">' +
+      '<rect x="30" y="20" width="180" height="260" rx="16" fill="' + c + '"/>' +
+      '<rect x="30" y="20" width="180" height="260" rx="16" fill="#000" fill-opacity=".08"/>' +
+      '<rect x="44" y="34" width="34" height="34" rx="9" fill="#000" fill-opacity=".22"/>' +
+      '<circle cx="61" cy="51" r="9" fill="#111"/><circle cx="61" cy="51" r="5" fill="#2b3240"/>' +
+      '<path d="M120 172c-6 0-9-4-14-4s-9 4-13 4c-8 0-14-13-14-24 0-12 7-18 14-18 5 0 9 3 13 3s7-3 13-3c5 0 10 2 13 7-4 3-7 7-7 12 0 6 4 11 9 13-3 6-7 10-14 10zm-6-46c0-6 5-11 10-11 1 6-5 12-10 11z" fill="#000" fill-opacity=".16"/>' +
+      '</svg>'
+    );
   }
 
-  function phoneSVG(hex) {
+  function produtoSVG(p) {
+    const c = categoria(p);
+    if (c === 'macbook') return laptopSVG(p.corHex);
+    if (c === 'ipad') return tabletSVG(p.corHex);
+    return phoneSVG(p.corHex, c === 'iphone');
+  }
+
+  function phoneSVG(hex, comLogo) {
     const c = hex || '#2a2a2a';
     return (
       '<svg viewBox="0 0 200 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
@@ -166,7 +200,7 @@
       '<circle cx="72" cy="48" r="11" fill="#111"/><circle cx="72" cy="48" r="6" fill="#2b3240"/>' +
       '<circle cx="97" cy="76" r="11" fill="#111"/><circle cx="97" cy="76" r="6" fill="#2b3240"/>' +
       '<circle cx="100" cy="62" r="3" fill="#ddd" fill-opacity=".6"/>' +
-      '<path d="M100 170c-6 0-9-4-14-4s-9 4-13 4c-8 0-14-13-14-24 0-12 7-18 14-18 5 0 9 3 13 3s7-3 13-3c5 0 10 2 13 7-4 3-7 7-7 12 0 6 4 11 9 13-3 6-7 10-14 10zm-6-46c0-6 5-11 10-11 1 6-5 12-10 11z" fill="#000" fill-opacity=".18"/>' +
+      (comLogo === false ? '' : '<path d="M100 170c-6 0-9-4-14-4s-9 4-13 4c-8 0-14-13-14-24 0-12 7-18 14-18 5 0 9 3 13 3s7-3 13-3c5 0 10 2 13 7-4 3-7 7-7 12 0 6 4 11 9 13-3 6-7 10-14 10zm-6-46c0-6 5-11 10-11 1 6-5 12-10 11z" fill="#000" fill-opacity=".18"/>') +
       '</svg>'
     );
   }
@@ -185,9 +219,15 @@
       ['conf3T', 'Item 3 · título', 'Seu usado vale como entrada'], ['conf3S', 'Item 3 · detalhe', 'Pré-avaliação na hora'],
       ['conf4T', 'Item 4 · título', 'Atendimento personalizado'], ['conf4S', 'Item 4 · detalhe', 'Tire dúvidas pelo WhatsApp']
     ] },
-    { grupo: 'Vitrine', itens: [
-      ['vitrineT', 'Título', 'Escolha o seu iPhone'],
-      ['vitrineS', 'Texto', 'Toque no aparelho para ver fotos, checklist e simular com o seu iPhone de entrada.']
+    { grupo: 'Página inicial · promoções e categorias', itens: [
+      ['vitrineT', 'Título das promoções', 'Promoções da *semana*'],
+      ['vitrineS', 'Texto das promoções', 'Toque no aparelho para ver fotos, checklist e simular com o seu iPhone de entrada.'],
+      ['categoriasT', 'Título das categorias', 'Navegue por *categoria*']
+    ] },
+    { grupo: 'Página Catálogo', itens: [
+      ['catalogoT', 'Título', 'Catálogo *completo*'],
+      ['catalogoS', 'Texto', 'iPhones novos e seminovos, MacBooks, Xiaomi e iPads. Toque no aparelho para simular a troca e as parcelas.'],
+      ['catalogoVazio', 'Categoria sem aparelhos', 'Em breve novidades nesta categoria. Chame no WhatsApp que a gente procura para você!']
     ] },
     { grupo: 'Consultoria ("Não sabe qual escolher?")', itens: [
       ['consultaT', 'Título', 'Não sabe qual *escolher?*'],
@@ -363,6 +403,6 @@
     DRAFT_KEY, CHECKLIST_ITENS, STATUS,
     money, esc, lerRascunho, carregarCatalogo,
     TEXTOS, texto, formatar, registrar, limparSupabase, abrirAviso, cabecalhosSupabase, campanhaVigente, abrirPopup,
-    avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, batNumero, ehMac, nomeProduto, phoneSVG, produtoSVG, sha256
+    avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, batNumero, CATEGORIAS, categoria, ehIphone, ehMac, ehNovo, nomeProduto, phoneSVG, produtoSVG, sha256
   };
 })(window);

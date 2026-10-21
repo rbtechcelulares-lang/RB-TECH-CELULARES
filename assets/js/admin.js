@@ -10,7 +10,8 @@
   const SESSION_KEY = 'rbtech_admin_ok';
   const GH_KEY = 'rbtech_github';
   const PUB_KEY = 'rbtech_ultimo_publicado';
-  const ARMAZENAMENTOS = ['64GB', '128GB', '256GB', '512GB', '1TB'];
+  const ARMAZENAMENTOS = ['64GB', '128GB', '256GB', '512GB', '1TB', '2TB'];
+  let filtroCat = 'todas'; // filtro da lista de produtos no admin
   const CONDICOES = ['Seminovo', 'Novo lacrado', 'Vitrine'];
   const CORES = [
     ['Preto', '#22201f'], ['Branco', '#f2efe9'], ['Meia-noite', '#1f2430'], ['Estelar', '#ece5da'],
@@ -21,16 +22,20 @@
     ['Verde-acinzentado', '#a9bfb6'], ['Laranja cósmico', '#d9793b'], ['Azul-intenso', '#2f3c5a'],
     ['Bordeaux', '#5b1a2a'], ['Silver', '#d9dadc'], ['Índigo', '#3a3f6b'], ['Citrus', '#d6d26a'], ['Sky Blue', '#a9c8e6']
   ];
-  const MODELOS = [
-    'iPhone 11', 'iPhone 11 Pro', 'iPhone 11 Pro Max', 'iPhone SE (2ª geração)', 'iPhone SE (3ª geração)',
-    'iPhone 12', 'iPhone 12 mini', 'iPhone 12 Pro', 'iPhone 12 Pro Max',
-    'iPhone 13', 'iPhone 13 mini', 'iPhone 13 Pro', 'iPhone 13 Pro Max',
-    'iPhone 14', 'iPhone 14 Plus', 'iPhone 14 Pro', 'iPhone 14 Pro Max',
-    'iPhone 15', 'iPhone 15 Plus', 'iPhone 15 Pro', 'iPhone 15 Pro Max',
-    'iPhone 16e', 'iPhone 16', 'iPhone 16 Plus', 'iPhone 16 Pro', 'iPhone 16 Pro Max',
-    'iPhone 17', 'iPhone Air', 'iPhone 17 Pro', 'iPhone 17 Pro Max', 'iPhone 18 Pro', 'iPhone 18 Pro Max',
-    'MacBook Neo', 'MacBook Air M5', 'MacBook Air', 'MacBook Pro'
-  ];
+  const MODELOS = {
+    iphone: [
+      'iPhone 11', 'iPhone 11 Pro', 'iPhone 11 Pro Max', 'iPhone SE (2ª geração)', 'iPhone SE (3ª geração)',
+      'iPhone 12', 'iPhone 12 mini', 'iPhone 12 Pro', 'iPhone 12 Pro Max',
+      'iPhone 13', 'iPhone 13 mini', 'iPhone 13 Pro', 'iPhone 13 Pro Max',
+      'iPhone 14', 'iPhone 14 Plus', 'iPhone 14 Pro', 'iPhone 14 Pro Max',
+      'iPhone 15', 'iPhone 15 Plus', 'iPhone 15 Pro', 'iPhone 15 Pro Max',
+      'iPhone 16e', 'iPhone 16', 'iPhone 16 Plus', 'iPhone 16 Pro', 'iPhone 16 Pro Max',
+      'iPhone 17', 'iPhone Air', 'iPhone 17 Pro', 'iPhone 17 Pro Max', 'iPhone 18 Pro', 'iPhone 18 Pro Max'
+    ],
+    macbook: ['MacBook Neo', 'MacBook Air M5', 'MacBook Air M4', 'MacBook Pro M5', 'MacBook Pro M4'],
+    xiaomi: ['Xiaomi 15', 'Xiaomi 15T', 'Xiaomi 15T Pro', 'Redmi Note 14', 'Redmi Note 14 Pro', 'Redmi Note 14 Pro+', 'Redmi 15C', 'Poco X7', 'Poco X7 Pro', 'Poco F7'],
+    ipad: ['iPad (11ª geração)', 'iPad mini (A17 Pro)', 'iPad Air M3', 'iPad Pro M5']
+  };
 
   let publicado = null; // catálogo que está no ar
   let cat = null; // rascunho em edição
@@ -161,9 +166,12 @@
     const el = $('[data-panel="produtos"]');
     const lista = cat.produtos;
     el.innerHTML =
-      '<div class="a-head"><div><h2>iPhones à venda</h2><p class="muted">' + lista.length + ' cadastrados · ' +
+      '<div class="a-head"><div><h2>Produtos à venda</h2><p class="muted">' + lista.length + ' cadastrados · ' +
       lista.filter((p) => p.disponivel !== false).length + ' visíveis no site</p></div>' +
-      '<button class="btn btn-ink" id="novo">+ Cadastrar iPhone</button></div>' +
+      '<button class="btn btn-ink" id="novo">+ Cadastrar produto</button></div>' +
+      '<div class="cat-filtro" id="cat-filtro">' + [{ id: 'todas', nome: 'Todos' }].concat(RB.CATEGORIAS).map((c) =>
+        '<button data-cf="' + c.id + '" class="' + (c.id === filtroCat ? 'on' : '') + '">' + (c.icone ? c.icone + ' ' : '') + esc(c.nome) +
+        ' <small>' + lista.filter((p) => c.id === 'todas' || RB.categoria(p) === c.id).length + '</small></button>').join('') + '</div>' +
       '<details class="a-card bat-linha"><summary><h3>🔋 Saúde da bateria por linha</h3> <small class="hint">usada nos seminovos sem % informada</small></summary>' +
         '<div class="bl-grid">' + ['11', '12', '13', '14', '15', '16', '17'].map((n) =>
           '<label class="field"><span>iPhone ' + n + '</span>' + inp('bateriaLinha.' + n, (cat.bateriaLinha || {})[n] || '', 'placeholder="ex.: 80% a 83%"') + '</label>').join('') +
@@ -175,13 +183,14 @@
     const desenhar = () => {
       const q = $('#a-busca').value.toLowerCase();
       $('#plist').innerHTML = lista.map((p, i) => ({ p, i }))
-        .filter(({ p }) => !q || [p.modelo, p.cor, p.armazenamento].join(' ').toLowerCase().includes(q))
+        .filter(({ p }) => filtroCat === 'todas' || RB.categoria(p) === filtroCat)
+        .filter(({ p }) => !q || [p.modelo, p.cor, p.armazenamento, p.condicao].join(' ').toLowerCase().includes(q))
         .map(({ p, i }) =>
           '<div class="prow' + (p.disponivel === false ? ' off' : '') + '">' +
             '<div class="prow-img" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
               (p.fotos && p.fotos[0] ? '<img src="' + esc(p.fotos[0]) + '" alt="">' : RB.produtoSVG(p)) + '</div>' +
             '<div class="prow-info"><strong>' + esc(RB.nomeProduto(p)) + '</strong>' +
-              '<span>' + esc(p.cor) + ' · ' + esc(p.condicao) + (RB.ehMac(p) ? (p.specs ? ' · ' + esc(p.specs) : '') : ' · 🔋 ' + esc(RB.batTexto(p, cat))) + (p.destaque ? ' · ★ promoção' : '') + '</span>' +
+              '<span>' + esc(p.cor) + ' · ' + esc(p.condicao) + (!RB.ehIphone(p) ? (p.specs ? ' · ' + esc(p.specs) : '') : ' · 🔋 ' + esc(RB.batTexto(p, cat))) + (p.destaque ? ' · ★ promoção' : '') + '</span>' +
               '<span class="prow-price">' + money(p.preco) + '</span></div>' +
             '<label class="switch" title="Visível no site"><input type="checkbox" data-vis="' + i + '"' + (p.disponivel !== false ? ' checked' : '') + '><span></span></label>' +
             '<div class="prow-act">' +
@@ -211,6 +220,7 @@
     bind($('.bat-linha', el), () => desenhar());
     $('#a-busca').addEventListener('input', desenhar);
     $('#novo').addEventListener('click', () => abrirEditor(-1));
+    $$('[data-cf]', el).forEach((b) => b.addEventListener('click', () => { filtroCat = b.dataset.cf; renderProdutos(); }));
     desenhar();
   }
 
@@ -223,9 +233,12 @@
   function produtoVazio() {
     const ck = {};
     RB.CHECKLIST_ITENS.forEach((it) => (ck[it.id] = { status: 'ok', nota: '' }));
+    const c = filtroCat === 'todas' ? 'iphone' : filtroCat;
+    const iph = c === 'iphone';
     return {
-      id: '', modelo: 'iPhone 13', armazenamento: '128GB', cor: 'Meia-noite', corHex: '#1f2430', condicao: 'Seminovo',
-      bateria: 90, preco: 0, precoAntigo: 0, garantia: cat.loja.garantiaPadrao || '90 dias',
+      id: '', categoria: c, modelo: MODELOS[c][iph ? 9 : 0], armazenamento: iph ? '128GB' : '256GB', cor: iph ? 'Meia-noite' : 'Preto', corHex: iph ? '#1f2430' : '#1c1c1e',
+      condicao: iph ? 'Seminovo' : 'Novo lacrado', specs: '',
+      bateria: iph ? null : 100, preco: 0, precoAntigo: 0, garantia: iph ? cat.loja.garantiaPadrao || '90 dias' : '1 ano',
       destaque: false, disponivel: true, fotos: [], observacoes: '', checklist: ck
     };
   }
@@ -251,12 +264,14 @@
         '</div><p class="hint">A primeira foto é a capa. As fotos são reduzidas automaticamente.</p></div>' +
 
       '<div class="ed-sec"><h3>Aparelho</h3><div class="ed-grid">' +
+        '<label class="field"><span>Categoria</span><select name="categoria">' +
+          RB.CATEGORIAS.map((c) => '<option value="' + c.id + '"' + (c.id === RB.categoria(p) ? ' selected' : '') + '>' + c.icone + ' ' + esc(c.nome) + '</option>').join('') + '</select></label>' +
         '<label class="field"><span>Modelo</span><input name="modelo" list="dl-modelos" value="' + esc(p.modelo) + '" required>' +
-          '<datalist id="dl-modelos">' + MODELOS.map((m) => '<option value="' + esc(m) + '">').join('') + '</datalist></label>' +
+          '<datalist id="dl-modelos"></datalist></label>' +
         '<label class="field"><span>Armazenamento</span><select name="armazenamento">' + opt(ARMAZENAMENTOS, p.armazenamento) + '</select></label>' +
         '<label class="field"><span>Condição</span><select name="condicao">' + opt(CONDICOES, p.condicao) + '</select></label>' +
         '<label class="field"><span>Garantia</span><input name="garantia" value="' + esc(p.garantia) + '"></label>' +
-        '<label class="field ed-mac"><span>Configuração (MacBook)</span><input name="specs" value="' + esc(p.specs || '') + '" placeholder="Ex.: 16 GB de RAM · chip M5"></label>' +
+        '<label class="field ed-mac"><span>Configuração</span><input name="specs" value="' + esc(p.specs || '') + '" placeholder="Ex.: 16 GB de RAM · chip M5 · tela 11&quot;"></label>' +
       '</div>' +
       '<div class="field"><span>Cor</span><div class="colors">' +
         CORES.map(([n, h]) => '<button type="button" class="sw' + (n === p.cor ? ' on' : '') + '" data-c="' + esc(n) + '" data-h="' + h + '" title="' + esc(n) + '" style="background:' + h + '"></button>').join('') +
@@ -329,12 +344,14 @@
       f.cor.value = b.dataset.c; f.corHex.value = b.dataset.h;
       $$('.sw', f).forEach((x) => x.classList.toggle('on', x === b));
     }));
+    // iPhone tem bateria e checklist; MacBook, Xiaomi e iPad têm ficha de configuração
     const tipo = () => {
-      const mac = /macbook/i.test(f.modelo.value);
-      $$('.ed-iphone', f).forEach((x) => (x.hidden = mac));
-      $$('.ed-mac', f).forEach((x) => (x.hidden = !mac));
+      const iph = f.categoria.value === 'iphone';
+      $$('.ed-iphone', f).forEach((x) => (x.hidden = !iph));
+      $$('.ed-mac', f).forEach((x) => (x.hidden = iph));
+      $('#dl-modelos', f).innerHTML = (MODELOS[f.categoria.value] || []).map((m) => '<option value="' + esc(m) + '">').join('');
     };
-    f.modelo.addEventListener('input', tipo); tipo();
+    f.categoria.addEventListener('change', tipo); tipo();
     f.bateria.addEventListener('input', () => ($('#bat-v').textContent = f.bateria.value + '%'));
     f.semBateria.addEventListener('change', () => {
       f.bateria.disabled = f.semBateria.checked;
@@ -358,7 +375,7 @@
         modelo: f.modelo.value.trim(),
         armazenamento: f.armazenamento.value,
         condicao: f.condicao.value,
-        categoria: /macbook/i.test(f.modelo.value) ? 'macbook' : 'iphone',
+        categoria: f.categoria.value,
         specs: f.specs.value.trim(),
         garantia: f.garantia.value.trim(),
         cor: f.cor.value.trim(),

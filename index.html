@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css?v=20261021k">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261021l">
   <link rel="icon" type="image/png" sizes="64x64" href="img/marca/favicon-64.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/marca/favicon-32.png">
   <link rel="apple-touch-icon" href="img/marca/apple-touch-icon.png">
@@ -18,7 +18,7 @@
   <meta property="og:image" content="img/marca/og.jpg">
   <meta property="og:type" content="website">
 </head>
-<body class="loja escuro">
+<body class="loja escuro" data-pagina="inicio">
   <div id="preview-bar" class="preview-bar" hidden>Pré-visualização do rascunho do admin · <a href="index.html">ver site publicado</a></div>
 
   <header class="topbar">
@@ -27,7 +27,8 @@
         <img class="logo-img" src="img/marca/logo-marca.webp" alt="RB Tech Celulares" width="480" height="442">
       </a>
       <nav class="topnav">
-        <a href="#vitrine">iPhones</a>
+        <a href="catalogo.html">Catálogo</a>
+        <a href="#vitrine">Promoções</a>
         <a href="#avaliar">Avaliar meu iPhone</a>
         <a href="#como">Como funciona</a>
       </nav>
@@ -42,7 +43,7 @@
       <h1 class="hero-title" data-loja="slogan" data-destaque>Seu próximo iPhone está na RB Tech.</h1>
       <p class="hero-sub" data-loja="subtitulo"></p>
       <div class="hero-cta">
-        <a href="#vitrine" class="btn btn-gold">Ver iPhones disponíveis</a>
+        <a href="catalogo.html" class="btn btn-gold">Ver catálogo</a>
         <a href="#avaliar" class="btn btn-ghost-light">Quanto vale o meu?</a>
       </div>
       </div>
@@ -69,24 +70,17 @@
         <div class="section-head">
           <div>
             <p class="eyebrow eyebrow-dark">Vitrine</p>
-            <h2 class="section-title" data-txt="vitrineT">Escolha o seu iPhone</h2>
+            <h2 class="section-title" data-txt="vitrineT">Promoções da semana</h2>
             <p class="section-sub" data-txt="vitrineS">Toque no aparelho para ver fotos, checklist e simular com o seu iPhone de entrada.</p>
           </div>
-        </div>
-        <div class="filters">
-          <div class="search">
-            <input id="busca" type="search" placeholder="Buscar modelo, ex: 13 Pro" aria-label="Buscar modelo">
-          </div>
-          <div class="chips" id="chips" role="tablist" aria-label="Filtrar por linha"></div>
-          <select id="ordem" aria-label="Ordenar">
-            <option value="destaque">Promoções primeiro</option>
-            <option value="menor">Menor preço</option>
-            <option value="maior">Maior preço</option>
-            <option value="bateria">Melhor bateria</option>
-          </select>
+          <a class="btn btn-ghost-light btn-sm head-link" href="catalogo.html">Ver catálogo completo →</a>
         </div>
         <div id="grid" class="grid"></div>
-        <p id="vazio" class="empty" hidden>Nenhum iPhone encontrado com esse filtro.</p>
+        <p id="vazio" class="empty" hidden>Nenhuma promoção no momento.</p>
+
+        <h2 class="section-title cats-title" data-txt="categoriasT">Navegue por categoria</h2>
+        <div id="cats" class="cats"></div>
+        <a class="btn btn-gold btn-block cat-all" href="catalogo.html">Ver catálogo completo</a>
       </div>
     </section>
 
@@ -160,7 +154,8 @@
       <div class="footer-cols">
         <div>
           <p class="footer-h">Navegue</p>
-          <a href="#vitrine">iPhones disponíveis</a>
+          <a href="catalogo.html">Catálogo completo</a>
+          <a href="#vitrine">Promoções</a>
           <a href="#avaliar">Avaliar meu iPhone</a>
           <a href="#como">Como funciona</a>
         </div>
@@ -190,7 +185,7 @@
     </div>
   </div>
 
-  <script src="assets/js/core.js?v=20261021k"></script>
-  <script src="assets/js/app.js?v=20261021k"></script>
+  <script src="assets/js/core.js?v=20261021l"></script>
+  <script src="assets/js/app.js?v=20261021l"></script>
 </body>
 </html>

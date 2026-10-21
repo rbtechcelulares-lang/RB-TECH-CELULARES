@@ -24,7 +24,7 @@
   }
 
   const nomeValido = (n) => n.trim().split(/\s+/).filter((x) => x.length >= 2).length >= 2;
-  let filtroLinha = 'todos';
+  const pagina = document.body.dataset.pagina || 'inicio';
 
   // Entrada compartilhada entre a avaliação da página e o detalhe do produto
   const entrada = { usar: null, modeloId: '', armazenamento: '', bateriaId: '', temDetalhe: null, defeitos: [] };
@@ -40,14 +40,16 @@
     if (preview) RB.registrar.desligado = true; // pré-visualização do admin não conta clique
     entrada.bateriaId = (cat.avaliacao.bateria[0] || {}).id || '';
     preencherLoja();
-    montarChips();
-    renderGrid();
-    const vitrine = ativos().slice().sort((a, b) => (b.destaque ? 1 : 0) - (a.destaque ? 1 : 0)).slice(0, 3);
-    $('#hero-art').innerHTML = vitrine.filter((p) => !RB.ehMac(p)).map((p) => RB.phoneSVG(p.corHex)).join('');
-    renderDestaque();
-    montarAvaliacaoPagina();
-    $('#busca').addEventListener('input', renderGrid);
-    $('#ordem').addEventListener('change', renderGrid);
+    if (preview) $$('a[href^="catalogo.html"], a[href="index.html"], a[href^="index.html#"]').forEach((a) => { a.href = linkPagina(a.getAttribute('href').replace(/#.*$/, '')) + (a.getAttribute('href').match(/#.*$/) || [''])[0]; });
+    if (pagina === 'catalogo') {
+      montarCatalogo();
+    } else {
+      renderInicio();
+      const vitrine = ativos().filter((p) => RB.ehIphone(p)).sort((a, b) => (b.destaque ? 1 : 0) - (a.destaque ? 1 : 0)).slice(0, 3);
+      $('#hero-art').innerHTML = vitrine.map((p) => RB.phoneSVG(p.corHex)).join('');
+      renderDestaque();
+      montarAvaliacaoPagina();
+    }
     window.addEventListener('hashchange', rota);
     $$('[data-fechar]').forEach((el) => el.addEventListener('click', fecharSheet));
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fecharSheet(); });
@@ -56,7 +58,7 @@
       if (o) origemClique = o.dataset.origem;
     }, true);
     $$('.js-whats').forEach((a) => a.addEventListener('click', () => RB.registrar(cat, 'whatsapp', { origem: a.dataset.origem || 'geral' })));
-    $('#ajuda-btn').addEventListener('click', () => RB.registrar(cat, 'whatsapp', { origem: 'consultoria' }));
+    if ($('#ajuda-btn')) $('#ajuda-btn').addEventListener('click', () => RB.registrar(cat, 'whatsapp', { origem: 'consultoria' }));
     registrarVisita();
     rota();
     agendarPopup();
@@ -149,41 +151,145 @@
     $('#f-extra').innerHTML = extras.join('');
     // linhas do rodapé sem informação somem por inteiro
     $$('.footer-info p:not(.footer-h)').forEach((p) => { if (!p.querySelector('[data-loja]:not([hidden])')) p.hidden = true; });
-    $('#ajuda-btn').href = RB.linkWhats(cat, RB.texto(cat, 'consultaMsg'));
+    if ($('#ajuda-btn')) $('#ajuda-btn').href = RB.linkWhats(cat, RB.texto(cat, 'consultaMsg'));
     $('#ano').textContent = new Date().getFullYear();
     document.title = l.nome + ' · ' + (l.slogan || 'iPhones com garantia').replace(/\*/g, '');
   }
 
   /* ---------- Vitrine ---------- */
+  const ativos = () => cat.produtos.filter((p) => p.disponivel !== false);
+
+  // Linha usada nos filtros: número do iPhone ("13") ou o nome do modelo nas outras categorias
   function linha(p) {
-    if (RB.ehMac(p)) return 'mac';
+    if (!RB.ehIphone(p)) return p.modelo;
     const m = String(p.modelo).match(/iPhone\s*(\d+)/i);
-    return m ? m[1] : 'outros';
+    return m ? m[1] : p.modelo;
+  }
+  const rotuloLinha = (v) => (/^\d+$/.test(v) ? 'iPhone ' + v : v);
+
+  function cardHTML(p) {
+    const parc = RB.parcelas(cat, p.preco).slice(-1)[0];
+    const extra = RB.ehIphone(p)
+      ? '<p class="card-batt">' + (RB.batNumero(p, cat) ? batteryIcon(RB.batNumero(p, cat)) + ' ' : '🔋 ') + 'Bateria ' + esc(RB.batTexto(p, cat)) + '</p>'
+      : '<p class="card-batt">' + ((RB.CATEGORIAS.find((c) => c.id === RB.categoria(p)) || {}).icone || '') + ' ' + esc(p.specs || p.condicao) + '</p>';
+    return (
+      '<a class="card" data-origem="' + (pagina === 'catalogo' ? 'catalogo' : 'vitrine') + '" href="#p/' + encodeURIComponent(p.id) + '">' +
+        '<div class="card-media" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
+          (p.fotos && p.fotos[0] ? '<img src="' + esc(p.fotos[0]) + '" alt="' + esc(RB.nomeProduto(p)) + '" loading="lazy">' : RB.produtoSVG(p)) +
+          '<span class="tag ' + (p.condicao === 'Seminovo' ? '' : 'tag-gold') + '">' + esc(p.condicao) + '</span>' +
+          (p.destaque ? '<span class="tag tag-star">Promoção</span>' : '') +
+        '</div>' +
+        '<div class="card-body">' +
+          '<h3>' + esc(p.modelo) + '</h3>' +
+          '<p class="card-meta"><span class="dot" style="background:' + esc(p.corHex || '#ccc') + '"></span>' + esc(p.cor) + ' · ' + esc(p.armazenamento) + '</p>' +
+          extra +
+          (p.precoAntigo > p.preco ? '<p class="old">' + money(p.precoAntigo) + '</p>' : '') +
+          '<p class="price">' + money(RB.valorPix(cat, p.preco)) + ' <small>à vista</small></p>' +
+          '<p class="installment">ou ' + parc.n + 'x de ' + money(parc.parcela) + '</p>' +
+          '<span class="btn btn-gold btn-sm card-btn">Quero este</span>' +
+        '</div>' +
+      '</a>'
+    );
+  }
+
+  // Grupos mostrados como atalhos na página inicial e como abas no catálogo
+  function grupos() {
+    const a = ativos();
+    const g = [
+      { id: 'iphone-seminovos', cat: 'iphone', tipo: 'seminovos', nome: 'iPhones seminovos', itens: a.filter((p) => RB.ehIphone(p) && !RB.ehNovo(p)) },
+      { id: 'iphone-novos', cat: 'iphone', tipo: 'novos', nome: 'iPhones novos lacrados', itens: a.filter((p) => RB.ehIphone(p) && RB.ehNovo(p)) }
+    ];
+    RB.CATEGORIAS.filter((c) => c.id !== 'iphone').forEach((c) =>
+      g.push({ id: c.id, cat: c.id, tipo: '', nome: c.id === 'xiaomi' ? 'Xiaomi lacrados' : c.nome, itens: a.filter((p) => RB.categoria(p) === c.id) }));
+    return g;
+  }
+
+  // Página inicial: só as promoções + atalhos para o catálogo
+  function renderInicio() {
+    let lista = ativos().filter((p) => p.destaque);
+    if (!lista.length) lista = ativos().slice().sort((a, b) => a.preco - b.preco).slice(0, 4);
+    $('#grid').innerHTML = lista.map(cardHTML).join('');
+    $('#vazio').hidden = lista.length > 0;
+    $('#cats').innerHTML = grupos().filter((g) => g.itens.length).map((g) => {
+      const menor = Math.min(...g.itens.map((p) => p.preco));
+      const amostra = g.itens.slice().sort((x, y) => y.preco - x.preco)[0];
+      return '<a class="cat-tile" href="' + linkPagina('catalogo.html?cat=' + g.cat + (g.tipo ? '&tipo=' + g.tipo : '')) + '">' +
+        '<span class="cat-art" style="--tint:' + esc(amostra.corHex || '#ccc') + '">' + RB.produtoSVG(amostra) + '</span>' +
+        '<span class="cat-info"><strong>' + esc(g.nome) + '</strong>' +
+        '<small>' + g.itens.length + (g.itens.length === 1 ? ' opção' : ' opções') + ' · a partir de ' + money(RB.valorPix(cat, menor)) + '</small></span>' +
+        '<span class="cat-go">→</span></a>';
+    }).join('');
+  }
+
+  // Página Catálogo: abas por categoria, subabas novos/seminovos nos iPhones e filtro por modelo
+  const filtro = { cat: 'iphone', tipo: 'todos', linha: 'todos' };
+
+  function montarCatalogo() {
+    const q = new URLSearchParams(location.search);
+    if (RB.CATEGORIAS.some((c) => c.id === q.get('cat'))) filtro.cat = q.get('cat');
+    if (['novos', 'seminovos'].includes(q.get('tipo'))) filtro.tipo = q.get('tipo');
+    $('#busca').addEventListener('input', renderGrid);
+    $('#ordem').addEventListener('change', renderGrid);
+    desenharAbas();
+  }
+
+  function desenharAbas() {
+    const a = ativos();
+    $('#cat-tabs').innerHTML = RB.CATEGORIAS.map((c) => {
+      const n = a.filter((p) => RB.categoria(p) === c.id).length;
+      return '<button role="tab" data-cat="' + c.id + '" class="' + (c.id === filtro.cat ? 'on' : '') + '" aria-selected="' + (c.id === filtro.cat) + '">' +
+        '<span>' + c.icone + '</span>' + esc(c.id === 'xiaomi' ? 'Xiaomi' : c.nome) + ' <small>' + n + '</small></button>';
+    }).join('');
+    const iph = filtro.cat === 'iphone';
+    $('#sub-tabs').hidden = !iph;
+    if (iph) {
+      const cont = (t) => a.filter((p) => RB.ehIphone(p) && (t === 'todos' || (t === 'novos') === RB.ehNovo(p))).length;
+      $('#sub-tabs').innerHTML = [['todos', 'Todos'], ['seminovos', 'Seminovos'], ['novos', 'Novos lacrados']].map(([v, t]) =>
+        '<button role="tab" data-tipo="' + v + '" class="' + (v === filtro.tipo ? 'on' : '') + '">' + t + ' <small>' + cont(v) + '</small></button>').join('');
+    }
+    $$('#cat-tabs button').forEach((b) => b.addEventListener('click', () => {
+      filtro.cat = b.dataset.cat; filtro.tipo = 'todos'; filtro.linha = 'todos'; $('#busca').value = '';
+      history.replaceState(null, '', location.pathname + linkQuery({ cat: filtro.cat }));
+      desenharAbas();
+    }));
+    $$('#sub-tabs button').forEach((b) => b.addEventListener('click', () => {
+      filtro.tipo = b.dataset.tipo; filtro.linha = 'todos';
+      history.replaceState(null, '', location.pathname + linkQuery({ cat: filtro.cat, tipo: filtro.tipo === 'todos' ? '' : filtro.tipo }));
+      desenharAbas();
+    }));
+    $('#ordem').querySelector('[value="bateria"]').hidden = !iph;
+    if (!iph && $('#ordem').value === 'bateria') $('#ordem').value = 'destaque';
+    montarChips();
+    renderGrid();
+  }
+
+  function daAba() {
+    return ativos().filter((p) => RB.categoria(p) === filtro.cat &&
+      (filtro.cat !== 'iphone' || filtro.tipo === 'todos' || (filtro.tipo === 'novos') === RB.ehNovo(p)));
   }
 
   function montarChips() {
-    const ordem = (v) => (v === 'mac' ? 1000 : v === 'outros' ? 2000 : Number(v));
-    const linhas = Array.from(new Set(ativos().map(linha))).sort((a, b) => ordem(a) - ordem(b));
-    const opts = [['todos', 'Todos'], ...linhas.map((n) => [n, n === 'outros' ? 'Outros' : n === 'mac' ? 'MacBook' : 'iPhone ' + n])];
-    $('#chips').innerHTML = opts.map(([v, t]) =>
-      '<button class="chip' + (v === filtroLinha ? ' on' : '') + '" data-v="' + esc(v) + '" role="tab">' + esc(t) + '</button>'
+    const num = (v) => (/^\d+$/.test(v) ? Number(v) : 1000);
+    const linhas = Array.from(new Set(daAba().map(linha))).sort((a, b) => num(a) - num(b) || a.localeCompare(b));
+    if (!linhas.includes(filtro.linha)) filtro.linha = 'todos';
+    $('#chips').hidden = linhas.length < 2;
+    $('#chips').innerHTML = [['todos', 'Todos'], ...linhas.map((n) => [n, rotuloLinha(n)])].map(([v, t]) =>
+      '<button class="chip' + (v === filtro.linha ? ' on' : '') + '" data-v="' + esc(v) + '" role="tab">' + esc(t) + '</button>'
     ).join('');
     $$('#chips .chip').forEach((b) => b.addEventListener('click', () => {
-      filtroLinha = b.dataset.v;
+      filtro.linha = b.dataset.v;
       $$('#chips .chip').forEach((x) => x.classList.toggle('on', x === b));
       renderGrid();
     }));
   }
 
-  const ativos = () => cat.produtos.filter((p) => p.disponivel !== false);
-
   function renderGrid() {
     const q = $('#busca').value.trim().toLowerCase();
     const ordem = $('#ordem').value;
-    let lista = ativos().filter((p) => {
-      if (filtroLinha !== 'todos' && linha(p) !== filtroLinha) return false;
+    let lista = daAba().filter((p) => {
+      if (filtro.linha !== 'todos' && linha(p) !== filtro.linha) return false;
       if (!q) return true;
-      return [p.modelo, p.armazenamento, p.cor, p.condicao].join(' ').toLowerCase().includes(q);
+      return [p.modelo, p.armazenamento, p.cor, p.condicao, p.specs].join(' ').toLowerCase().includes(q);
     });
     const sorters = {
       destaque: (a, b) => (b.destaque ? 1 : 0) - (a.destaque ? 1 : 0),
@@ -193,28 +299,25 @@
     };
     lista = lista.slice().sort(sorters[ordem]);
     $('#vazio').hidden = lista.length > 0;
-    $('#grid').innerHTML = lista.map((p) => {
-      const parc = RB.parcelas(cat, p.preco).slice(-1)[0];
-      return (
-        '<a class="card" data-origem="vitrine" href="#p/' + encodeURIComponent(p.id) + '">' +
-          '<div class="card-media" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
-            (p.fotos && p.fotos[0] ? '<img src="' + esc(p.fotos[0]) + '" alt="' + esc(RB.nomeProduto(p)) + '" loading="lazy">' : RB.produtoSVG(p)) +
-            '<span class="tag ' + (p.condicao === 'Seminovo' ? '' : 'tag-gold') + '">' + esc(p.condicao) + '</span>' +
-            (p.destaque ? '<span class="tag tag-star">Promoção</span>' : '') +
-          '</div>' +
-          '<div class="card-body">' +
-            '<h3>' + esc(p.modelo) + '</h3>' +
-            '<p class="card-meta"><span class="dot" style="background:' + esc(p.corHex || '#ccc') + '"></span>' + esc(p.cor) + ' · ' + esc(p.armazenamento) + '</p>' +
-            (RB.ehMac(p) ? '<p class="card-batt">💻 ' + esc(p.specs || p.condicao) + '</p>' :
-            '<p class="card-batt">' + (RB.batNumero(p, cat) ? batteryIcon(RB.batNumero(p, cat)) + ' ' : '🔋 ') + 'Bateria ' + esc(RB.batTexto(p, cat)) + '</p>') +
-            (p.precoAntigo > p.preco ? '<p class="old">' + money(p.precoAntigo) + '</p>' : '') +
-            '<p class="price">' + money(RB.valorPix(cat, p.preco)) + ' <small>à vista</small></p>' +
-            '<p class="installment">ou ' + parc.n + 'x de ' + money(parc.parcela) + '</p>' +
-            '<span class="btn btn-gold btn-sm card-btn">Quero este</span>' +
-          '</div>' +
-        '</a>'
-      );
-    }).join('');
+    if (!lista.length) {
+      $('#vazio').innerHTML = esc(daAba().length ? 'Nenhum aparelho encontrado com esse filtro.' : RB.texto(cat, 'catalogoVazio')) +
+        (daAba().length ? '' : '<br><a class="btn btn-gold btn-sm" target="_blank" rel="noopener" href="' +
+          RB.linkWhats(cat, 'Olá! Vi no site que vocês trabalham com ' + (RB.CATEGORIAS.find((c) => c.id === filtro.cat) || {}).nome + '. Vocês têm algum disponível?') + '">Chamar no WhatsApp</a>');
+    }
+    $('#grid').innerHTML = lista.map(cardHTML).join('');
+  }
+
+  // Mantém ?preview=1 ao navegar entre as páginas na pré-visualização do admin
+  function linkQuery(o) {
+    const q = new URLSearchParams();
+    Object.keys(o).forEach((k) => { if (o[k]) q.set(k, o[k]); });
+    if (preview) q.set('preview', '1');
+    const t = q.toString();
+    return t ? '?' + t : '';
+  }
+  function linkPagina(href) {
+    if (!preview) return href;
+    return href + (href.includes('?') ? '&' : '?') + 'preview=1';
   }
 
   // Um aparelho em evidência, como a vitrine da Durah
@@ -236,7 +339,7 @@
           '<p class="eyebrow">' + esc(p.condicao) + ' · garantia ' + esc(p.garantia || cat.loja.garantiaPadrao) + '</p>' +
           '<h2 class="spot-title">' + esc(RB.nomeProduto(p)) + '</h2>' +
           (promo.texto ? '<p class="spot-text">' + esc(promo.texto) + '</p>' : '') +
-          '<p class="spot-sub">' + esc(p.cor) + (RB.ehMac(p) ? (p.specs ? ' · ' + esc(p.specs) : '') : ' · bateria ' + esc(RB.batTexto(p, cat)) + ' · checklist completo') + '</p>' +
+          '<p class="spot-sub">' + esc(p.cor) + (!RB.ehIphone(p) ? (p.specs ? ' · ' + esc(p.specs) : '') : ' · bateria ' + esc(RB.batTexto(p, cat)) + ' · checklist completo') + '</p>' +
           '<p class="spot-price">' + (off ? '<s>' + money(p.precoAntigo) + '</s> <small>por</small> ' : '') + '<strong>' + money(RB.valorPix(cat, p.preco)) + '</strong></p>' +
           (off ? '<span class="off-badge">−' + off + '% OFF</span>' : '') +
           '<p class="spot-parc">ou ' + ult.n + 'x de ' + money(ult.parcela) + ' no cartão · Pix, débito e crédito</p>' +
@@ -353,7 +456,7 @@
         '<label class="field"><span>Modelo</span><select id="int-modelo"></select></label>' +
         '<label class="field"><span>Armazenamento</span><select id="int-arm"></select></label>' +
       '</div><div id="int-lista"></div></div>' +
-      '<a href="#vitrine" class="btn btn-outline btn-block" id="aval-go">Ver todos os iPhones</a>';
+      '<a href="catalogo.html" class="btn btn-outline btn-block" id="aval-go">Ver catálogo completo</a>';
     const interesse = { modelo: '', arm: '' };
 
     const renderInteresse = () => {
@@ -384,7 +487,7 @@
         else linha = '<span class="int-dif">' + money(RB.valorPix(cat, p.preco)) + '</span><small>ou ' + ult.n + 'x de ' + money(ult.parcela) + '</small>';
         return '<button type="button" class="int-item" data-id="' + esc(p.id) + '">' +
           '<span class="int-info"><strong>' + esc(RB.nomeProduto(p)) + '</strong>' +
-          '<small><span class="dot" style="background:' + esc(p.corHex || '#ccc') + '"></span> ' + esc(p.cor) + ' · ' + esc(p.condicao) + (RB.ehMac(p) ? '' : ' · bateria ' + esc(RB.batTexto(p, cat))) + '</small>' +
+          '<small><span class="dot" style="background:' + esc(p.corHex || '#ccc') + '"></span> ' + esc(p.cor) + ' · ' + esc(p.condicao) + (!RB.ehIphone(p) ? '' : ' · bateria ' + esc(RB.batTexto(p, cat))) + '</small>' +
           (valEntrada > 0 ? '<small>Valor do aparelho: ' + money(p.preco) + '</small>' : '') + '</span>' +
           '<span class="int-preco">' + linha + '</span>' +
           '<span class="int-cta">Ver e montar proposta →</span>' +
@@ -447,10 +550,10 @@
           '<p class="eyebrow eyebrow-dark">' + esc(p.condicao) + ' · Garantia ' + esc(p.garantia || cat.loja.garantiaPadrao) + '</p>' +
           '<h2 id="sheet-title" class="pd-title">' + esc(p.modelo) + '</h2>' +
           '<p class="card-meta"><span class="dot" style="background:' + esc(p.corHex || '#ccc') + '"></span>' + esc(p.cor) + ' · ' + esc(p.armazenamento) +
-            (RB.ehMac(p) ? (p.specs ? ' · ' + esc(p.specs) : '') : ' · ' + (RB.batNumero(p, cat) ? batteryIcon(RB.batNumero(p, cat)) + ' ' : '') + 'bateria ' + esc(RB.batTexto(p, cat))) + '</p>' +
+            (!RB.ehIphone(p) ? (p.specs ? ' · ' + esc(p.specs) : '') : ' · ' + (RB.batNumero(p, cat) ? batteryIcon(RB.batNumero(p, cat)) + ' ' : '') + 'bateria ' + esc(RB.batTexto(p, cat))) + '</p>' +
           (p.precoAntigo > p.preco ? '<p class="old">' + money(p.precoAntigo) + '</p>' : '') +
           '<p class="price price-lg">' + money(RB.valorPix(cat, p.preco)) + ' <small>à vista no Pix</small></p>' +
-          (RB.ehMac(p) ? specsMac(p) :
+          (!RB.ehIphone(p) ? specsFicha(p) :
           '<h3 class="pd-h">Checklist do aparelho</h3>' +
           '<ul class="checklist">' + RB.CHECKLIST_ITENS.map((it) => {
             const c = Object.assign({ status: 'ok', nota: '' }, (p.checklist || {})[it.id]);
@@ -617,9 +720,10 @@
     });
   }
 
-  // Ficha do MacBook no lugar do checklist de iPhone
-  function specsMac(p) {
+  // Ficha de especificações (MacBook, Xiaomi, iPad) no lugar do checklist de iPhone
+  function specsFicha(p) {
     const itens = [['Armazenamento', p.armazenamento], ['Configuração', p.specs], ['Cor', p.cor], ['Condição', p.condicao],
+      ['Bateria', RB.batTexto(p, cat)],
       ['Garantia', p.garantia || cat.loja.garantiaPadrao]].filter((x) => x[1]);
     return '<h3 class="pd-h">Especificações</h3><ul class="checklist">' + itens.map(([k, v]) =>
       '<li class="ck ck-ok"><span class="ck-ic">✓</span><div><strong>' + esc(k) + '</strong><small>' + esc(v) + '</small></div></li>').join('') + '</ul>';
@@ -627,8 +731,8 @@
 
   function mensagem(p, r, aba, parcela, valor, lista, pix) {
     const linhas = ['Olá! Sou *' + nomeCliente.trim() + '* e montei uma proposta pelo site:', ''];
-    linhas.push(RB.ehMac(p)
-      ? '💻 *' + RB.nomeProduto(p) + '* · ' + p.cor + ' · ' + p.condicao + (p.specs ? ' · ' + p.specs : '')
+    linhas.push(!RB.ehIphone(p)
+      ? ((RB.CATEGORIAS.find((c) => c.id === RB.categoria(p)) || {}).icone || '📦') + ' *' + RB.nomeProduto(p) + '* · ' + p.cor + ' · ' + p.condicao + (p.specs ? ' · ' + p.specs : '')
       : '📱 *' + RB.nomeProduto(p) + '* · ' + p.cor + ' · ' + p.condicao + ' · bateria ' + RB.batTexto(p, cat));
     linhas.push('Valor: ' + money(p.preco));
     if (r) {

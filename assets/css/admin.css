@@ -192,3 +192,9 @@ details.a-card summary h3 { display: inline; }
 .bl-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
 @media (min-width: 720px) { .bl-grid { grid-template-columns: repeat(4, 1fr); } }
 .bat-linha .field { margin-bottom: 0; }
+
+.cat-filtro { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.cat-filtro button { border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 8px 14px; font-weight: 600; font-size: 14px; }
+.cat-filtro button small { color: var(--muted); font-weight: 600; }
+.cat-filtro button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+.cat-filtro button.on small { color: rgba(255,255,255,.7); }
