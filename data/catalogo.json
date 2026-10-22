@@ -451,8 +451,8 @@
       "corHex": "#4a4845",
       "condicao": "Seminovo",
       "bateria": null,
-      "preco": 1050,
-      "precoAntigo": 0,
+      "preco": 1350,
+      "precoAntigo": 1599,
       "garantia": "90 dias",
       "destaque": false,
       "disponivel": true,
@@ -484,11 +484,11 @@
           "nota": ""
         }
       },
-      "encomenda": true,
+      "encomenda": false,
       "categoria": "iphone",
       "specs": "",
       "topo": false,
-      "vitrine": false,
+      "vitrine": true,
       "prazo": "1 a 2 dias"
     },
     {
