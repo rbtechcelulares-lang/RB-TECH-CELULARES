@@ -451,10 +451,9 @@
       "corHex": "#4a4845",
       "condicao": "Seminovo",
       "bateria": null,
-      "preco": 1350,
+      "preco": 1115,
       "precoAntigo": 1599,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -487,8 +486,8 @@
       "encomenda": false,
       "categoria": "iphone",
       "specs": "",
-      "topo": false,
-      "vitrine": true,
+      "topo": true,
+      "vitrine": false,
       "prazo": "1 a 2 dias"
     },
     {
@@ -502,7 +501,6 @@
       "preco": 1299,
       "precoAntigo": 0,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -532,7 +530,9 @@
           "nota": ""
         }
       },
-      "encomenda": true
+      "encomenda": true,
+      "vitrine": false,
+      "topo": false
     },
     {
       "id": "p-11promax-256gb",
@@ -2152,7 +2152,7 @@
           "nota": ""
         }
       },
-      "topo": true
+      "topo": false
     },
     {
       "id": "p-18promax-256gb-branco",
