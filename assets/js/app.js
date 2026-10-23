@@ -196,7 +196,7 @@
           (p.precoAntigo > p.preco ? '<p class="old">' + money(p.precoAntigo) + '</p>' : '') +
           '<p class="price">' + money(RB.valorPix(cat, p.preco)) + ' <small>à vista</small></p>' +
           '<p class="installment">ou ' + parc.n + 'x de ' + money(parc.parcela) + '</p>' +
-          '<span class="btn btn-gold btn-sm card-btn">Quero este</span>' +
+          '<span class="btn btn-gold btn-sm card-btn">Simular upgrade</span>' +
         '</div>' +
       '</a>'
     );

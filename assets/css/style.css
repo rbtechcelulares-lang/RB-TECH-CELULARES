@@ -579,7 +579,7 @@ body.loja {
 @media (min-width: 520px) { .spot-cta { display: flex; } }
 
 /* Cards */
-.card-btn { margin-top: auto; width: 100%; }
+.card-btn { margin-top: auto; width: 100%; white-space: normal; text-align: center; }
 .card-body .installment { margin-bottom: 12px; }
 
 /* Ajuda para escolher */
