@@ -379,7 +379,7 @@
           '<p class="spot-price">' + (off ? '<s>' + money(p.precoAntigo) + '</s> <small>por</small> ' : '') + '<strong>' + money(RB.valorPix(cat, p.preco)) + '</strong></p>' +
           (off ? '<span class="off-badge">−' + off + '% OFF</span>' : '') +
           '<p class="spot-parc">ou ' + ult.n + 'x de ' + money(ult.parcela) + ' no cartão · Pix, débito e crédito</p>' +
-          '<div class="spot-cta"><a class="btn btn-gold" data-origem="promocao" href="' + link + '">Quero o meu</a>' +
+          '<div class="spot-cta"><a class="btn btn-gold" data-origem="promocao" href="' + link + '">Simular upgrade</a>' +
           '<a class="btn btn-ghost-light" data-origem="promocao" href="' + link + '">Ver detalhes</a></div>' +
         '</div>' +
       '</div>'
