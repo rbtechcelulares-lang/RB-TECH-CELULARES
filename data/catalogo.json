@@ -399,7 +399,8 @@
           "nota": ""
         }
       },
-      "vitrine": false
+      "vitrine": false,
+      "encomenda": true
     },
     {
       "id": "p-11-128gb",
@@ -1994,7 +1995,7 @@
       "precoAntigo": 0,
       "garantia": "1 ano",
       "destaque": false,
-      "disponivel": true,
+      "disponivel": false,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia.",
       "checklist": {
@@ -2037,7 +2038,7 @@
       "precoAntigo": 0,
       "garantia": "1 ano",
       "destaque": false,
-      "disponivel": true,
+      "disponivel": false,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia.",
       "checklist": {
@@ -2080,7 +2081,7 @@
       "precoAntigo": 0,
       "garantia": "1 ano",
       "destaque": false,
-      "disponivel": true,
+      "disponivel": false,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia.",
       "checklist": {
@@ -2119,8 +2120,8 @@
       "corHex": "#1c1c1e",
       "condicao": "Novo lacrado",
       "bateria": 100,
-      "preco": 9150,
-      "precoAntigo": 0,
+      "preco": 9490,
+      "precoAntigo": 9890,
       "garantia": "1 ano",
       "destaque": false,
       "disponivel": true,
@@ -2152,7 +2153,11 @@
           "nota": ""
         }
       },
-      "topo": false
+      "topo": false,
+      "specs": "",
+      "vitrine": false,
+      "encomenda": false,
+      "prazo": ""
     },
     {
       "id": "p-18promax-256gb-branco",
@@ -2195,7 +2200,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "encomenda": true
     },
     {
       "id": "p-18promax-256gb-azul",
@@ -2238,7 +2244,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "encomenda": true
     },
     {
       "id": "p-18promax-512gb-bordeaux",
@@ -2281,7 +2288,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "encomenda": true
     },
     {
       "id": "p-18promax-512gb-preto",
@@ -2324,7 +2332,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "encomenda": true
     },
     {
       "id": "p-18promax-512gb-azul",
@@ -2367,7 +2376,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "encomenda": true
     },
     {
       "id": "p-macbookneo-256gb-silver",
