@@ -2806,5 +2806,7 @@
     "intervalo": 19,
     "vendas": true
   },
-  "chat": {}
+  "chat": {
+    "ativo": true
+  }
 }
