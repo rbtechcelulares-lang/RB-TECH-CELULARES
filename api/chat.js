@@ -311,7 +311,19 @@ module.exports = async (req, res) => {
         if (zapLoja) texto = texto.split(zapLoja).join('pelo botão abaixo');
         if (produtoProposta && !produtos.some((x) => x.id === produtoProposta.id) && produtos.length < 3) produtos.unshift(produtoProposta);
         if (produtos.length && !whatsapp) whatsapp = 'Olá! Vi no chat do site e tenho interesse no ' + produtos.map((p) => p.nome).join(' ou no ') + '.';
-        return res.status(200).json({ resposta: texto || 'Pode repetir a pergunta?', entrada: entradaNova, whatsapp, sugestoes, produtos, contato: contatoNovo });
+        // avaliação do iPhone de entrada para a página de proposta pronta (aberta pelos botões dos aparelhos)
+        let avaliacao = null;
+        const entAtual = entradaNova || ent;
+        if (produtos.length && entAtual) {
+          const av = avaliar(cat, entAtual);
+          avaliacao = {
+            descricao: entAtual.modelo + ' ' + entAtual.armazenamento + ' · bateria ' + (entAtual.bateria_abaixo_de_80 ? 'abaixo de 80%' : '80% ou mais') +
+              ' · ' + ((entAtual.defeitos || []).length ? entAtual.defeitos.join(', ') : 'sem detalhes'),
+            status: av.erro ? 'avaliar' : av.recusado ? 'recusado' : av.pre_avaliacao ? 'ok' : 'avaliar',
+            valor: av.pre_avaliacao ? Number(String(av.pre_avaliacao).replace(/[^\d,]/g, '').replace(',', '.')) || 0 : 0
+          };
+        }
+        return res.status(200).json({ resposta: texto || 'Pode repetir a pergunta?', entrada: entradaNova, whatsapp, sugestoes, produtos, contato: contatoNovo, avaliacao });
       }
       conversa.push({ role: 'assistant', content: resp.content });
       const resultados = resp.content.filter((b) => b.type === 'tool_use').map((b) => {

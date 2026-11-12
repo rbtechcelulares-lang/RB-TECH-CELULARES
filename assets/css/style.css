@@ -906,3 +906,9 @@ body.rbc-aberto .fab-whats, body.rbc-aberto .bf-venda { display: none !important
 .rbc-prod { display: block; background: #f5c542; color: #14110f !important; border-radius: 12px; padding: 8px 12px; font-size: 13px; font-weight: 700; text-decoration: none; }
 .rbc-prod:hover { filter: brightness(1.06); }
 .rbc-wa { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; background: #1fa855; color: #fff !important; border-radius: 999px; padding: 7px 12px; font-size: 13px; font-weight: 700; text-decoration: none; }
+
+/* Proposta pronta do RBChat */
+.pc-top { background: linear-gradient(90deg, #f5c542, #ff9f1c); color: #14110f; font-weight: 800; text-align: center; border-radius: 12px; padding: 9px 56px; margin-bottom: 14px; }
+.pc .summary > div > span:last-child { text-align: right; }
+.pc-ent span:last-child { max-width: 60%; }
+.pc-editar { color: inherit; opacity: .75; }

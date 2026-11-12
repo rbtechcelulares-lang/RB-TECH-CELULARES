@@ -136,8 +136,8 @@
         ? 'Oi de novo! 👋 Da última vez você falou do seu *' + entradaMem.modelo + ' ' + (entradaMem.armazenamento || '') + '* para dar de entrada. Ainda tem interesse em dar ele de entrada?'
         : ch.saudacao || 'Oi! 👋 Sou o ' + nomeChat + '. Posso te ajudar com preços, parcelas, avaliação do seu usado e garantia.';
       lista.innerHTML = '<div class="rbc-m ass">' + fmt(saud) + '</div>' +
-        msgs.map((m) => '<div class="rbc-m ' + (m.role === 'user' ? 'eu' : 'ass') + '">' + fmt(m.content) +
-          (m.produtos && m.produtos.length ? '<span class="rbc-ver">' + m.produtos.map((x) => '<a class="rbc-prod" href="#p/' + encodeURIComponent(x.id) + '" data-origem="chat">📱 Ver ' + esc(x.nome) + (x.cor && !/variad/i.test(x.cor) ? ' · ' + esc(x.cor) : '') + ' →</a>').join('') + '</span>' : '') +
+        msgs.map((m, i) => '<div class="rbc-m ' + (m.role === 'user' ? 'eu' : 'ass') + '">' + fmt(m.content) +
+          (m.produtos && m.produtos.length ? '<span class="rbc-ver">' + m.produtos.map((x) => '<a class="rbc-prod" href="#p/' + encodeURIComponent(x.id) + '" data-id="' + esc(x.id) + '" data-m="' + i + '" data-origem="chat">📱 Ver proposta: ' + esc(x.nome) + (x.cor && !/variad/i.test(x.cor) ? ' · ' + esc(x.cor) : '') + ' →</a>').join('') + '</span>' : '') +
           (m.whatsapp ? '<a class="rbc-wa" target="_blank" rel="noopener" href="' + esc(RB.linkWhats(cat, m.whatsapp)) + '">💬 Falar no WhatsApp da loja</a>' : '') + '</div>').join('');
       const ult = msgs[msgs.length - 1];
       const opcoes = !msgs.length ? ['Me ajude a escolher', 'Quanto vale meu iPhone 12?', 'Parcelas do iPhone 15 Pro', 'Qual a garantia?']
@@ -210,7 +210,7 @@
       // botões rápidos: os que a IA mandou, ou as faixas de preço quando ela pergunta o orçamento
       let botoes = Array.isArray(dados.sugestoes) ? dados.sugestoes.slice(0, 6).map(String) : null;
       if (!botoes && /quanto (você )?(quer|pretende|pode) (investir|gastar)|orçamento|faixa de (preço|valor)/i.test(resposta || '')) botoes = FAIXAS;
-      msgs.push(Object.assign({ role: 'assistant', content: resposta }, zap ? { whatsapp: zap } : {}, botoes ? { sugestoes: botoes } : {}, Array.isArray(dados.produtos) && dados.produtos.length ? { produtos: dados.produtos.slice(0, 3) } : {})); guardar();
+      msgs.push(Object.assign({ role: 'assistant', content: resposta }, zap ? { whatsapp: zap } : {}, botoes ? { sugestoes: botoes } : {}, Array.isArray(dados.produtos) && dados.produtos.length ? { produtos: dados.produtos.slice(0, 3), avaliacao: dados.avaliacao || null } : {})); guardar();
       ocupado = false; desenhar();
       if (zap) escolhendo = false; // já ofereceu o WhatsApp nesta resposta
       esperarResposta();
@@ -232,7 +232,16 @@
     });
     $('.rbc-x', painel).addEventListener('click', () => abrir(false));
     // abrir um aparelho pelo chat: no celular fecha o chat para mostrar o aparelho
-    lista.addEventListener('click', (e) => { if (e.target.closest('.rbc-prod') && innerWidth < 760) abrir(false); });
+    lista.addEventListener('click', (e) => {
+      const a = e.target.closest('.rbc-prod');
+      if (!a) return;
+      const p = cat.produtos.find((x) => x.id === a.dataset.id);
+      if (!p) return; // aparelho saiu do site: segue o link normal
+      e.preventDefault();
+      const m = msgs[Number(a.dataset.m)] || {};
+      if (innerWidth < 760) abrir(false);
+      abrirPropostaChat(p, { avaliacao: m.avaliacao || null, nome: contato && contato.nome });
+    });
     $('.rbc-form', painel).addEventListener('submit', (e) => { e.preventDefault(); enviar(campo.value); });
   }
 
@@ -784,27 +793,10 @@
     if (p) abrirProduto(p);
   }
 
-  let entradaGuardada; // escolha de entrada do cliente, preservada ao abrir um aparelho sem troca
-  function fecharSheet(semHistorico) {
-    const s = $('#sheet');
-    if (s.hidden) return;
-    s.hidden = true;
-    if (entradaGuardada !== undefined) { entrada.usar = entradaGuardada; entradaGuardada = undefined; }
-    document.body.classList.remove('no-scroll');
-    if (semHistorico !== true && location.hash.startsWith('#p/')) {
-      history.pushState('', document.title, location.pathname + location.search + '#vitrine');
-    }
-  }
-
-  function abrirProduto(p) {
-    RB.registrar(cat, 'clique', { produto: p, origem: origemClique });
-    origemClique = 'link';
-    const s = $('#sheet');
+  // Foto, título, preço e checklist/especificações do aparelho (página do aparelho e proposta do RBChat)
+  function fichaProduto(p) {
     const fotos = (p.fotos || []).filter(Boolean);
-    const body = $('#sheet-body');
-    const pag = { aba: null, parcela: null };
-
-    body.innerHTML =
+    return (
       '<div class="pd">' +
         '<div class="pd-gallery">' +
           '<div class="pd-main" style="--tint:' + esc(p.corHex || '#ccc') + '">' +
@@ -833,7 +825,135 @@
             '<small>Prazo de entrega: <b>' + esc(prazoEncomenda(p)) + '</b></small></div></div>' : '') +
           (p.observacoes ? '<p class="pd-obs">' + esc(p.observacoes) + '</p>' : '') +
         '</div>' +
-      '</div>' +
+      '</div>');
+  }
+
+  function ligarFotos(body, p) {
+    const fotos = (p.fotos || []).filter(Boolean);
+    $$('.pd-thumbs button', body).forEach((b) => b.addEventListener('click', () => {
+      $('.pd-main', body).innerHTML = '<img src="' + esc(fotos[b.dataset.i]) + '" alt="">';
+      $$('.pd-thumbs button', body).forEach((x) => x.classList.toggle('on', x === b));
+    }));
+  }
+
+  /* ---------- Proposta pronta (aberta pelos botões de aparelho do RBChat) ---------- */
+  // info: { avaliacao: { descricao, status, valor } | null, nome }
+  function abrirPropostaChat(p, info) {
+    RB.registrar(cat, 'clique', { produto: p, origem: 'chat' });
+    const s = $('#sheet');
+    const body = $('#sheet-body');
+    const av = RB.ehIphone(p) && info.avaliacao ? info.avaliacao : null;
+    if (info.nome && !nomeValido(nomeCliente)) nomeCliente = info.nome;
+    const cupom = cupomSalvo();
+    const descCupom = descontoCupom(p);
+    const preco = Math.max(0, p.preco - descCupom);
+    const valEntrada = av && av.status === 'ok' ? Number(av.valor) || 0 : 0;
+    const valor = Math.max(0, preco - valEntrada);
+    const lista = valor > 0 ? RB.parcelas(cat, valor) : [];
+    const pix = RB.valorPix(cat, valor);
+    const st = { parcela: 0 };
+
+    const pagamento = () => valor <= 0 ? '<div class="eval eval-good"><strong>Nada a pagar.</strong> Sua entrada cobre o valor do aparelho.</div>' :
+      '<button class="opt opt-pix' + (st.parcela === 0 ? ' on' : '') + '" data-n="0"><span><strong>À vista · Pix ou dinheiro</strong></span><span class="opt-val">' + money(pix) + '</span></button>' +
+      '<p class="pay-sub">Ou no cartão de crédito</p>' +
+      '<div class="opts">' + lista.map((x) => '<button class="opt' + (st.parcela === x.n ? ' on' : '') + '" data-n="' + x.n + '"><span><strong>' + x.n + 'x de ' + money(x.parcela) + '</strong></span></button>').join('') + '</div>';
+
+    body.innerHTML =
+      '<div class="pc-top">✨ Proposta montada pelo ' + esc((cat.chat || {}).nome || 'RBChat') + '</div>' +
+      fichaProduto(p) +
+      '<div class="sim pc">' +
+        '<h3 class="sim-title">Sua proposta</h3>' +
+        '<div class="summary">' +
+          '<div><span>📱 ' + esc(RB.nomeProduto(p)) + (p.cor && !/variad/i.test(p.cor) ? ' · ' + esc(p.cor) : '') + '</span><span>' + esc(p.condicao) + '</span></div>' +
+          '<div><span>🛡️ Garantia</span><span>' + esc(RB.garantia(p, cat)) + '</span></div>' +
+          (av ? '<div class="pc-ent"><span>🔁 Seu iPhone de entrada</span><span>' + esc(av.descricao) + '</span></div>' : '') +
+          (descCupom > 0 ? '<div class="neg cupom-linha"><span>🎟️ Cupom ' + esc(cupom.codigo) + '</span><span>aplicado</span></div>' : '') +
+          '<div class="sum-total"><span>' + (av && av.status === 'ok' ? 'Você paga só a diferença' : av ? 'Valor do aparelho' : 'Valor') + '</span><strong>' + money(valor) + '</strong></div>' +
+          (av && av.status === 'ok' ? '<p class="hint ok">A avaliação do seu iPhone é confirmada na loja depois do teste.</p>' : '') +
+          (av && av.status !== 'ok' ? '<p class="hint ok">Seu ' + esc(av.descricao.split(' · ')[0]) + ' será avaliado pela loja no WhatsApp e descontado deste valor.</p>' : '') +
+        '</div>' +
+        '<div class="pay"><h4 class="sim-h">Como você quer pagar?</h4><div id="pc-pag">' + pagamento() + '</div>' +
+          (cupom && !(descCupom > 0) ? '<div class="cupom-ativo">🎟️ Cupom <b>' + esc(cupom.codigo) + '</b> ativado · será aplicado no atendimento</div>' : '') +
+          '<label class="field nome-cli"><span>Seu nome completo</span><input id="nome-cli" autocomplete="name" autocapitalize="words" placeholder="Ex.: Maria da Silva" value="' + esc(nomeCliente) + '"></label>' +
+          '<p class="nome-err" id="nome-err" hidden>Digite seu nome e sobrenome para enviarmos a proposta.</p>' +
+          '<a class="btn btn-whats btn-block" id="enviar" target="_blank" rel="noopener" href="#">Enviar proposta no WhatsApp</a>' +
+          '<p class="hint center"><a href="#p/' + encodeURIComponent(p.id) + '" class="pc-editar">Quero mudar algo na proposta →</a></p>' +
+        '</div>' +
+      '</div>';
+    ligarFotos(body, p);
+
+    const msg = () => {
+      const l = ['Olá! Sou *' + nomeCliente.trim() + '* e montei esta proposta pelo ' + ((cat.chat || {}).nome || 'RBChat') + ' do site:', ''];
+      l.push('📱 *' + RB.nomeProduto(p) + '* · ' + p.cor + ' · ' + p.condicao + (RB.ehIphone(p) ? ' · bateria ' + RB.batTexto(p, cat) : p.specs ? ' · ' + p.specs : ''));
+      l.push('🛡️ Garantia: ' + RB.garantia(p, cat));
+      if (RB.sobEncomenda(p)) l.push('📦 *Sob encomenda* · prazo: ' + prazoEncomenda(p));
+      if (descCupom > 0) l.push('🎟️ *Cupom ' + cupom.codigo + '* aplicado (−' + money(descCupom) + ')');
+      if (av) l.push('', '🔁 *Entrada:* ' + av.descricao + (av.status === 'ok' ? '' : ' (quero avaliar pelo WhatsApp)'));
+      l.push('');
+      const tipo = av && av.status === 'ok' ? 'Diferença' : 'Valor';
+      if (valor <= 0) l.push('💳 ' + tipo + ': nada a pagar');
+      else if (st.parcela === 0) l.push('💳 ' + tipo + ': ' + money(pix) + ' à vista (Pix/dinheiro)');
+      else { const x = lista.find((y) => y.n === st.parcela); l.push('💳 ' + tipo + ': ' + x.n + 'x de ' + money(x.parcela) + ' no cartão'); }
+      if (cupom && !(descCupom > 0)) l.push('', '🎟️ *Cupom:* ' + cupom.codigo);
+      return l.join('\n');
+    };
+    const btn = $('#enviar', body), campo = $('#nome-cli', body);
+    const ligarPag = () => $$('#pc-pag .opt', body).forEach((b) => b.addEventListener('click', () => {
+      st.parcela = Number(b.dataset.n); $('#pc-pag', body).innerHTML = pagamento(); ligarPag(); btn.href = RB.linkWhats(cat, msg());
+    }));
+    ligarPag();
+    btn.href = RB.linkWhats(cat, msg());
+    campo.addEventListener('input', () => {
+      nomeCliente = campo.value;
+      try { localStorage.setItem('rbtech_nome', nomeCliente); } catch (e) { /* ignora */ }
+      if (nomeValido(nomeCliente)) { $('#nome-err', body).hidden = true; campo.classList.remove('erro'); }
+      btn.href = RB.linkWhats(cat, msg());
+    });
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (!nomeValido(nomeCliente)) {
+        $('#nome-err', body).hidden = false; campo.classList.add('erro'); campo.focus();
+        campo.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        return;
+      }
+      const url = RB.linkWhats(cat, msg());
+      RB.abrirAviso({
+        titulo: RB.formatar(cat, RB.texto(cat, 'avisoT')), texto: RB.formatar(cat, RB.texto(cat, 'avisoS')), botao: RB.texto(cat, 'avisoB'),
+        onOk: () => {
+          RB.registrar(cat, 'whatsapp', { produto: p, origem: 'chat-proposta', detalhe: (av ? 'entrada ' + av.descricao.split(' · ')[0] + ' · ' : 'sem entrada · ') + (st.parcela ? st.parcela + 'x' : 'à vista') + ' · ' + money(valor) });
+          const w = window.open(url, '_blank');
+          if (w) w.opener = null; else location.href = url;
+        }
+      });
+    });
+
+    s.hidden = false;
+    document.body.classList.add('no-scroll');
+    $('.sheet-panel', s).scrollTop = 0;
+  }
+
+  let entradaGuardada; // escolha de entrada do cliente, preservada ao abrir um aparelho sem troca
+  function fecharSheet(semHistorico) {
+    const s = $('#sheet');
+    if (s.hidden) return;
+    s.hidden = true;
+    if (entradaGuardada !== undefined) { entrada.usar = entradaGuardada; entradaGuardada = undefined; }
+    document.body.classList.remove('no-scroll');
+    if (semHistorico !== true && location.hash.startsWith('#p/')) {
+      history.pushState('', document.title, location.pathname + location.search + '#vitrine');
+    }
+  }
+
+  function abrirProduto(p) {
+    RB.registrar(cat, 'clique', { produto: p, origem: origemClique });
+    origemClique = 'link';
+    const s = $('#sheet');
+    const fotos = (p.fotos || []).filter(Boolean);
+    const body = $('#sheet-body');
+    const pag = { aba: null, parcela: null };
+
+    body.innerHTML =
+      fichaProduto(p) +
       '<div class="sim">' +
         '<h3 class="sim-title">Monte sua proposta</h3>' +
         (!RB.ehIphone(p) ? '<div id="sim-pay"></div></div>' :
@@ -851,10 +971,7 @@
         '<div id="sim-pay" hidden></div>' +
       '</div>');
 
-    $$('.pd-thumbs button', body).forEach((b) => b.addEventListener('click', () => {
-      $('.pd-main', body).innerHTML = '<img src="' + esc(fotos[b.dataset.i]) + '" alt="">';
-      $$('.pd-thumbs button', body).forEach((x) => x.classList.toggle('on', x === b));
-    }));
+    ligarFotos(body, p);
 
     // MacBook, Xiaomi e iPad: sem aparelho de entrada, vai direto para o pagamento
     if (!RB.ehIphone(p)) {
