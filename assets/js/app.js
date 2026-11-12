@@ -210,8 +210,18 @@
       RB.registrar(cat, 'popup', { origem: 'reparo-orcamento', detalhe: (marcaFinal() + ' ' + f.modelo).trim().slice(0, 190) || 'sem dados' });
       const texto = resumo();
       if ((f.modelo.trim() || f.defeitos.length || f.relato.trim()) && navigator.clipboard) navigator.clipboard.writeText(texto).then(() => { $('.rep-dica', box).hidden = false; }).catch(() => {});
-      const w = window.open(r.link, '_blank');
-      if (w) w.opener = null; else location.href = r.link;
+      // leva o que o cliente já contou no link (o sistema de OS pode usar para pré-preencher o pedido)
+      let link = r.link;
+      try {
+        const u = new URL(r.link);
+        let ct = {};
+        try { ct = (JSON.parse(localStorage.getItem('rbtech_chat_v2') || '{}') || {}).contato || {}; } catch (e) { /* sem contato */ }
+        const dados = { nome: ct.nome, whatsapp: ct.whatsapp, tipo: f.tipo, marca: marcaFinal(), modelo: f.modelo.trim(), defeito: f.defeitos.join(', '), relato: f.relato.trim(), origem: 'site' };
+        Object.keys(dados).forEach((k) => { if (dados[k]) u.searchParams.set(k, String(dados[k]).slice(0, 300)); });
+        link = u.toString();
+      } catch (e) { /* link inválido: abre como está */ }
+      const w = window.open(link, '_blank');
+      if (w) w.opener = null; else location.href = link;
     });
   }
 
