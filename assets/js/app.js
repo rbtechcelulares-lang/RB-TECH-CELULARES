@@ -79,6 +79,7 @@
     if ($('#ajuda-btn') && !(cat.chat || {}).ativo) $('#ajuda-btn').addEventListener('click', () => RB.registrar(cat, 'whatsapp', { origem: 'consultoria' }));
     registrarVisita();
     rota();
+    menuReparo();
     boasVindas();
     agendarPopup();
     blackFriday();
@@ -126,6 +127,17 @@
       if (v) v.scrollIntoView({ behavior: 'smooth' });
     });
     document.addEventListener('keydown', function esc1(e) { if (e.key === 'Escape') { fechar(); document.removeEventListener('keydown', esc1); } });
+  }
+
+  /* ---------- Reparos no menu do site (abre o formulário de reparo) ---------- */
+  function menuReparo() {
+    const ativo = (cat.reparos || {}).ativo !== false;
+    $$('.js-reparo').forEach((a) => {
+      if (!ativo) { a.hidden = true; return; }
+      a.addEventListener('click', (e) => { e.preventDefault(); abrirReparo('menu'); });
+    });
+    // link direto: site/#reparo abre o formulário
+    if (ativo && location.hash === '#reparo') { try { sessionStorage.setItem('rbtech_bv', '1'); } catch (e) { /* ignora */ } setTimeout(() => abrirReparo('link'), 300); }
   }
 
   /* ---------- Reparo: o cliente conta o defeito e escolhe falar com especialista ou pedir orçamento ---------- */
