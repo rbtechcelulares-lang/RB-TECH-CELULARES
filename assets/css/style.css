@@ -917,3 +917,48 @@ body.rbc-aberto .fab-whats, body.rbc-aberto .bf-venda { display: none !important
 .pc .summary > div > span:last-child { text-align: right; }
 .pc-ent span:last-child { max-width: 60%; }
 .pc-editar { color: inherit; opacity: .75; }
+
+/* Proposta pronta do RBChat: versão compacta (foto pequena ao lado, checklist enxuto) */
+.pc-modo .pc-top { font-size: 14px; padding: 7px 52px; margin-bottom: 10px; }
+.pc-modo .pd { grid-template-columns: 104px 1fr; gap: 6px 12px; align-items: start; }
+.pc-modo .pd-main { border-radius: 14px; }
+.pc-modo .pd-main svg { width: 70%; }
+.pc-modo .pd-thumbs { display: none; }
+.pc-modo .eyebrow { font-size: 10px; letter-spacing: .1em; margin: 0 0 4px; }
+.pc-modo .pd-title { font-size: 26px; margin: 0 0 2px; }
+.pc-modo .card-meta { font-size: 12px; margin: 0; }
+.pc-modo .old { font-size: 12px; }
+.pc-modo .price-lg { font-size: 19px; margin-top: 2px; }
+.pc-modo .pd-h { font-size: 11px; margin: 12px 0 6px -116px; }
+.pc-modo .checklist { margin-left: -116px; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+.pc-modo .ck { padding: 6px 7px; gap: 6px; border-radius: 10px; align-items: center; }
+.pc-modo .ck strong { font-size: 12px; line-height: 1.15; }
+.pc-modo .ck small { font-size: 10.5px; line-height: 1.15; }
+.pc-modo .ck-ic { width: 16px; height: 16px; font-size: 9px; }
+.pc-modo .ck > div { min-width: 0; }
+.pc-modo .enc-aviso, .pc-modo .pd-obs { margin-left: -116px; font-size: 12.5px; }
+.pc-modo .sim { margin-top: 14px; padding: 12px; border-radius: 18px; }
+.pc-modo .sim-title { font-size: 22px; }
+.pc-modo .summary { font-size: 13px; padding: 10px 12px; margin-top: 8px; }
+.pc-modo .summary > div { padding: 2px 0; }
+.pc-modo .pc-ent { flex-direction: column; gap: 0; }
+.pc-modo .pc-ent span:last-child { max-width: none; text-align: left; font-size: 12px; opacity: .85; }
+.pc-modo .sum-total strong { font-size: 24px; }
+.pc-modo .pay { margin-top: 10px; gap: 8px; }
+.pc-modo .sim-h { margin: 6px 0 4px; font-size: 15px; }
+.pc-modo .opt-pix { padding: 10px 12px; }
+.pc-modo .opt-val { font-size: 16px; }
+.pc-modo .pay-sub { margin: 2px 0 0; font-size: 13px; }
+.pc-modo .opts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.pc-modo .opts .opt { padding: 8px 6px; text-align: center; }
+.pc-modo .opts .opt strong { font-size: 12px; }
+.pc-modo .cupom-ativo { font-size: 13px; padding: 8px 10px; }
+.pc-modo .btn-whats { padding: 14px 18px; }
+@media (min-width: 900px) {
+  .pc-modo .pd { grid-template-columns: 200px 1fr; gap: 10px 24px; }
+  .pc-modo .pd-h, .pc-modo .checklist, .pc-modo .enc-aviso, .pc-modo .pd-obs { margin-left: 0; }
+  .pc-modo .opts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.pc-modo .opt-pix { width: 100%; }
+.pc-modo .opts .opt strong { font-size: 14px; }
+.pc-modo .opts .opt small.pc-parc { font-size: 12.5px; color: inherit; font-weight: 600; white-space: nowrap; }

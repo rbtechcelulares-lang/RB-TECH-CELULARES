@@ -869,14 +869,15 @@
     const lista = valor > 0 ? RB.parcelas(cat, valor) : [];
     const pix = RB.valorPix(cat, valor);
     const st = { parcela: 0 };
+    body.classList.add('pc-modo');
 
     const pagamento = () => valor <= 0 ? '<div class="eval eval-good"><strong>Nada a pagar.</strong> Sua entrada cobre o valor do aparelho.</div>' :
       '<button class="opt opt-pix' + (st.parcela === 0 ? ' on' : '') + '" data-n="0"><span><strong>À vista · Pix ou dinheiro</strong></span><span class="opt-val">' + money(pix) + '</span></button>' +
       '<p class="pay-sub">Ou no cartão de crédito</p>' +
-      '<div class="opts">' + lista.map((x) => '<button class="opt' + (st.parcela === x.n ? ' on' : '') + '" data-n="' + x.n + '"><span><strong>' + x.n + 'x de ' + money(x.parcela) + '</strong></span></button>').join('') + '</div>';
+      '<div class="opts">' + lista.map((x) => '<button class="opt' + (st.parcela === x.n ? ' on' : '') + '" data-n="' + x.n + '"><span><strong>' + x.n + 'x</strong><small class="pc-parc">' + money(x.parcela) + '</small></span></button>').join('') + '</div>';
 
     body.innerHTML =
-      '<div class="pc-top">✨ Proposta montada pelo ' + esc((cat.chat || {}).nome || 'RBChat') + '</div>' +
+      '<div class="pc-top">✨ Proposta pronta · ' + esc((cat.chat || {}).nome || 'RBChat') + '</div>' +
       fichaProduto(p) +
       '<div class="sim pc">' +
         '<h3 class="sim-title">Sua proposta</h3>' +
@@ -972,6 +973,7 @@
     const fotos = (p.fotos || []).filter(Boolean);
     const body = $('#sheet-body');
     const pag = { aba: null, parcela: null };
+    body.classList.remove('pc-modo');
 
     body.innerHTML =
       fichaProduto(p) +
