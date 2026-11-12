@@ -321,8 +321,10 @@
     const lista = $('.rbc-msgs', painel), campo = $('.rbc-form input', painel), sug = $('.rbc-sug', painel);
 
     const desenhar = () => {
-      const saud = entradaMem && anterior
-        ? 'Oi de novo! 👋 Da última vez você falou do seu *' + entradaMem.modelo + ' ' + (entradaMem.armazenamento || '') + '* para dar de entrada. Ainda tem interesse em dar ele de entrada?'
+      const voltou = !!((entradaMem && anterior) || (contato && contato.nome));
+      const primeiro = contato && contato.nome ? String(contato.nome).trim().split(/\s+/)[0] : '';
+      const saud = voltou
+        ? 'Olá' + (primeiro ? ', *' + primeiro + '*' : '') + '! Que bom ter você aqui novamente 😊 Como posso te ajudar hoje?'
         : ch.saudacao || 'Oi! 👋 Sou o ' + nomeChat + '. Posso te ajudar com preços, parcelas, avaliação do seu usado e garantia.';
       lista.innerHTML = '<div class="rbc-m ass">' + fmt(saud) + '</div>' +
         msgs.map((m, i) => '<div class="rbc-m ' + (m.role === 'user' ? 'eu' : 'ass') + '">' + fmt(m.content) +
@@ -332,7 +334,8 @@
           (m.reparo ? '<a class="rbc-rep" target="_blank" rel="noopener" href="' + esc(m.reparo) + '">🔧 Contar o defeito / pedir orçamento</a>' : '') +
           (m.whatsapp ? '<a class="rbc-wa" target="_blank" rel="noopener" href="' + esc(RB.linkWhats(cat, m.whatsapp)) + '">💬 Falar no WhatsApp da loja</a>' : '') + '</div>').join('');
       const ult = msgs[msgs.length - 1];
-      const opcoes = !msgs.length ? ['Me ajude a escolher', '📍 Endereço e horário', '💳 Formas de pagamento', '💬 Falar no WhatsApp', 'Quanto vale meu iPhone 12?']
+      const opcoes = !msgs.length && voltou ? ['🔧 Preciso de reparo', '📱 iPhones disponíveis', '🤖 Androids disponíveis', '💳 Formas de pagamento']
+        : !msgs.length ? ['Me ajude a escolher', '📍 Endereço e horário', '💳 Formas de pagamento', '💬 Falar no WhatsApp', 'Quanto vale meu iPhone 12?']
         : ult && ult.sugestoes ? ult.sugestoes : [];
       const orcamento = opcoes.some((t) => /^(Até|Mais de) R\$/.test(t));
       sug.innerHTML = opcoes
@@ -418,7 +421,10 @@
           (l.horario ? '\n🕒 *Horário:* ' + l.horario : '') + '\n\nQuer agendar uma visita? É só chamar no WhatsApp 👇', whatsapp: 'Olá! Quero agendar uma visita na loja.', mapa: /^https:\/\//.test(l.mapsLink || '') ? l.mapsLink : '' };
       }
       if (/forma(s)? de pagamento|pagamento|aceita(m)? (pix|cart|d[eé]bito)|boleto|credi[aá]rio/.test(s)) {
-        return { texto: '💳 *Formas de pagamento:*\n• Pix ou dinheiro à vista\n• Débito\n• Cartão de crédito em até ' + (pg.maxParcelas || 12) + 'x (taxa da maquininha inclusa)\n\nNão trabalhamos com boleto. Quer simular as parcelas de algum aparelho? É só me dizer qual 😉' };
+        const rep = cat.reparos || {};
+        return { texto: '💳 *Formas de pagamento:*\n\n' +
+          (rep.ativo !== false ? '🔧 *Reparos:* até ' + (Number(rep.parcelasSemJuros) || 4) + 'x sem juros no cartão, ou Pix/dinheiro à vista\n' : '') +
+          '📱 *Compras:* Pix ou dinheiro à vista, débito, ou cartão em até ' + (pg.maxParcelas || 12) + 'x (com a taxinha da maquininha)\n\nNão trabalhamos com boleto. Quer simular as parcelas de algum aparelho? É só me dizer qual 😉' };
       }
       if (/whats|zap|telefone|n[uú]mero|contato|falar com (algu[eé]m|atendente|vendedor|pessoa)/.test(s)) {
         return { texto: '💬 Nosso WhatsApp é este, é só tocar no botão abaixo que a gente te responde por lá!', whatsapp: 'Olá! Vim pelo site e quero falar com um atendente.' };
@@ -432,6 +438,9 @@
       if (!texto || ocupado) return;
       campo.value = '';
       if (pedeAjuda(texto)) return escolher();
+      if (/^🔧 Preciso de reparo$/.test(texto)) { if (innerWidth < 760) abrir(false); abrirReparo('chat'); return; }
+      if (/^📱 iPhones disponíveis$/.test(texto)) { location.href = 'catalogo.html?cat=iphone' + (preview ? '&preview=1' : ''); return; }
+      if (/^🤖 Androids disponíveis$/.test(texto)) { location.href = 'catalogo.html?cat=xiaomi' + (preview ? '&preview=1' : ''); return; }
       const fixa = respostaFixa(texto);
       if (fixa) { // perguntas simples da loja: respondidas na hora, sem gastar IA
         zerarSeParado();

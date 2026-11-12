@@ -134,7 +134,7 @@ function sistema(cat) {
     '',
     'LOJA',
     'WhatsApp: ' + (l.whatsapp || '') + ' | Instagram: @' + String(l.instagram || '').replace(/^@/, '') + ' | Endereço: ' + (l.endereco || '') + ' | Horário: ' + (l.horario || ''),
-    'Pagamento: Pix ou dinheiro à vista, débito, ou cartão de crédito parcelado (até ' + ((cat.pagamento || {}).maxParcelas || 12) + 'x). NÃO fazemos boleto (nem crediário/carnê).',
+    'Pagamento: Pix ou dinheiro à vista, débito, ou cartão de crédito parcelado (até ' + ((cat.pagamento || {}).maxParcelas || 12) + 'x). NÃO fazemos boleto (nem crediário/carnê). Reparos/consertos: até ' + (Number((cat.reparos || {}).parcelasSemJuros) || 4) + 'x SEM juros no cartão, ou Pix/dinheiro à vista.',
     'Sempre que passar valores ou falar de formas de pagamento, avise no fim, em uma frase curta: "Não trabalhamos com boleto."',
     '',
     'GARANTIA (regra fixa, vale mais que qualquer texto abaixo): iPhone novo lacrado 1 ano; iPhone seminovo do iPhone 13 em diante 6 meses; iPhone seminovo abaixo do 13 (11, 12, SE etc.) 4 meses. A garantia de cada aparelho já vem na lista.',
@@ -384,7 +384,7 @@ module.exports = async (req, res) => {
   const memoria = 'MEMÓRIA DO CLIENTE\n' + memContato + '\n' + memCupom + '\n' + (!ent
     ? 'Primeira conversa: ainda não sabemos se ele tem iPhone de entrada. Siga o passo 1 quando ele perguntar por um iPhone.'
     : mem.anterior
-      ? 'Em uma conversa anterior o cliente informou este iPhone de entrada: ' + descricao + '. O site já abriu esta conversa nova perguntando: "Da última vez você falou do seu ' + ent.modelo + ' ' + ent.armazenamento + ' para dar de entrada. Ainda tem interesse em dar ele de entrada?". A primeira mensagem do cliente pode ser a resposta a isso. Se confirmar, use proposta_troca com esse aparelho e mande só a diferença; se não, trate como compra direta (ou pegue o novo aparelho de entrada). Se ele não respondeu a isso e perguntou outra coisa, pergunte de forma natural se ainda vai dar esse aparelho de entrada antes de mandar valores.'
+      ? 'Em uma conversa anterior o cliente informou este iPhone de entrada: ' + descricao + '. O site abriu esta conversa nova com "Olá, que bom ter você aqui novamente", sem falar da entrada. Quando o cliente perguntar por um iPhone ou valores, pergunte de forma natural se ele ainda vai dar esse aparelho de entrada antes de mandar valores: se confirmar, use proposta_troca com ele e mande só a diferença; se não, trate como compra direta (ou pegue o novo aparelho de entrada). Para outros assuntos (reparo, endereço etc.) não toque no assunto da entrada.'
       : 'Nesta conversa o cliente já informou este iPhone de entrada: ' + descricao + '. Não pergunte de novo: para qualquer iPhone que ele perguntar, use proposta_troca com esse aparelho e mande só a diferença.');
 
   const client = new Anthropic();

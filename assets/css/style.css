@@ -1004,3 +1004,19 @@ body.rbc-aberto .fab-whats, body.rbc-aberto .bf-venda { display: none !important
 @media (min-width: 860px) { .btn-rep-top { display: none; } }
 @media (max-width: 560px) { .topbar-in:has(.btn-rep-top:not([hidden])) .top-slogan { display: none; } .btn-rep-top { padding-left: 12px; padding-right: 12px; } }
 .topbar .brand { flex: none; }
+
+/* Botão do RBChat: neon que pulsa e um pulinho a cada poucos segundos para chamar atenção */
+.rbc-btn { border-color: #f5c542 !important; animation: rbc-neon 2s ease-in-out infinite, rbc-pulo 3.2s cubic-bezier(.3,.7,.4,1) infinite; }
+.rbc-btn:hover { animation-play-state: paused; filter: brightness(1.12); }
+@keyframes rbc-neon {
+  0%, 100% { box-shadow: 0 0 6px rgba(245,197,66,.55), 0 0 14px rgba(245,197,66,.35), 0 0 28px rgba(255,106,0,.25), 0 10px 24px rgba(0,0,0,.45); }
+  50% { box-shadow: 0 0 10px rgba(245,197,66,.95), 0 0 26px rgba(245,197,66,.7), 0 0 52px rgba(255,106,0,.55), 0 10px 24px rgba(0,0,0,.45); }
+}
+@keyframes rbc-pulo {
+  0%, 72%, 100% { transform: translateY(0); }
+  78% { transform: translateY(-12px); }
+  84% { transform: translateY(0); }
+  89% { transform: translateY(-5px); }
+  94% { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) { .rbc-btn { animation: rbc-neon 2s ease-in-out infinite; } }
