@@ -250,3 +250,21 @@ details.a-card summary h3 { display: inline; }
 .colors .sw-nome.on { border-color: var(--ink); box-shadow: 0 0 0 2px var(--gold); }
 .cor-preview { margin-top: 8px; }
 .cor-preview img { height: 120px; width: auto; display: block; background: #141210; border-radius: 12px; padding: 8px 18px; }
+
+/* Clientes (CRM) */
+.cli-filtros { display: flex; gap: 10px; flex-wrap: wrap; }
+.cli-filtros input { flex: 1 1 240px; }
+.cli-filtros input, .cli-filtros select, .cli-acoes select, .cli-acoes input { border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; font: inherit; background: #fff; }
+.cli-kpis { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); margin-bottom: 16px; }
+.cli-kpis .kpi2 strong { font-size: 30px; }
+.cli { padding: 14px 16px; }
+.cli-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.cli-nome { font-size: 16px; display: block; }
+.cli-zap { color: var(--muted, #7a6f62); font-size: 13px; }
+.cli-wa { background: #1fa855; color: #fff !important; border: 0; white-space: nowrap; }
+.cli-dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 10px 0; font-size: 14px; }
+.cli-dl dt { color: var(--muted, #7a6f62); }
+.cli-dl dd { margin: 0; }
+.cli-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+.cli-acoes input { flex: 1 1 200px; }
+.a-actions { display: flex; gap: 8px; flex-wrap: wrap; }

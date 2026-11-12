@@ -112,7 +112,9 @@ function sistema(cat) {
     '  BENEFÍCIOS:\n' + (ch.beneficios || BENEFICIOS),
     '- LINKS: sempre que recomendar, oferecer ou passar valores de aparelhos específicos da lista, termine a resposta com uma linha exatamente assim: [VER: id1, id2] (os ids da lista, no máximo 3). O site transforma isso em botões que abrem cada aparelho. E logo abaixo, uma linha [WHATSAPP: <mensagem em primeira pessoa dizendo o interesse do cliente, ex.: Olá! Tenho interesse no iPhone 13 Pro 128GB, vi no chat do site.>]. O site mostra um botão verde do WhatsApp com essa mensagem.',
     '- Nunca escreva o número do WhatsApp nem links no texto: para fechar, diga para tocar no botão do aparelho (e depois em "Enviar proposta no WhatsApp") ou no botão verde do WhatsApp abaixo.',
-    '- Não peça nem guarde dados pessoais (CPF, cartão). Não discuta assuntos fora da loja.',
+    '- CONTATO DO CLIENTE: veja em MEMÓRIA DO CLIENTE se já sabemos o nome dele. Se ainda não sabemos, na sua PRIMEIRA resposta (depois de responder o que ele pediu, em uma frase) pergunte o nome dele e o WhatsApp, dizendo que é para salvar o contato e mandar as melhores promoções. Se ele não quiser passar, tudo bem: siga o atendimento normalmente e não insista (pode pedir de novo uma única vez no fechamento).',
+    '- Assim que o cliente informar o nome e o WhatsApp (ou só o nome), use a ferramenta salvar_contato. Depois disso, chame ele pelo nome e não peça de novo.',
+    '- Fora nome e WhatsApp, não peça nem guarde dados pessoais (CPF, cartão, endereço, e-mail). Não discuta assuntos fora da loja.',
     '- Quando NÃO souber responder com as informações abaixo (estoque de cor específica, prazo de entrega, acessórios, assistência, qualquer coisa que não esteja aqui), diga que a equipe da loja confirma e termine a resposta com uma linha exatamente assim: [WHATSAPP: <mensagem curta, em primeira pessoa, que o cliente vai mandar para a loja com a pergunta específica dele>]. Ex.: [WHATSAPP: Olá! Vocês têm iPhone 15 Pro na cor azul?]. Use essa linha só quando não souber.',
     bfAtiva
       ? '- BLACK FRIDAY ATIVA' + (fimBf ? ' até ' + fimBf.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }) : '') +
@@ -154,6 +156,16 @@ function propostaTroca(cat, entrada) {
   };
 }
 
+// Confere nome e WhatsApp; quem grava é o site (na lista de clientes do admin)
+function salvarContato(i) {
+  const nomeC = String(i.nome || '').replace(/[^\p{L}\p{M} '.-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, 60);
+  let zap = String(i.whatsapp || '').replace(/\D/g, '');
+  if (zap.length === 10 || zap.length === 11) zap = '55' + zap;
+  if (!nomeC) return { erro: 'Nome vazio: pergunte o nome do cliente.' };
+  if (zap && !/^55\d{10,11}$/.test(zap)) return { erro: 'WhatsApp inválido: peça o número com DDD (ex.: 48 99999-8888).' };
+  return { ok: true, salvo: { nome: nomeC, whatsapp: zap } };
+}
+
 const FERRAMENTAS = [
   {
     name: 'proposta_troca',
@@ -168,6 +180,20 @@ const FERRAMENTAS = [
         defeitos: { type: 'array', items: { type: 'string' }, description: 'Ex.: ["tela trincada"]; vazio se perfeito' }
       },
       required: ['produto_id', 'modelo', 'armazenamento', 'bateria_abaixo_de_80', 'defeitos'],
+      additionalProperties: false
+    },
+    strict: true
+  },
+  {
+    name: 'salvar_contato',
+    description: 'Salva o nome e o WhatsApp do cliente para a loja mandar promoções. Use assim que ele informar.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        nome: { type: 'string', description: 'Nome do cliente, ex.: João' },
+        whatsapp: { type: 'string', description: 'WhatsApp com DDD, só números, ex.: 48999998888; vazio se ele não passou' }
+      },
+      required: ['nome', 'whatsapp'],
       additionalProperties: false
     },
     strict: true
@@ -233,7 +259,12 @@ module.exports = async (req, res) => {
   } : null;
   const descricao = ent ? ent.modelo + ' ' + ent.armazenamento + ', bateria ' + (ent.bateria_abaixo_de_80 ? 'abaixo de 80%' : '80% ou mais') +
     ', ' + (ent.defeitos.length ? 'detalhes: ' + ent.defeitos.join(', ') : 'sem detalhes') : '';
-  const memoria = 'MEMÓRIA DO CLIENTE\n' + (!ent
+  const c0 = mem.contato && typeof mem.contato === 'object' ? mem.contato : null;
+  const nomeCliente = c0 && typeof c0.nome === 'string' ? c0.nome.replace(/[^\p{L}\p{M} '.-]/gu, '').slice(0, 40).trim() : '';
+  const memContato = nomeCliente
+    ? 'O nome do cliente é ' + nomeCliente + (c0.whatsapp ? ' e o WhatsApp dele já está salvo' : ' (ele não passou o WhatsApp)') + '. Chame ele pelo nome e NÃO peça nome nem WhatsApp de novo.'
+    : 'Ainda não sabemos o nome nem o WhatsApp do cliente: peça na sua primeira resposta (veja CONTATO DO CLIENTE).';
+  const memoria = 'MEMÓRIA DO CLIENTE\n' + memContato + '\n' + (!ent
     ? 'Primeira conversa: ainda não sabemos se ele tem iPhone de entrada. Siga o passo 1 quando ele perguntar por um iPhone.'
     : mem.anterior
       ? 'Em uma conversa anterior o cliente informou este iPhone de entrada: ' + descricao + '. O site já abriu esta conversa nova perguntando: "Da última vez você falou do seu ' + ent.modelo + ' ' + ent.armazenamento + ' para dar de entrada. Ainda tem interesse em dar ele de entrada?". A primeira mensagem do cliente pode ser a resposta a isso. Se confirmar, use proposta_troca com esse aparelho e mande só a diferença; se não, trate como compra direta (ou pegue o novo aparelho de entrada). Se ele não respondeu a isso e perguntou outra coisa, pergunte de forma natural se ainda vai dar esse aparelho de entrada antes de mandar valores.'
@@ -242,6 +273,8 @@ module.exports = async (req, res) => {
   const client = new Anthropic();
   const conversa = mensagens.slice();
   let entradaNova = null; // devolvida ao site para guardar no celular do cliente
+  let contatoNovo = null; // nome e WhatsApp que o cliente passou (o site salva na lista de clientes)
+  let produtoProposta = null; // aparelho da última proposta: conta como interesse do cliente
   try {
     for (let rodada = 0; rodada < 4; rodada++) {
       const resp = await client.messages.create({
@@ -276,8 +309,9 @@ module.exports = async (req, res) => {
         // número solto no texto não é clicável: o botão do WhatsApp cobre isso
         const zapLoja = String((cat.loja || {}).whatsapp || '').replace(/\D/g, '');
         if (zapLoja) texto = texto.split(zapLoja).join('pelo botão abaixo');
+        if (produtoProposta && !produtos.some((x) => x.id === produtoProposta.id) && produtos.length < 3) produtos.unshift(produtoProposta);
         if (produtos.length && !whatsapp) whatsapp = 'Olá! Vi no chat do site e tenho interesse no ' + produtos.map((p) => p.nome).join(' ou no ') + '.';
-        return res.status(200).json({ resposta: texto || 'Pode repetir a pergunta?', entrada: entradaNova, whatsapp, sugestoes, produtos });
+        return res.status(200).json({ resposta: texto || 'Pode repetir a pergunta?', entrada: entradaNova, whatsapp, sugestoes, produtos, contato: contatoNovo });
       }
       conversa.push({ role: 'assistant', content: resp.content });
       const resultados = resp.content.filter((b) => b.type === 'tool_use').map((b) => {
@@ -286,9 +320,15 @@ module.exports = async (req, res) => {
           saida = b.name === 'calcular_parcelas'
             ? { valor: brl(b.input.valor), a_vista: brl(b.input.valor), cartao: parcelas(cat, Number(b.input.valor) || 0) }
             : b.name === 'avaliar_entrada' ? avaliar(cat, b.input)
-              : b.name === 'proposta_troca' ? propostaTroca(cat, b.input) : { erro: 'ferramenta desconhecida' };
+              : b.name === 'proposta_troca' ? propostaTroca(cat, b.input)
+                : b.name === 'salvar_contato' ? salvarContato(b.input) : { erro: 'ferramenta desconhecida' };
         } catch (e) {
           return { type: 'tool_result', tool_use_id: b.id, content: 'erro: ' + e.message, is_error: true };
+        }
+        if (b.name === 'salvar_contato' && saida && saida.salvo) contatoNovo = saida.salvo;
+        if (b.name === 'proposta_troca' && saida && !saida.erro) {
+          const p = (cat.produtos || []).find((x) => x.id === b.input.produto_id);
+          if (p) produtoProposta = { id: p.id, nome: nome(p), cor: p.cor || '' };
         }
         if ((b.name === 'proposta_troca' || b.name === 'avaliar_entrada') && saida && !saida.erro && !saida.recusado) {
           const i = b.input;

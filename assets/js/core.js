@@ -412,6 +412,20 @@
     } catch (e) { /* registro nunca atrapalha o cliente */ }
   }
 
+  // Cliente que passou nome e WhatsApp no chat: vai para a lista de clientes do admin (CRM)
+  function salvarCliente(cat, c) {
+    const lim = limparSupabase((cat.rastreamento || {}).supabaseUrl, (cat.rastreamento || {}).supabaseChave);
+    if (!lim.url || !lim.chave || !c || !c.whatsapp) return;
+    try {
+      fetch(lim.url.replace(/\/+$/, '') + '/rest/v1/rpc/salvar_cliente', {
+        method: 'POST',
+        keepalive: true,
+        headers: cabecalhosSupabase(lim.chave),
+        body: JSON.stringify({ p_nome: c.nome || '', p_whatsapp: c.whatsapp, p_interesse: c.interesse || null, p_entrada: c.entrada || null, p_origem: 'chat' })
+      }).catch(() => {});
+    } catch (e) { /* nunca atrapalha o cliente */ }
+  }
+
   /* ---------- Pop-up de campanha ---------- */
   function campanhaVigente(pp) {
     if (!pp || !pp.ativo) return false;
@@ -490,7 +504,7 @@
   global.RB = {
     DRAFT_KEY, CHECKLIST_ITENS, STATUS,
     money, esc, lerRascunho, carregarCatalogo,
-    TEXTOS, texto, formatar, registrar, limparSupabase, abrirAviso, cabecalhosSupabase, campanhaVigente, abrirPopup,
+    TEXTOS, texto, formatar, registrar, salvarCliente, limparSupabase, abrirAviso, cabecalhosSupabase, campanhaVigente, abrirPopup,
     avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, batNumero, CATEGORIAS, categoria, ehIphone, ehMac, ehNovo, garantia, noTopo, naVitrine, noCatalogo, ativo, emPromocao, sobEncomenda, nomeProduto, phoneSVG, produtoSVG, fotoModelo, coresDoModelo, imagemProduto, sha256
   };
 })(window);

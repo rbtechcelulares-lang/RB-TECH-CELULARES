@@ -115,7 +115,7 @@
   function render() {
     ({
       produtos: renderProdutos, promocoes: renderPromocoes, cliques: renderCliques, avaliacao: renderAvaliacao,
-      pagamento: renderPagamento, loja: renderLoja, ia: renderIA, textos: renderTextos, publicar: renderPublicar
+      pagamento: renderPagamento, loja: renderLoja, ia: renderIA, clientes: renderClientes, textos: renderTextos, publicar: renderPublicar
     })[aba]();
   }
 
@@ -800,6 +800,114 @@
   /* ---------- Cliques: painel de desempenho ---------- */
   const PAINEL_KEY = 'rbtech_painel_chave';
   let periodo = '30';
+
+  /* ---------- Clientes do RBChat (CRM) ---------- */
+  const STATUS_CLI = [['novo', '🆕 Novo'], ['contatado', '📞 Contatado'], ['negociando', '🤝 Negociando'], ['comprou', '✅ Comprou'], ['perdido', '❌ Perdido']];
+  let clientes = null, filtroCli = { busca: '', status: '' };
+
+  function renderClientes() {
+    const el = $('[data-panel="clientes"]');
+    const rs = cat.rastreamento || {};
+    let chave = '';
+    try { chave = localStorage.getItem(PAINEL_KEY) || ''; } catch (e) { /* ignora */ }
+    const pronto = rs.supabaseUrl && rs.supabaseChave && chave;
+    el.innerHTML =
+      '<div class="a-head"><div><h2>👥 Clientes</h2><p class="muted">Quem passou nome e WhatsApp no RBChat, com o último aparelho que a IA mandou. Use para o follow-up e para mandar as promoções.</p></div>' +
+        (pronto ? '<div class="a-actions"><button class="btn btn-sm btn-outline" id="cli-csv">⬇️ Baixar planilha</button><button class="btn btn-sm btn-ink" id="cli-rec">↻ Atualizar</button></div>' : '') + '</div>' +
+      (pronto ? '' : '<div class="a-card"><h3>Falta configurar</h3><p class="hint">A lista usa o mesmo Supabase do painel de <b>Cliques</b>. Configure lá (endereço, chave pública e chave do painel) e rode no Supabase o arquivo <code>supabase/clientes.sql</code> (SQL Editor › New query › cole › Run).</p></div>') +
+      '<div class="a-card cli-filtros"' + (pronto ? '' : ' hidden') + '>' +
+        '<input id="cli-busca" placeholder="Buscar por nome, WhatsApp ou aparelho" value="' + esc(filtroCli.busca) + '">' +
+        '<select id="cli-status"><option value="">Todos os status</option>' + STATUS_CLI.map((s) => '<option value="' + s[0] + '"' + (filtroCli.status === s[0] ? ' selected' : '') + '>' + s[1] + '</option>').join('') + '</select>' +
+      '</div>' +
+      '<div id="cli-lista">' + (pronto ? '<p class="hint">Carregando…</p>' : '') + '</div>';
+    if (!pronto) return;
+    $('#cli-rec').addEventListener('click', () => { clientes = null; carregarClientes(rs, chave); });
+    $('#cli-csv').addEventListener('click', () => baixarClientes());
+    $('#cli-busca').addEventListener('input', (e) => { filtroCli.busca = e.target.value; desenharClientes(rs, chave); });
+    $('#cli-status').addEventListener('change', (e) => { filtroCli.status = e.target.value; desenharClientes(rs, chave); });
+    if (clientes) desenharClientes(rs, chave); else carregarClientes(rs, chave);
+  }
+
+  async function rpcPainel(rs, nomeFn, corpo) {
+    const res = await fetch(rs.supabaseUrl.replace(/\/+$/, '') + '/rest/v1/rpc/' + nomeFn, {
+      method: 'POST', headers: RB.cabecalhosSupabase(rs.supabaseChave), body: JSON.stringify(corpo)
+    });
+    if (!res.ok) {
+      const t = await res.json().catch(() => ({}));
+      if (/chave/i.test(t.message || '')) throw new Error('Chave do painel incorreta (é a mesma do painel de Cliques).');
+      if (/function|schema cache|could not find/i.test(t.message || '')) throw new Error('Falta rodar o arquivo supabase/clientes.sql no Supabase (SQL Editor › New query › Run).');
+      throw new Error(t.message || 'Erro ' + res.status);
+    }
+    return res.status === 204 ? null : res.json().catch(() => null);
+  }
+
+  async function carregarClientes(rs, chave) {
+    const lista = $('#cli-lista');
+    try {
+      clientes = (await rpcPainel(rs, 'painel_clientes', { chave })) || [];
+      desenharClientes(rs, chave);
+    } catch (e) {
+      if (lista) lista.innerHTML = '<div class="a-card err-card">Não foi possível carregar: ' + esc(e.message) + '</div>';
+    }
+  }
+
+  const foneBonito = (z) => { const m = String(z || '').match(/^55(\d{2})(\d{4,5})(\d{4})$/); return m ? '(' + m[1] + ') ' + m[2] + '-' + m[3] : z; };
+  const quando = (d) => (d ? new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '');
+
+  function desenharClientes(rs, chave) {
+    const lista = $('#cli-lista');
+    if (!lista || !clientes) return;
+    const b = filtroCli.busca.trim().toLowerCase();
+    const itens = clientes.filter((c) => (!filtroCli.status || c.status === filtroCli.status) &&
+      (!b || [c.nome, c.whatsapp, c.interesse, c.entrada, c.notas].join(' ').toLowerCase().includes(b)));
+    const cont = {};
+    clientes.forEach((c) => (cont[c.status] = (cont[c.status] || 0) + 1));
+    lista.innerHTML =
+      '<div class="kpis2 cli-kpis">' + [['', 'clientes salvos', clientes.length]].concat(STATUS_CLI.slice(0, 4).map((s) => [s[0], s[1], cont[s[0]] || 0]))
+        .map((k, i) => '<div class="kpi2' + (i === 0 ? ' kpi2-gold' : '') + '"><strong>' + k[2] + '</strong><span>' + k[1] + '</span></div>').join('') + '</div>' +
+      (itens.length ? itens.map((c) => {
+        const primeiro = String(c.nome || '').split(' ')[0];
+        const msg = 'Olá ' + primeiro + '! Aqui é da ' + (cat.loja.nome || 'RB Tech') + ' 😊' + (c.interesse ? ' Vi que você se interessou pelo ' + c.interesse.split(' / ')[0] + '. Ainda está procurando?' : '');
+        return '<div class="a-card cli" data-id="' + c.id + '">' +
+          '<div class="cli-top"><div><b class="cli-nome">' + esc(c.nome) + '</b><span class="cli-zap">' + esc(foneBonito(c.whatsapp)) + '</span></div>' +
+            '<a class="btn btn-sm cli-wa" target="_blank" rel="noopener" href="https://wa.me/' + esc(c.whatsapp) + '?text=' + encodeURIComponent(msg) + '">💬 Chamar</a></div>' +
+          '<dl class="cli-dl">' +
+            '<dt>Interesse</dt><dd>' + (c.interesse ? '📱 ' + esc(c.interesse) : '<span class="muted">—</span>') + '</dd>' +
+            (c.entrada ? '<dt>Entrada</dt><dd>🔁 ' + esc(c.entrada) + '</dd>' : '') +
+            '<dt>Último contato</dt><dd>' + quando(c.atualizado_em) + (c.criado_em !== c.atualizado_em ? ' <span class="muted">· desde ' + quando(c.criado_em).split(' ')[0] + '</span>' : '') + '</dd>' +
+          '</dl>' +
+          '<div class="cli-acoes"><select class="cli-st">' + STATUS_CLI.map((s) => '<option value="' + s[0] + '"' + (c.status === s[0] ? ' selected' : '') + '>' + s[1] + '</option>').join('') + '</select>' +
+            '<input class="cli-notas" placeholder="Anotações do follow-up…" value="' + esc(c.notas || '') + '">' +
+            '<button class="btn btn-sm btn-outline cli-del" title="Apagar">🗑</button></div>' +
+        '</div>';
+      }).join('') : '<div class="a-card"><p class="hint">' + (clientes.length ? 'Nenhum cliente com esse filtro.' : 'Ainda não tem clientes. Eles aparecem aqui quando passam nome e WhatsApp no RBChat.') + '</p></div>');
+    $$('.cli', lista).forEach((card) => {
+      const id = Number(card.dataset.id);
+      const c = clientes.find((x) => x.id === id);
+      const salvarCli = async (corpo, okMsg) => {
+        try { await rpcPainel(rs, 'painel_cliente_salvar', Object.assign({ chave, p_id: id }, corpo)); if (okMsg) toast(okMsg); }
+        catch (e) { toast(e.message, true); }
+      };
+      $('.cli-st', card).addEventListener('change', (e) => { c.status = e.target.value; salvarCli({ p_status: c.status }, 'Status salvo.'); desenharClientes(rs, chave); });
+      $('.cli-notas', card).addEventListener('change', (e) => { c.notas = e.target.value; salvarCli({ p_notas: c.notas }, 'Anotação salva.'); });
+      $('.cli-del', card).addEventListener('click', () => {
+        if (!confirm('Apagar ' + c.nome + ' da lista de clientes?')) return;
+        clientes = clientes.filter((x) => x.id !== id);
+        salvarCli({ p_apagar: true }, 'Cliente apagado.'); desenharClientes(rs, chave);
+      });
+    });
+  }
+
+  function baixarClientes() {
+    if (!clientes) return;
+    const col = ['nome', 'whatsapp', 'interesse', 'entrada', 'status', 'notas', 'criado_em', 'atualizado_em'];
+    const csv = [col.join(';')].concat(clientes.map((c) => col.map((k) => '"' + String(c[k] == null ? '' : c[k]).replace(/"/g, '""') + '"').join(';'))).join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = 'clientes-rbtech-' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
 
   function renderCliques() {
     const el = $('[data-panel="cliques"]');

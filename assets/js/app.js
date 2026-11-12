@@ -85,9 +85,11 @@
     let msgs = Array.isArray(est.msgs) ? est.msgs : [];
     let entradaMem = est.entrada || null; // { modelo, armazenamento, bateria_abaixo_de_80, defeitos }
     let anterior = !!est.anterior; // true quando a entrada veio de uma conversa anterior
+    let contato = est.contato || null; // { nome, whatsapp } que o cliente passou no chat (não zera)
+    let interesse = est.interesse || ''; // último aparelho que a IA mandou para ele
     const guardar = () => {
       est.ultimo = Date.now();
-      try { localStorage.setItem(CHAVE, JSON.stringify({ msgs: msgs.slice(-30), entrada: entradaMem, anterior, ultimo: est.ultimo })); } catch (e) { /* ignora */ }
+      try { localStorage.setItem(CHAVE, JSON.stringify({ msgs: msgs.slice(-30), entrada: entradaMem, anterior, contato, interesse, ultimo: est.ultimo })); } catch (e) { /* ignora */ }
     };
     const zerarSeParado = () => {
       if (msgs.length && Date.now() - (Number(est.ultimo) || 0) > INATIVO) {
@@ -175,10 +177,17 @@
       lista.scrollTop = lista.scrollHeight;
       let resposta, zap = '', dados = {};
       try {
-        const r = await fetch('api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensagens: msgs, memoria: { entrada: entradaMem, anterior } }) });
+        const r = await fetch('api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensagens: msgs, memoria: { entrada: entradaMem, anterior, contato: contato ? { nome: contato.nome, whatsapp: !!contato.whatsapp } : null } }) });
         const d = await r.json().catch(() => ({}));
         dados = d;
         if (d.entrada && d.entrada.modelo) { entradaMem = d.entrada; anterior = false; }
+        if (d.contato && d.contato.nome) contato = Object.assign({}, contato, d.contato, d.contato.whatsapp ? {} : { whatsapp: (contato || {}).whatsapp || '' });
+        // lista de clientes do admin: salva nome/WhatsApp e o último aparelho que a IA mandou
+        if (Array.isArray(d.produtos) && d.produtos.length) interesse = d.produtos.map((x) => x.nome + (x.cor && !/variad/i.test(x.cor) ? ' ' + x.cor : '')).join(' / ');
+        if (contato && contato.whatsapp && (d.contato || (d.produtos && d.produtos.length) || d.entrada)) {
+          RB.salvarCliente(cat, { nome: contato.nome, whatsapp: contato.whatsapp, interesse,
+            entrada: entradaMem ? entradaMem.modelo + ' ' + (entradaMem.armazenamento || '') + (entradaMem.bateria_abaixo_de_80 ? ' · bateria < 80%' : '') + (entradaMem.defeitos && entradaMem.defeitos.length ? ' · ' + entradaMem.defeitos.join(', ') : '') : '' });
+        }
         zap = d.whatsapp || (d.erro ? 'Olá! Vim pelo chat do site e tenho uma dúvida: ' + texto : '');
         resposta = d.resposta || (d.erro ? d.erro + ' Se preferir, chame a gente no WhatsApp.' : 'Não consegui responder agora. Chame a gente no WhatsApp!');
       } catch (e) {
