@@ -152,7 +152,16 @@
     const temLink = /^https:\/\//.test(r.link || '');
     const MARCAS = ['Samsung', 'Motorola', 'Xiaomi', 'Realme', 'LG', 'Asus', 'Outra'];
     const DEFEITOS = ['Tela quebrada', 'Bateria', 'Não liga', 'Não carrega', 'Câmera', 'Som ou microfone', 'Face ID / biometria', 'Molhou', 'Outro'];
-    const f = { tipo: '', marca: '', outraMarca: '', modelo: '', defeitos: [], relato: '' };
+    // nome e WhatsApp: vêm do chat/proposta quando o cliente já passou; senão ficam em branco
+    let ct = {};
+    try { ct = (JSON.parse(localStorage.getItem('rbtech_chat_v2') || '{}') || {}).contato || {}; } catch (e) { ct = {}; }
+    const foneFmt = (v) => {
+      const d = String(v || '').replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '').slice(0, 11);
+      if (d.length <= 2) return d;
+      if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2);
+      return '(' + d.slice(0, 2) + ') ' + d.slice(2, d.length - 4) + '-' + d.slice(-4);
+    };
+    const f = { tipo: '', marca: '', outraMarca: '', modelo: '', defeitos: [], relato: '', nome: ct.nome || '', fone: foneFmt(ct.whatsapp) };
     box.innerHTML =
       '<h2 class="rep-h">Conte o que aconteceu 🔧</h2>' +
       '<p class="rbp-txt">Leva menos de 1 minuto. Um especialista já recebe tudo certinho.</p>' +
@@ -166,7 +175,9 @@
         '<span class="rep-lbl">Qual o defeito?</span>' +
         '<div class="rep-defs">' + DEFEITOS.map((d) => '<button type="button" data-def="' + esc(d) + '">' + esc(d) + '</button>').join('') + '</div>' +
         '<label><span class="rep-lbl">Conte com suas palavras</span><textarea id="rep-relato" rows="3" maxlength="500" placeholder="Ex.: caiu no chão, a tela trincou e o touch não funciona embaixo."></textarea></label>' +
-        '<p class="rep-err" hidden>Escolha Apple ou Android, informe o modelo e o defeito.</p>' +
+        '<label><span class="rep-lbl">Seu nome completo</span><input id="rep-nome" maxlength="80" autocomplete="name" autocapitalize="words" placeholder="Ex.: Maria da Silva" value="' + esc(f.nome) + '"></label>' +
+        '<label><span class="rep-lbl">Seu WhatsApp</span><input id="rep-fone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(48) 99999-8888" value="' + esc(f.fone) + '"></label>' +
+        '<p class="rep-err" hidden>Preencha: Apple ou Android, modelo, defeito, seu nome completo e seu WhatsApp com DDD.</p>' +
         '<button type="button" class="bv-op rep-zap">💬 Conversar com um especialista<small>Abre o WhatsApp com tudo preenchido</small></button>' +
         (temLink ? '<button type="button" class="bv-op bv-rep rep-orc">📋 Solicitar orçamento<small>Gera sua ordem de serviço no nosso sistema</small></button>' : '') +
         '<p class="rep-dica" hidden>✅ Copiamos a descrição do seu defeito: é só colar no formulário do orçamento.</p>' +
@@ -178,7 +189,22 @@
       if (f.relato.trim()) l.push('📝 Relato: ' + f.relato.trim());
       return l.join('\n');
     };
-    const valido = () => f.tipo && f.modelo.trim() && (f.defeitos.length || f.relato.trim()) && (f.tipo === 'Apple' || marcaFinal());
+    const digitos = () => f.fone.replace(/\D/g, '');
+    const valido = () => f.tipo && f.modelo.trim() && (f.defeitos.length || f.relato.trim()) && (f.tipo === 'Apple' || marcaFinal()) &&
+      nomeValido(f.nome) && /^\d{10,11}$/.test(digitos());
+    // salva o cliente na lista do admin (interesse: o reparo) e avisa o chat para não pedir de novo
+    const salvarContato = () => {
+      const nome = f.nome.trim().replace(/\s+/g, ' ');
+      const zap = '55' + digitos();
+      RB.salvarCliente(cat, { origem: 'reparo', nome, whatsapp: zap, interesse: ('🔧 Reparo: ' + [marcaFinal(), f.modelo.trim()].filter(Boolean).join(' ') + (f.defeitos.length ? ' · ' + f.defeitos.join(', ') : '')).slice(0, 300) });
+      window.dispatchEvent(new CustomEvent('rbtech:contato', { detail: { nome, whatsapp: zap } }));
+      try { // se o chat não estiver aberto nesta página, grava direto
+        const est = JSON.parse(localStorage.getItem('rbtech_chat_v2') || '{}') || {};
+        est.contato = Object.assign({}, est.contato, { nome, whatsapp: zap });
+        localStorage.setItem('rbtech_chat_v2', JSON.stringify(est));
+      } catch (e) { /* ignora */ }
+      return { nome, zap };
+    };
     $$('[data-tipo]', box).forEach((b) => b.addEventListener('click', () => {
       f.tipo = b.dataset.tipo;
       $$('[data-tipo]', box).forEach((x) => x.classList.toggle('on', x === b));
@@ -190,6 +216,14 @@
     $('#rep-outra', box).addEventListener('input', (e) => { f.outraMarca = e.target.value; });
     $('#rep-modelo', box).addEventListener('input', (e) => { f.modelo = e.target.value; });
     $('#rep-relato', box).addEventListener('input', (e) => { f.relato = e.target.value; });
+    $('#rep-nome', box).addEventListener('input', (e) => { f.nome = e.target.value; });
+    $('#rep-fone', box).addEventListener('input', (e) => { e.target.value = foneFmt(e.target.value); f.fone = e.target.value; });
+    const mostrarErro = () => {
+      $('.rep-err', box).hidden = false;
+      const alvo = !f.tipo ? $('[data-tipo]', box) : !f.modelo.trim() ? $('#rep-modelo', box) : !(f.defeitos.length || f.relato.trim()) ? $('#rep-relato', box)
+        : !nomeValido(f.nome) ? $('#rep-nome', box) : $('#rep-fone', box);
+      if (alvo) { alvo.focus(); alvo.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+    };
     $$('[data-def]', box).forEach((b) => b.addEventListener('click', () => {
       const d = b.dataset.def;
       f.defeitos = f.defeitos.includes(d) ? f.defeitos.filter((x) => x !== d) : f.defeitos.concat(d);
@@ -197,8 +231,9 @@
     }));
     ['input', 'change', 'click'].forEach((ev) => box.addEventListener(ev, () => { if (valido()) $('.rep-err', box).hidden = true; }));
     $('.rep-zap', box).addEventListener('click', () => {
-      if (!valido()) { $('.rep-err', box).hidden = false; return; }
-      const msg = 'Olá! Vim pelo site e preciso de um reparo 🔧\n\n' + resumo() + '\n\nPode me ajudar?';
+      if (!valido()) { mostrarErro(); return; }
+      const c = salvarContato();
+      const msg = 'Olá! Sou *' + c.nome + '*, vim pelo site e preciso de um reparo 🔧\n\n' + resumo() + '\n\nPode me ajudar?';
       RB.registrar(cat, 'whatsapp', { origem: 'reparo', detalhe: (marcaFinal() + ' ' + f.modelo + ' · ' + f.defeitos.join(', ')).slice(0, 190) });
       const url = RB.linkWhats(cat, msg);
       const w = window.open(url, '_blank');
@@ -207,6 +242,8 @@
     });
     const orc = $('.rep-orc', box);
     if (orc) orc.addEventListener('click', () => {
+      if (!valido()) { mostrarErro(); return; }
+      const c = salvarContato();
       RB.registrar(cat, 'popup', { origem: 'reparo-orcamento', detalhe: (marcaFinal() + ' ' + f.modelo).trim().slice(0, 190) || 'sem dados' });
       const texto = resumo();
       if ((f.modelo.trim() || f.defeitos.length || f.relato.trim()) && navigator.clipboard) navigator.clipboard.writeText(texto).then(() => { $('.rep-dica', box).hidden = false; }).catch(() => {});
@@ -214,14 +251,13 @@
       let link = r.link;
       try {
         const u = new URL(r.link);
-        let ct = {};
-        try { ct = (JSON.parse(localStorage.getItem('rbtech_chat_v2') || '{}') || {}).contato || {}; } catch (e) { /* sem contato */ }
-        const dados = { nome: ct.nome, whatsapp: ct.whatsapp, tipo: f.tipo, marca: marcaFinal(), modelo: f.modelo.trim(), defeito: f.defeitos.join(', '), relato: f.relato.trim(), origem: 'site' };
+        const dados = { nome: c.nome, whatsapp: c.zap, tipo: f.tipo, marca: marcaFinal(), modelo: f.modelo.trim(), defeito: f.defeitos.join(', '), relato: f.relato.trim(), origem: 'site' };
         Object.keys(dados).forEach((k) => { if (dados[k]) u.searchParams.set(k, String(dados[k]).slice(0, 300)); });
         link = u.toString();
       } catch (e) { /* link inválido: abre como está */ }
       const w = window.open(link, '_blank');
       if (w) w.opener = null; else location.href = link;
+      fechar();
     });
   }
 
