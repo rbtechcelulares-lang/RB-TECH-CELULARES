@@ -901,7 +901,7 @@
   let clientes = null, filtroCli = { busca: '', status: '' };
   let vistaCli = 'funil'; // 'funil' (WhatsApp, pela RB Central) ou 'rbchat' (contatos deixados no chat do site)
   const abasCli = () => '<div class="periodo cli-vistas">' +
-    [['funil', '📲 Funil do WhatsApp'], ['rbchat', '💬 Contatos do RBChat']].map((v) => '<button type="button" data-vista="' + v[0] + '"' + (vistaCli === v[0] ? ' class="on"' : '') + '>' + v[1] + '</button>').join('') + '</div>';
+    [['funil', '📲 Funil do WhatsApp'], ['perdas', '📉 Por que não fecharam'], ['rbchat', '💬 Contatos do RBChat']].map((v) => '<button type="button" data-vista="' + v[0] + '"' + (vistaCli === v[0] ? ' class="on"' : '') + '>' + v[1] + '</button>').join('') + '</div>';
   const ligarAbasCli = (el) => $$('[data-vista]', el).forEach((b) => b.addEventListener('click', () => { vistaCli = b.dataset.vista; renderClientes(); }));
   const MSG_CLIENTE_PADRAO = 'Olá {nome}! Aqui é da RB Tech Celulares 😊 Ficou alguma dúvida referente ao {modelo}? Estou à disposição para te ajudar!';
   const modeloMsgCliente = () => ((cat.chat || {}).msgFollowup || '').trim() || MSG_CLIENTE_PADRAO;
@@ -918,6 +918,7 @@
     try { chave = localStorage.getItem(PAINEL_KEY) || ''; } catch (e) { /* ignora */ }
     const pronto = rs.supabaseUrl && rs.supabaseChave && chave;
     if (pronto && vistaCli === 'funil') return renderFunil(el, rs, chave);
+    if (pronto && vistaCli === 'perdas') return renderPerdas(el, rs, chave);
     el.innerHTML =
       '<div class="a-head"><div><h2>👥 Clientes</h2><p class="muted">Quem passou nome e WhatsApp no RBChat, com o último aparelho que a IA mandou. Use para o follow-up e para mandar as promoções.</p></div>' +
         (pronto ? '<div class="a-actions"><button class="btn btn-sm btn-outline" id="cli-csv">⬇️ Baixar planilha</button><button class="btn btn-sm btn-ink" id="cli-rec">↻ Atualizar</button></div>' : '') + '</div>' +
@@ -1061,6 +1062,11 @@
   const ORDEM_SIT = ['loja_sem_responder', 'cliente_sumiu', 'nao_buscou', 'fechado', 'aguardando_loja', 'em_conversa', 'comprou', 'perdido'];
   const ETAPAS_WA = [['novo', 'Novo'], ['em_atendimento', 'Em atendimento'], ['orcamento', 'Orçamento'], ['negociando', 'Negociando'], ['fechado', 'Fechado'], ['comprou', 'Comprou'], ['perdido', 'Perdido'], ['pos_venda', 'Pós-venda']];
   let funil = null, filtroFunil = '';
+  const MOTIVO_NOME = {
+    preco: 'Preço / achou caro', pagamento: 'Forma de pagamento', troca: 'Valor da troca', estoque: 'Não tinha o modelo, cor ou capacidade',
+    aparelho: 'Estado do aparelho', confianca: 'Garantia ou confiança', concorrente: 'Comprou em outro lugar', demora_loja: 'Demora da loja para responder',
+    entrega: 'Prazo, entrega ou distância', desistiu: 'Desistiu / não precisa mais', sumiu: 'Sumiu sem dar pista', outro: 'Outro'
+  };
 
   const haQuanto = (d) => {
     const min = Math.round((Date.now() - new Date(d).getTime()) / 60000);
@@ -1149,6 +1155,7 @@
         (c.rbchat ? '<dt>RBChat</dt><dd>💬 deixou o contato' + (c.rbchat.interesse ? ': ' + esc(c.rbchat.interesse) : '') + (c.rbchat.entrada ? ' · entrada ' + esc(c.rbchat.entrada) : '') + '</dd>' : '') +
         '<dt>WhatsApp</dt><dd>' + (c.interesse ? '📱 ' + esc(c.interesse) + (Number(c.valor) > 0 ? ' · ' + reaisF(c.valor) : '') : '') + (c.resumo ? (c.interesse ? ' — ' : '') + esc(c.resumo) : (c.msgs_novas > 0 ? '<span class="muted">a IA ainda vai ler esta conversa</span>' : '')) + '</dd>' +
         (c.proxima_acao && !/comprou|perdido/.test(c.situacao) ? '<dt>Próximo passo</dt><dd>➡️ ' + esc(c.proxima_acao) + '</dd>' : '') +
+        (c.situacao === 'perdido' ? '<dt>Por que perdeu</dt><dd>' + (c.motivo_perda ? '📉 ' + esc(MOTIVO_NOME[c.motivo_perda] || c.motivo_perda) + (c.motivo_detalhe ? ' — ' + esc(c.motivo_detalhe) : '') + ' <span class="muted">(' + (c.motivo_certeza === 'certo' ? 'o cliente disse' : 'dedução da IA') + ')</span>' : '<span class="muted">a IA ainda vai analisar</span>') + '</dd>' : '') +
         (c.ultima_msg ? '<dt>Última</dt><dd>' + (c.ultima_de === 'cliente' ? 'Cliente' : 'Loja') + ': “' + esc(c.ultima_msg) + '”</dd>' : '') +
       '</dl>' +
       '<div class="cli-acoes">' + etapaSel +
@@ -1210,6 +1217,64 @@
       });
       if (!c) card.remove();
     });
+  }
+
+  /* ---------- Por que os clientes não fecharam (relatório de perdas, feito pela IA da RB Central) ---------- */
+  let perdas = null, diasPerdas = 30;
+  const tempoMin = (m) => (m === null || m === undefined ? '—' : m < 60 ? Math.round(m) + ' min' : m < 48 * 60 ? (m / 60).toFixed(m < 600 ? 1 : 0).replace('.', ',') + ' h' : Math.round(m / 1440) + ' dias');
+
+  function renderPerdas(el, rs, chave) {
+    el.innerHTML =
+      '<div class="a-head"><div><h2>👥 Clientes</h2><p class="muted">Por que os clientes que queriam comprar iPhone não fecharam. A IA da RB Central lê a conversa de cada venda perdida e anota o motivo.</p></div>' +
+        '<div class="a-actions"><button class="btn btn-sm btn-ink" id="pe-rec">↻ Atualizar</button></div></div>' +
+      abasCli() +
+      '<div class="periodo pe-dias">' + [[7, '7 dias'], [30, '30 dias'], [90, '90 dias']].map((d) => '<button type="button" data-dias="' + d[0] + '"' + (diasPerdas === d[0] ? ' class="on"' : '') + '>' + d[1] + '</button>').join('') + '</div>' +
+      '<div id="pe-lista"><p class="hint">Carregando…</p></div>';
+    ligarAbasCli(el);
+    $$('[data-dias]', el).forEach((b) => b.addEventListener('click', () => { diasPerdas = Number(b.dataset.dias); perdas = null; renderPerdas(el, rs, chave); }));
+    $('#pe-rec').addEventListener('click', () => { perdas = null; carregarPerdas(rs, chave); });
+    if (perdas && perdas.dias === diasPerdas) desenharPerdas(); else carregarPerdas(rs, chave);
+  }
+
+  async function carregarPerdas(rs, chave) {
+    const lista = $('#pe-lista');
+    try {
+      perdas = await rpcPainel(rs, 'central_wa_relatorio_perdas', { chave, p_dias: diasPerdas });
+      desenharPerdas();
+    } catch (e) {
+      const msg = /supabase\/clientes\.sql/.test(e.message) ? 'Falta rodar de novo o SQL da RB Central no Supabase (supabase/central_conversas.sql do repositório Rbcentral).' : e.message;
+      if (lista) lista.innerHTML = '<div class="a-card err-card">Não foi possível carregar o relatório: ' + esc(msg) + '</div>';
+    }
+  }
+
+  function desenharPerdas() {
+    const lista = $('#pe-lista');
+    if (!lista || !perdas) return;
+    const p = perdas, motivos = p.motivos || [], com = motivos.reduce((s, m) => s + Number(m.qtd || 0), 0);
+    const pedir = 'Faça o relatório de por que os clientes não fecharam nos últimos ' + p.dias + ' dias, com o que fazer para vender mais.';
+    const pr = p.primeira_resposta_min || {};
+    lista.innerHTML =
+      '<div class="kpis2 cli-kpis">' + [
+        [p.conversas, 'conversas de iPhone'], [p.compraram, '✅ compraram'], [p.perdidos, '❌ não fecharam'],
+        [p.conversao_pct === null || p.conversao_pct === undefined ? '—' : p.conversao_pct + '%', 'conversão (das decididas)'],
+        [p.valor_perdido > 0 ? reaisF(p.valor_perdido) : '—', 'em propostas perdidas']
+      ].map((k, i) => '<div class="kpi2' + (i === 0 ? ' kpi2-gold' : '') + '"><strong>' + esc(String(k[0])) + '</strong><span>' + k[1] + '</span></div>').join('') + '</div>' +
+      '<div class="a-card"><h3>📉 Motivos</h3>' +
+        (com ? motivos.map((m) => {
+          const pct = Math.round(100 * m.qtd / com);
+          return '<div class="pe-mot"><div class="pe-mot-top"><b>' + esc(MOTIVO_NOME[m.motivo] || m.motivo) + '</b><span>' + m.qtd + ' · ' + pct + '%' + (m.valor > 0 ? ' · ' + reaisF(m.valor) : '') + '</span></div>' +
+            '<div class="pe-barra"><i style="width:' + pct + '%"></i></div>' +
+            (m.exemplos || []).map((e) => '<p class="pe-ex">“' + esc(e.detalhe || '') + '” <span class="muted">— ' + esc(e.nome || foneBonito(e.numero)) + (e.interesse ? ' · ' + esc(e.interesse) : '') + '</span></p>').join('') + '</div>';
+        }).join('') : '<p class="hint">' + (p.perdidos ? 'A IA ainda não analisou os clientes perdidos.' : 'Nenhuma venda perdida nesse período. 👍') + '</p>') +
+        (p.sem_motivo ? '<p class="hint">' + p.sem_motivo + (p.sem_motivo === 1 ? ' cliente perdido ainda está' : ' clientes perdidos ainda estão') + ' sem motivo: a IA da RB Central analisa quando você abre o CRM lá ou pede o relatório.</p>' : '') +
+      '</div>' +
+      '<div class="a-card"><h3>⏱️ Tempo até a 1ª resposta da loja</h3><dl class="cli-dl">' +
+        '<dt>Quem comprou</dt><dd>' + tempoMin(pr.compraram) + '</dd><dt>Quem não fechou</dt><dd>' + tempoMin(pr.perdidos) + '</dd></dl>' +
+        '<p class="hint">Mediana do tempo entre a primeira mensagem do cliente e a primeira resposta da loja.</p></div>' +
+      ((p.aparelhos || []).length ? '<div class="a-card"><h3>📱 Aparelhos</h3><dl class="cli-dl">' + p.aparelhos.map((a) => '<dt>' + esc(a.aparelho) + '</dt><dd>' + a.perdidos + ' não fecharam · ' + a.compraram + ' compraram</dd>').join('') + '</dl></div>' : '') +
+      ((p.origem_site || []).length ? '<div class="a-card"><h3>🌐 De onde vieram (pelo site)</h3><dl class="cli-dl">' + p.origem_site.map((o) => '<dt>' + esc(deOnde(o.origem)) + '</dt><dd>' + o.total + (o.total === 1 ? ' conversa' : ' conversas') + ' · ' + o.compraram + ' compraram · ' + o.perdidos + ' não fecharam</dd>').join('') + '</dl></div>' : '') +
+      '<div class="a-card"><h3>🧠 Análise com sugestões</h3><p class="hint">A IA da RB Central cruza esses números e diz o que mudar para vender mais.</p>' +
+        '<a class="btn btn-sm btn-ink" target="_blank" rel="noopener" href="' + CENTRAL_URL + '/?pedir=' + encodeURIComponent(pedir) + '">↗ Pedir a análise na Central</a></div>';
   }
 
   function baixarClientes() {
