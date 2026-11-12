@@ -122,7 +122,8 @@
         : ch.saudacao || 'Oi! 👋 Sou o ' + nomeChat + '. Posso te ajudar com preços, parcelas, avaliação do seu usado e garantia.';
       lista.innerHTML = '<div class="rbc-m ass">' + fmt(saud) + '</div>' +
         msgs.map((m) => '<div class="rbc-m ' + (m.role === 'user' ? 'eu' : 'ass') + '">' + fmt(m.content) +
-          (m.whatsapp ? '<a class="rbc-wa" target="_blank" rel="noopener" href="' + esc(RB.linkWhats(cat, m.whatsapp)) + '">💬 Perguntar no WhatsApp da loja</a>' : '') + '</div>').join('');
+          (m.produtos && m.produtos.length ? '<span class="rbc-ver">' + m.produtos.map((x) => '<a class="rbc-prod" href="#p/' + encodeURIComponent(x.id) + '" data-origem="chat">📱 Ver ' + esc(x.nome) + (x.cor && !/variad/i.test(x.cor) ? ' · ' + esc(x.cor) : '') + ' →</a>').join('') + '</span>' : '') +
+          (m.whatsapp ? '<a class="rbc-wa" target="_blank" rel="noopener" href="' + esc(RB.linkWhats(cat, m.whatsapp)) + '">💬 Falar no WhatsApp da loja</a>' : '') + '</div>').join('');
       const ult = msgs[msgs.length - 1];
       const opcoes = !msgs.length ? ['Me ajude a escolher', 'Quanto vale meu iPhone 12?', 'Parcelas do iPhone 15 Pro', 'Qual a garantia?']
         : ult && ult.sugestoes ? ult.sugestoes : [];
@@ -187,7 +188,7 @@
       // botões rápidos: os que a IA mandou, ou as faixas de preço quando ela pergunta o orçamento
       let botoes = Array.isArray(dados.sugestoes) ? dados.sugestoes.slice(0, 6).map(String) : null;
       if (!botoes && /quanto (você )?(quer|pretende|pode) (investir|gastar)|orçamento|faixa de (preço|valor)/i.test(resposta || '')) botoes = FAIXAS;
-      msgs.push(Object.assign({ role: 'assistant', content: resposta }, zap ? { whatsapp: zap } : {}, botoes ? { sugestoes: botoes } : {})); guardar();
+      msgs.push(Object.assign({ role: 'assistant', content: resposta }, zap ? { whatsapp: zap } : {}, botoes ? { sugestoes: botoes } : {}, Array.isArray(dados.produtos) && dados.produtos.length ? { produtos: dados.produtos.slice(0, 3) } : {})); guardar();
       ocupado = false; desenhar();
       if (zap) escolhendo = false; // já ofereceu o WhatsApp nesta resposta
       esperarResposta();
@@ -208,6 +209,8 @@
       abrir(true); escolher();
     });
     $('.rbc-x', painel).addEventListener('click', () => abrir(false));
+    // abrir um aparelho pelo chat: no celular fecha o chat para mostrar o aparelho
+    lista.addEventListener('click', (e) => { if (e.target.closest('.rbc-prod') && innerWidth < 760) abrir(false); });
     $('.rbc-form', painel).addEventListener('submit', (e) => { e.preventDefault(); enviar(campo.value); });
   }
 

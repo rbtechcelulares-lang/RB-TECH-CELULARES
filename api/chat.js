@@ -105,7 +105,8 @@ function sistema(cat) {
     '  c) Quando já souber o que ele precisa e se é iPhone ou Android, pergunte até quanto ele quer investir e termine a resposta com uma linha exatamente assim: [FAIXAS] (o site mostra os botões Até R$ 1.000, Até R$ 1.800, Até R$ 2.500, Até R$ 3.000 e Mais de R$ 3.000). Não liste as faixas no texto.',
     '- Com a faixa escolhida, recomende o melhor aparelho da lista abaixo dentro do valor à vista da faixa (no máximo 2 opções; se não houver nenhum na faixa, ofereça o mais próximo e diga isso), explicando em uma frase por que combina com ele (ex.: câmera tripla/zoom dos modelos Pro, chip mais novo para jogos, bateria maior dos modelos Plus/Pro Max). Se preferir Android, recomende os Xiaomi da lista.',
     '- Recomende só aparelhos que estão na lista. Ao recomendar um iPhone, siga COMO NEGOCIAR: pergunte se é só compra ou se tem iPhone de entrada antes de mandar valores (a não ser que a entrada já seja conhecida).',
-    '- Para fechar, oriente o cliente a abrir o aparelho no site e tocar em "Enviar proposta no WhatsApp", ou chamar no WhatsApp ' + (l.whatsapp || '') + '.',
+    '- LINKS: sempre que recomendar, oferecer ou passar valores de aparelhos específicos da lista, termine a resposta com uma linha exatamente assim: [VER: id1, id2] (os ids da lista, no máximo 3). O site transforma isso em botões que abrem cada aparelho. E logo abaixo, uma linha [WHATSAPP: <mensagem em primeira pessoa dizendo o interesse do cliente, ex.: Olá! Tenho interesse no iPhone 13 Pro 128GB, vi no chat do site.>]. O site mostra um botão verde do WhatsApp com essa mensagem.',
+    '- Nunca escreva o número do WhatsApp nem links no texto: para fechar, diga para tocar no botão do aparelho (e depois em "Enviar proposta no WhatsApp") ou no botão verde do WhatsApp abaixo.',
     '- Não peça nem guarde dados pessoais (CPF, cartão). Não discuta assuntos fora da loja.',
     '- Quando NÃO souber responder com as informações abaixo (estoque de cor específica, prazo de entrega, acessórios, assistência, qualquer coisa que não esteja aqui), diga que a equipe da loja confirma e termine a resposta com uma linha exatamente assim: [WHATSAPP: <mensagem curta, em primeira pessoa, que o cliente vai mandar para a loja com a pergunta específica dele>]. Ex.: [WHATSAPP: Olá! Vocês têm iPhone 15 Pro na cor azul?]. Use essa linha só quando não souber.',
     bfAtiva
@@ -257,7 +258,20 @@ module.exports = async (req, res) => {
         let sugestoes = null;
         texto = texto.replace(/\[FAIXAS\]/gi, () => { sugestoes = FAIXAS; return ''; })
           .replace(/\[PLATAFORMA\]/gi, () => { sugestoes = sugestoes || ['🍎 iPhone', '🤖 Android']; return ''; }).trim();
-        return res.status(200).json({ resposta: texto || 'Pode repetir a pergunta?', entrada: entradaNova, whatsapp, sugestoes });
+        // [VER: ids] vira botões que abrem os aparelhos no site
+        let produtos = [];
+        texto = texto.replace(/\[VER:\s*([^\]]{1,300})\]/gi, (m, ids) => {
+          ids.split(/[,\s]+/).forEach((id) => {
+            const p = (cat.produtos || []).find((x) => x.id === id.trim());
+            if (p && produtos.length < 3 && !produtos.some((x) => x.id === p.id)) produtos.push({ id: p.id, nome: nome(p), cor: p.cor || '' });
+          });
+          return '';
+        }).trim();
+        // número solto no texto não é clicável: o botão do WhatsApp cobre isso
+        const zapLoja = String((cat.loja || {}).whatsapp || '').replace(/\D/g, '');
+        if (zapLoja) texto = texto.split(zapLoja).join('pelo botão abaixo');
+        if (produtos.length && !whatsapp) whatsapp = 'Olá! Vi no chat do site e tenho interesse no ' + produtos.map((p) => p.nome).join(' ou no ') + '.';
+        return res.status(200).json({ resposta: texto || 'Pode repetir a pergunta?', entrada: entradaNova, whatsapp, sugestoes, produtos });
       }
       conversa.push({ role: 'assistant', content: resp.content });
       const resultados = resp.content.filter((b) => b.type === 'tool_use').map((b) => {
