@@ -74,10 +74,15 @@ function sistema(cat) {
     '',
     'REGRAS',
     '- Só fale de preços, aparelhos, prazos e condições que estão abaixo. Nunca invente modelo, cor, preço, estoque ou política. Se não souber, diga que confirma pelo WhatsApp.',
-    '- Para parcelamento use sempre a ferramenta calcular_parcelas (a taxa da maquininha já está incluída); não faça a conta de cabeça.',
-    '- Para avaliar o iPhone usado do cliente (troca/entrada) use a ferramenta avaliar_entrada. Pergunte modelo, armazenamento, se a bateria está abaixo de 80% e se tem algum detalhe (tela trincada, tampa trincada, Face ID, câmera etc.). Não revele o desconto de cada defeito, só a pré-avaliação final, e deixe claro que o valor é confirmado na loja.',
-    '- A troca (dar o usado de entrada) vale só na compra de iPhones; MacBook, Xiaomi e iPad são sem entrada.',
-    '- Com entrada, o cliente paga só a diferença (preço do aparelho menos a pré-avaliação), à vista ou parcelada.',
+    '',
+    'COMO NEGOCIAR (siga esta ordem)',
+    '1. Quando o cliente perguntar se tem um iPhone (ou pedir preço de um iPhone), NÃO mande o preço ainda. Confirme se temos o modelo (memórias e cores disponíveis) e pergunte: "Você está procurando só a compra ou tem algum iPhone para dar de entrada?".',
+    '2. Se for só compra: aí sim informe o preço à vista e use calcular_parcelas para as parcelas no cartão.',
+    '3. Se tiver iPhone de entrada: pergunte modelo, armazenamento, se a bateria está abaixo de 80% e se tem algum detalhe (tela ou tampa trincada, Face ID, câmera etc.). Com isso, use a ferramenta proposta_troca e responda SOMENTE com o valor da diferença a pagar (à vista e as parcelas da diferença). Não informe o preço cheio do aparelho, nem o valor da avaliação do usado, nem o desconto de cada defeito.',
+    '4. Só informe o preço cheio do aparelho ou o valor da avaliação do usado se o cliente perguntar especificamente por eles depois da proposta.',
+    '- Sempre diga que a avaliação do usado é confirmada na loja depois do teste do aparelho.',
+    '- Para qualquer parcelamento use as ferramentas (a taxa da maquininha já está incluída); nunca faça a conta de cabeça.',
+    '- A troca (dar o usado de entrada) vale só na compra de iPhones; MacBook, Xiaomi e iPad são sem entrada: nesses, informe o preço normalmente.',
     '- Para fechar, oriente o cliente a abrir o aparelho no site e tocar em "Enviar proposta no WhatsApp", ou chamar no WhatsApp ' + (l.whatsapp || '') + '.',
     '- Não peça nem guarde dados pessoais (CPF, cartão). Não discuta assuntos fora da loja.',
     bfAtiva
@@ -99,7 +104,41 @@ function sistema(cat) {
   ].filter((x) => x !== '').join('\n');
 }
 
+function propostaTroca(cat, entrada) {
+  const p = (cat.produtos || []).find((x) => x.id === entrada.produto_id);
+  if (!p) return { erro: 'Aparelho não encontrado: use o id da lista de aparelhos à venda.' };
+  if (!ehIphone(p)) return { erro: 'Troca só vale na compra de iPhone.' };
+  const av = avaliar(cat, entrada);
+  if (av.erro || av.recusado || !av.pre_avaliacao) return Object.assign({ aparelho: nome(p) }, av);
+  const valorUsado = Number(String(av.pre_avaliacao).replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+  const dif = Math.max(0, Math.round((Number(p.preco) - valorUsado) * 100) / 100);
+  return {
+    aparelho: nome(p) + ' ' + (p.cor || ''),
+    diferenca_a_vista: brl(dif),
+    diferenca_no_cartao: parcelas(cat, dif),
+    so_se_o_cliente_perguntar: { preco_cheio: brl(p.preco), avaliacao_do_usado: av.pre_avaliacao },
+    observacao: av.observacao
+  };
+}
+
 const FERRAMENTAS = [
+  {
+    name: 'proposta_troca',
+    description: 'Monta a proposta com iPhone usado de entrada: devolve a diferença a pagar à vista e no cartão. Use quando o cliente informar o iPhone que vai dar de entrada.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        produto_id: { type: 'string', description: 'id do aparelho à venda que o cliente quer (da lista)' },
+        modelo: { type: 'string', description: 'Modelo do iPhone de entrada, ex.: iPhone 12' },
+        armazenamento: { type: 'string', description: 'Ex.: 128GB' },
+        bateria_abaixo_de_80: { type: 'boolean' },
+        defeitos: { type: 'array', items: { type: 'string' }, description: 'Ex.: ["tela trincada"]; vazio se perfeito' }
+      },
+      required: ['produto_id', 'modelo', 'armazenamento', 'bateria_abaixo_de_80', 'defeitos'],
+      additionalProperties: false
+    },
+    strict: true
+  },
   {
     name: 'calcular_parcelas',
     description: 'Calcula as parcelas no cartão (com a taxa da maquininha) para um valor em reais. Use para o preço de um aparelho ou para a diferença depois da entrada.',
@@ -108,7 +147,7 @@ const FERRAMENTAS = [
   },
   {
     name: 'avaliar_entrada',
-    description: 'Pré-avaliação do iPhone usado que o cliente quer dar de entrada.',
+    description: 'Só a pré-avaliação do iPhone usado (quando o cliente ainda não escolheu o aparelho que quer comprar).',
     input_schema: {
       type: 'object',
       properties: {
@@ -172,7 +211,8 @@ module.exports = async (req, res) => {
         try {
           saida = b.name === 'calcular_parcelas'
             ? { valor: brl(b.input.valor), a_vista: brl(b.input.valor), cartao: parcelas(cat, Number(b.input.valor) || 0) }
-            : b.name === 'avaliar_entrada' ? avaliar(cat, b.input) : { erro: 'ferramenta desconhecida' };
+            : b.name === 'avaliar_entrada' ? avaliar(cat, b.input)
+              : b.name === 'proposta_troca' ? propostaTroca(cat, b.input) : { erro: 'ferramenta desconhecida' };
         } catch (e) {
           return { type: 'tool_result', tool_use_id: b.id, content: 'erro: ' + e.message, is_error: true };
         }
