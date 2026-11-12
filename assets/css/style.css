@@ -995,3 +995,4 @@ body.rbc-aberto .fab-whats, body.rbc-aberto .bf-venda { display: none !important
 .rep-err { color: #ff8a7a; font-size: 13px; margin: 0; }
 .rep-dica { color: #9be3a8; font-size: 13px; margin: 0; }
 .rep-zap { border: 0; color: #fff; background: #1fa855; margin-top: 4px; }
+.rbc-mapa { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; margin-right: 6px; background: #17140a; border: 1.5px solid #f5c542; color: #f5c542 !important; border-radius: 999px; padding: 7px 12px; font-size: 13px; font-weight: 700; text-decoration: none; }

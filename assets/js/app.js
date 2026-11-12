@@ -255,7 +255,7 @@
         '<button type="button" class="rbc-x" aria-label="Fechar">×</button></header>' +
       '<div class="rbc-msgs" aria-live="polite"></div>' +
       '<div class="rbc-sug"></div>' +
-      '<form class="rbc-form"><input maxlength="600" placeholder="Pergunte sobre preço, parcelas, troca…" aria-label="Sua mensagem">' +
+      '<form class="rbc-form"><input maxlength="500" placeholder="Pergunte sobre preço, parcelas, troca…" aria-label="Sua mensagem">' +
         '<button type="submit" aria-label="Enviar">➤</button></form>' +
       '<a class="rbc-zap" target="_blank" rel="noopener">Prefere falar com uma pessoa? Chamar no WhatsApp</a>';
     document.body.append(botao, painel);
@@ -269,10 +269,11 @@
       lista.innerHTML = '<div class="rbc-m ass">' + fmt(saud) + '</div>' +
         msgs.map((m, i) => '<div class="rbc-m ' + (m.role === 'user' ? 'eu' : 'ass') + '">' + fmt(m.content) +
           (m.produtos && m.produtos.length ? '<span class="rbc-ver">' + m.produtos.map((x) => '<a class="rbc-prod" href="#p/' + encodeURIComponent(x.id) + '" data-id="' + esc(x.id) + '" data-m="' + i + '" data-origem="chat">📱 Ver proposta: ' + esc(x.nome) + (x.cor && !/variad/i.test(x.cor) ? ' · ' + esc(x.cor) : '') + ' →</a>').join('') + '</span>' : '') +
+          (m.mapa ? '<a class="rbc-mapa" target="_blank" rel="noopener" href="' + esc(m.mapa) + '">🗺️ Ver no mapa</a>' : '') +
           (m.reparo ? '<a class="rbc-rep" target="_blank" rel="noopener" href="' + esc(m.reparo) + '">🔧 Contar o defeito / pedir orçamento</a>' : '') +
           (m.whatsapp ? '<a class="rbc-wa" target="_blank" rel="noopener" href="' + esc(RB.linkWhats(cat, m.whatsapp)) + '">💬 Falar no WhatsApp da loja</a>' : '') + '</div>').join('');
       const ult = msgs[msgs.length - 1];
-      const opcoes = !msgs.length ? ['Me ajude a escolher', 'Quanto vale meu iPhone 12?', 'Parcelas do iPhone 15 Pro', 'Qual a garantia?']
+      const opcoes = !msgs.length ? ['Me ajude a escolher', '📍 Endereço e horário', '💳 Formas de pagamento', '💬 Falar no WhatsApp', 'Quanto vale meu iPhone 12?']
         : ult && ult.sugestoes ? ult.sugestoes : [];
       const orcamento = opcoes.some((t) => /^(Até|Mais de) R\$/.test(t));
       sug.innerHTML = opcoes
@@ -326,12 +327,39 @@
       RB.registrar(cat, 'popup', { origem: 'chat', detalhe: 'Me ajude a escolher' });
     }
 
+    // Endereço, horário, pagamento e WhatsApp: respostas prontas com os dados do admin (sem IA)
+    function respostaFixa(t) {
+      const s = t.toLowerCase();
+      if (s.length > 70 || /iphone|xiaomi|redmi|poco|macbook|ipad|\d{2}\s*(pro|max|gb)/.test(s)) return null;
+      const l = cat.loja || {};
+      const pg = cat.pagamento || {};
+      if (/endere[cç]o|onde fica|localiza|como cheg|hor[aá]rio|que horas|abre|fecha|funciona/.test(s)) {
+        return { texto: (l.endereco ? '📍 *Endereço:* ' + l.endereco + '' : '📍 Atendemos em ' + (l.regiao || 'São José/SC') + '.') +
+          (l.horario ? '\n🕒 *Horário:* ' + l.horario : '') + '\n\nQuer agendar uma visita? É só chamar no WhatsApp 👇', whatsapp: 'Olá! Quero agendar uma visita na loja.', mapa: /^https:\/\//.test(l.mapsLink || '') ? l.mapsLink : '' };
+      }
+      if (/forma(s)? de pagamento|pagamento|aceita(m)? (pix|cart|d[eé]bito)|boleto|credi[aá]rio/.test(s)) {
+        return { texto: '💳 *Formas de pagamento:*\n• Pix ou dinheiro à vista\n• Débito\n• Cartão de crédito em até ' + (pg.maxParcelas || 12) + 'x (taxa da maquininha inclusa)\n\nNão trabalhamos com boleto. Quer simular as parcelas de algum aparelho? É só me dizer qual 😉' };
+      }
+      if (/whats|zap|telefone|n[uú]mero|contato|falar com (algu[eé]m|atendente|vendedor|pessoa)/.test(s)) {
+        return { texto: '💬 Nosso WhatsApp é este, é só tocar no botão abaixo que a gente te responde por lá!', whatsapp: 'Olá! Vim pelo site e quero falar com um atendente.' };
+      }
+      return null;
+    }
+
     let ocupado = false;
     async function enviar(texto) {
       texto = String(texto || '').trim();
       if (!texto || ocupado) return;
       campo.value = '';
       if (pedeAjuda(texto)) return escolher();
+      const fixa = respostaFixa(texto);
+      if (fixa) { // perguntas simples da loja: respondidas na hora, sem gastar IA
+        zerarSeParado();
+        msgs.push({ role: 'user', content: texto }, Object.assign({ role: 'assistant', content: fixa.texto }, fixa.whatsapp ? { whatsapp: fixa.whatsapp } : {}, fixa.mapa ? { mapa: fixa.mapa } : {}));
+        guardar(); desenhar();
+        RB.registrar(cat, 'popup', { origem: 'chat-fixo', detalhe: texto.slice(0, 190) });
+        return;
+      }
       ocupado = true; clearTimeout(relogio);
       zerarSeParado();
       msgs.push({ role: 'user', content: texto }); guardar(); desenhar();
@@ -339,7 +367,7 @@
       lista.scrollTop = lista.scrollHeight;
       let resposta, zap = '', dados = {};
       try {
-        const r = await fetch('api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensagens: msgs, memoria: { entrada: entradaMem, anterior, contato: contato ? { nome: contato.nome, whatsapp: !!contato.whatsapp } : null, cupom: cupomSalvo() ? { codigo: cupomSalvo().codigo } : null } }) });
+        const r = await fetch('api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensagens: msgs.slice(-8), memoria: { entrada: entradaMem, anterior, contato: contato ? { nome: contato.nome, whatsapp: !!contato.whatsapp } : null, cupom: cupomSalvo() ? { codigo: cupomSalvo().codigo } : null } }) });
         const d = await r.json().catch(() => ({}));
         dados = d;
         if (d.entrada && d.entrada.modelo) { entradaMem = d.entrada; anterior = false; }
@@ -351,7 +379,8 @@
             entrada: entradaMem ? entradaMem.modelo + ' ' + (entradaMem.armazenamento || '') + (entradaMem.bateria_abaixo_de_80 ? ' · bateria < 80%' : '') + (entradaMem.defeitos && entradaMem.defeitos.length ? ' · ' + entradaMem.defeitos.join(', ') : '') : '' });
         }
         zap = d.whatsapp || (d.erro ? 'Olá! Vim pelo chat do site e tenho uma dúvida: ' + texto : '');
-        resposta = d.resposta || (d.erro ? d.erro + ' Se preferir, chame a gente no WhatsApp.' : 'Não consegui responder agora. Chame a gente no WhatsApp!');
+        resposta = d.resposta || (d.limite ? 'Por hoje o chat chegou ao limite de mensagens 😅 Continue com a gente pelo WhatsApp, é só tocar no botão abaixo!'
+          : d.erro ? d.erro + ' Se preferir, chame a gente no WhatsApp.' : 'Não consegui responder agora. Chame a gente no WhatsApp!');
       } catch (e) {
         resposta = 'Sem conexão agora. Tente de novo ou chame a gente no WhatsApp!';
         zap = 'Olá! Vim pelo chat do site e tenho uma dúvida: ' + texto;

@@ -4,8 +4,10 @@
 const { Anthropic } = require('@anthropic-ai/sdk');
 
 const MODELO = 'claude-haiku-5-5';
-const MAX_MENSAGENS = 16;
-const MAX_CARACTERES = 1200;
+const MAX_MENSAGENS = 8; // só as últimas mensagens vão para a IA (nome, entrada e cupom ficam na memória)
+const MAX_CARACTERES = 500; // tamanho máximo de cada mensagem
+const MAX_SAIDA = 500; // respostas curtas
+const LIMITE_DIA_PADRAO = 40; // mensagens por visitante por dia (dá para mudar no admin › IA)
 
 const brl = (v) => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const nome = (p) => [p.modelo, p.armazenamento].filter(Boolean).join(' ');
@@ -77,14 +79,14 @@ function sistema(cat) {
   const fimBf = bf.fim ? new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(bf.fim) ? bf.fim : bf.fim + '-03:00') : null;
   const bfAtiva = bf.ativo && (!fimBf || Date.now() < fimBf.getTime());
   const produtos = (cat.produtos || []).filter(ativo).map((p) =>
-    '- ' + nome(p) + ' | ' + (p.cor || '') + ' | ' + (p.condicao || '') + (ehIphone(p) ? ' | bateria ' + bateria(p, cat) : (p.specs ? ' | ' + p.specs : '')) +
-    ' | ' + brl(p.preco) + ' à vista' + (p.precoAntigo > p.preco ? ' (antes ' + brl(p.precoAntigo) + ')' : '') +
-    ' | garantia ' + garantia(p, l) + (p.encomenda ? ' | SOB ENCOMENDA' + (p.prazo ? ' (' + p.prazo + ')' : '') : '') +
-    ' | id ' + p.id).join('\n');
+    nome(p) + '|' + (p.cor || '') + '|' + (/semi/i.test(p.condicao || '') ? 'semi' : 'novo') + '|' + (ehIphone(p) ? bateria(p, cat) : (p.specs || '')) +
+    '|' + brl(p.preco) + (p.precoAntigo > p.preco ? ' (antes ' + brl(p.precoAntigo) + ')' : '') +
+    '|' + garantia(p, l) + (p.encomenda ? '|ENCOMENDA' + (p.prazo ? ' ' + p.prazo : '') : '') +
+    '|' + p.id).join('\n');
   const aceitos = ((cat.avaliacao || {}).modelos || []).map((m) => m.nome + (m.whatsapp ? ' (avaliação pelo WhatsApp)' : '')).join(', ');
   return [
     'Você é o ' + (ch.nome || 'RBChat') + ', atendente virtual da ' + (l.nome || 'RB Tech Celulares') + ' (' + (l.regiao || '') + ').',
-    'Responda em português do Brasil, de forma curta, simpática e direta, como um vendedor experiente no WhatsApp. Use no máximo 3 parágrafos curtos ou uma lista curta. Use *negrito* só para preços e modelos.',
+    'Responda em português do Brasil, de forma curta, simpática e direta, como um vendedor experiente no WhatsApp: no máximo 60 palavras (até 100 só quando listar aparelhos ou parcelas), sem repetir o que o cliente disse e sem despedidas longas. Use *negrito* só para preços e modelos.',
     '',
     'REGRAS',
     '- Só fale de preços, aparelhos, prazos e condições que estão abaixo. Nunca invente modelo, cor, preço, estoque ou política. Se não souber, diga que confirma pelo WhatsApp.',
@@ -139,7 +141,7 @@ function sistema(cat) {
     '',
     'MODELOS ACEITOS COMO ENTRADA: ' + aceitos,
     '',
-    'APARELHOS À VENDA (modelo | cor | condição | bateria/config | preço à vista | garantia | id)',
+    'APARELHOS À VENDA (modelo|cor|semi=seminovo ou novo|bateria ou configuração|preço à vista|garantia|id)',
     produtos
   ].filter((x) => x !== '').join('\n');
 }
@@ -199,6 +201,31 @@ function salvarContato(i) {
   if (!nomeC) return { erro: 'Nome vazio: pergunte o nome do cliente.' };
   if (zap && !/^55\d{10,11}$/.test(zap)) return { erro: 'WhatsApp inválido: peça o número com DDD (ex.: 48 99999-8888).' };
   return { ok: true, salvo: { nome: nomeC, whatsapp: zap } };
+}
+
+// Limite diário por visitante. Usa o Supabase (supabase/chat_limite.sql) quando configurado;
+// sem ele, conta na memória do servidor (vale enquanto a função estiver ativa).
+const contagem = new Map();
+async function dentroDoLimite(req, cat, limite) {
+  const ip = String(req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || '').split(',')[0].trim() || 'sem-ip';
+  const dia = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
+  const visitante = require('crypto').createHash('sha256').update('rbtech|' + dia + '|' + ip).digest('hex').slice(0, 32);
+  const rs = cat.rastreamento || {};
+  const url = (String(rs.supabaseUrl || '').match(/https:\/\/[a-z0-9-]+\.supabase\.co/i) || [])[0];
+  const chave = String(rs.supabaseChave || '').trim();
+  if (url && chave) {
+    try {
+      const h = { apikey: chave, 'Content-Type': 'application/json' };
+      if (/^eyJ/.test(chave)) h.Authorization = 'Bearer ' + chave;
+      const r = await fetch(url + '/rest/v1/rpc/chat_contar', { method: 'POST', headers: h, body: JSON.stringify({ p_visitante: visitante, p_limite: limite }) });
+      if (r.ok) return (await r.json()) !== false;
+    } catch (e) { /* cai na contagem em memória */ }
+  }
+  const k = dia + visitante;
+  const n = (contagem.get(k) || 0) + 1;
+  if (contagem.size > 5000) contagem.clear();
+  contagem.set(k, n);
+  return n <= limite;
 }
 
 const FERRAMENTAS = [
@@ -291,6 +318,12 @@ module.exports = async (req, res) => {
   if (!(cat.chat || {}).ativo) return res.status(403).json({ erro: 'Chat desligado.' });
 
   // Memória guardada no celular do cliente: o iPhone que ele informou para dar de entrada
+  // Proteção contra abuso: limite de mensagens por visitante (IP) por dia
+  const limite = Math.max(5, Math.min(500, Number((cat.chat || {}).limiteDia) || LIMITE_DIA_PADRAO));
+  if (!(await dentroDoLimite(req, cat, limite))) {
+    return res.status(429).json({ erro: 'Você atingiu o limite de mensagens do chat por hoje.', limite: true });
+  }
+
   const mem = (req.body || {}).memoria || {};
   const cupom = cupomValido(cat, mem.cupom && typeof mem.cupom === 'object' ? String(mem.cupom.codigo || '').slice(0, 40) : '');
   const e0 = mem.entrada && typeof mem.entrada === 'object' ? mem.entrada : null;
@@ -321,21 +354,36 @@ module.exports = async (req, res) => {
   let entradaNova = null; // devolvida ao site para guardar no celular do cliente
   let contatoNovo = null; // nome e WhatsApp que o cliente passou (o site salva na lista de clientes)
   let produtoProposta = null; // aparelho da última proposta: conta como interesse do cliente
+  const uso = { entrada: 0, cache_lido: 0, cache_gravado: 0, saida: 0, rodadas: 0 };
+  const registrarUso = () => console.log('rbchat uso', JSON.stringify(uso));
   try {
     for (let rodada = 0; rodada < 4; rodada++) {
+      // Cache: ferramentas + instruções + catálogo (fixos) formam o prefixo cacheado;
+      // a memória do cliente (muda a cada pessoa) vem depois do ponto de cache.
       const resp = await client.messages.create({
         model: MODELO,
-        max_tokens: 2048,
+        max_tokens: MAX_SAIDA,
+        thinking: { type: 'disabled' },
         output_config: { effort: 'low' },
         system: [{ type: 'text', text: sistema(cat), cache_control: { type: 'ephemeral' } }, { type: 'text', text: memoria }],
         tools: FERRAMENTAS,
         messages: conversa
       });
+      const u = resp.usage || {};
+      uso.entrada += u.input_tokens || 0; uso.cache_lido += u.cache_read_input_tokens || 0;
+      uso.cache_gravado += u.cache_creation_input_tokens || 0; uso.saida += u.output_tokens || 0; uso.rodadas++;
       if (resp.stop_reason === 'refusal') {
         return res.status(200).json({ resposta: 'Sobre isso não consigo ajudar por aqui. Posso te ajudar com preços, parcelas, trocas e garantia, ou é só chamar a gente no WhatsApp! 😉' });
       }
       if (resp.stop_reason !== 'tool_use') {
+        registrarUso();
         let texto = resp.content.filter((b) => b.type === 'text').map((b) => b.text).join('\n').trim();
+        // passou do limite de tamanho: corta no fim da última frase completa
+        if (resp.stop_reason === 'max_tokens') {
+          texto = texto.replace(/\[[A-Z]+:?[^\]]*$/, '').trim();
+          const fim = Math.max(texto.lastIndexOf('. '), texto.lastIndexOf('!'), texto.lastIndexOf('?'), texto.lastIndexOf('\n'));
+          if (fim > 40) texto = texto.slice(0, fim + 1).trim();
+        }
         // pedido de WhatsApp com a pergunta do cliente (vira um botão no chat)
         let whatsapp = null;
         texto = texto.replace(/\[WHATSAPP:\s*([^\]]{3,300})\]/i, (m, q) => { whatsapp = q.trim(); return ''; }).trim();

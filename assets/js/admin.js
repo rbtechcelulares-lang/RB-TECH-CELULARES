@@ -744,6 +744,8 @@
         '<div class="ed-grid">' +
           '<label class="field"><span>Nome do chat</span>' + inp('chat.nome', ch.nome || 'RBChat') + '</label>' +
           '<label class="field"><span>Mensagem de boas-vindas</span>' + inp('chat.saudacao', ch.saudacao || '') + '</label>' +
+          '<label class="field"><span>Limite de mensagens por visitante por dia</span>' + inp('chat.limiteDia', ch.limiteDia || 40, 'type="number" min="5" max="500" data-num') +
+            '<small class="hint">Protege contra abuso. Para valer em todos os servidores, rode <code>supabase/chat_limite.sql</code> no Supabase.</small></label>' +
         '</div></div>' +
       '<div class="a-card"><h3>📝 Informações para a IA</h3>' +
         '<p class="hint">Escreva aqui tudo que a IA deve saber e usar nas respostas: novidades, aparelhos que vão chegar, acessórios que vocês vendem, prazos de entrega, formas de envio, promoções, respostas para perguntas comuns… Um assunto por linha.</p>' +
