@@ -23,6 +23,19 @@
     } catch (e) { return null; }
   }
 
+  // Desconto do cupom no aparelho (0 quando o cupom é de brinde ou não vale para o aparelho)
+  function descontoCupom(p) {
+    const c = cupomSalvo();
+    if (!c) return 0;
+    const pp = cat.popup || {};
+    const regra = pp.cupom && String(pp.cupom).trim().toUpperCase() === String(c.codigo).trim().toUpperCase()
+      ? { valor: pp.desconto, tipo: pp.descontoTipo, em: pp.descontoEm } : { valor: c.desconto, tipo: c.tipo, em: c.em };
+    const v = Number(regra.valor) || 0;
+    if (v <= 0 || ((regra.em || 'iphone') === 'iphone' && !RB.ehIphone(p))) return 0;
+    const d = regra.tipo === 'pct' ? Math.round(p.preco * Math.min(v, 90)) / 100 : v;
+    return Math.min(Math.round(d * 100) / 100, p.preco);
+  }
+
   const nomeValido = (n) => n.trim().split(/\s+/).filter((x) => x.length >= 2).length >= 2;
   const pagina = document.body.dataset.pagina || 'inicio';
 
@@ -323,7 +336,7 @@
     fechar();
     const titulo = String(pp.titulo || '').replace(/\*/g, '');
     if (pp.cupom) {
-      try { localStorage.setItem('rbtech_cupom', JSON.stringify({ codigo: pp.cupom, titulo, fim: pp.fim || '' })); } catch (e) { /* ignora */ }
+      try { localStorage.setItem('rbtech_cupom', JSON.stringify({ codigo: pp.cupom, titulo, fim: pp.fim || '', desconto: Number(pp.desconto) || 0, tipo: pp.descontoTipo || 'reais', em: pp.descontoEm || 'iphone' })); } catch (e) { /* ignora */ }
       if (navigator.clipboard) navigator.clipboard.writeText(pp.cupom).catch(() => {});
     }
     if (pp.acao === 'whatsapp') {
@@ -880,11 +893,15 @@
     const temEntrada = entrada.usar && r && !r.recusado && r.total > 0;
     const consultar = entrada.usar && r && r.consultar;
     const valEntrada = temEntrada ? r.total : 0;
-    const diferenca = Math.max(0, p.preco - valEntrada);
-    const sobra = Math.max(0, valEntrada - p.preco);
+    const cupom = cupomSalvo();
+    const descCupom = descontoCupom(p);
+    const preco = Math.max(0, p.preco - descCupom); // valor do aparelho já com o cupom
+    const diferenca = Math.max(0, preco - valEntrada);
+    const sobra = Math.max(0, valEntrada - preco);
     const aba = temEntrada ? (pag.aba || 'diferenca') : 'total';
+    const linhaCupom = descCupom > 0 ? '<div class="neg cupom-linha"><span>🎟️ Cupom ' + esc(cupom.codigo) + '</span><span>−' + money(descCupom) + '</span></div>' : '';
 
-    const valor = aba === 'diferenca' ? diferenca : p.preco;
+    const valor = aba === 'diferenca' ? diferenca : preco;
     const lista = valor > 0 ? RB.parcelas(cat, valor) : [];
     const pix = RB.valorPix(cat, valor);
     const desc = Number(cat.pagamento.descontoPix) || 0;
@@ -894,19 +911,22 @@
     if (temEntrada) {
       html +=
         '<div class="summary">' +
-          '<div><span>' + esc(RB.nomeProduto(p)) + '</span><span>' + money(p.preco) + '</span></div>' +
+          '<div><span>' + esc(RB.nomeProduto(p)) + '</span><span>' + money(p.preco) + '</span></div>' + linhaCupom +
           '<div class="neg"><span>Seu ' + esc(r.modelo) + ' de entrada</span><span>−' + money(valEntrada) + '</span></div>' +
           '<div class="sum-total"><span>Diferença</span><strong>' + money(diferenca) + '</strong></div>' +
           (sobra > 0 ? '<p class="hint ok">Seu aparelho cobre o valor! Sobra ' + money(sobra) + ' a combinar com a loja.</p>' : '') +
         '</div>' +
         '<div class="tabs" role="tablist">' +
           '<button data-aba="diferenca" class="' + (aba === 'diferenca' ? 'on' : '') + '">Pagar a diferença<small>' + money(diferenca) + '</small></button>' +
-          '<button data-aba="total" class="' + (aba === 'total' ? 'on' : '') + '">Valor total sem entrada<small>' + money(p.preco) + '</small></button>' +
+          '<button data-aba="total" class="' + (aba === 'total' ? 'on' : '') + '">Valor total sem entrada<small>' + money(preco) + '</small></button>' +
         '</div>';
     } else if (consultar) {
-      html += '<div class="summary"><div><span>' + esc(RB.nomeProduto(p)) + '</span><span>' + money(p.preco) + '</span></div>' +
+      html += '<div class="summary"><div><span>' + esc(RB.nomeProduto(p)) + '</span><span>' + money(p.preco) + '</span></div>' + linhaCupom +
         '<div class="neg"><span>Seu ' + esc(r.modelo) + ' de entrada</span><span>a avaliar</span></div>' +
         '<p class="hint ok">Abaixo, o valor total. O valor do seu iPhone será descontado após a avaliação pelo WhatsApp.</p></div>';
+    } else if (descCupom > 0) {
+      html += '<div class="summary"><div><span>' + esc(RB.nomeProduto(p)) + '</span><span>' + money(p.preco) + '</span></div>' + linhaCupom +
+        '<div class="sum-total"><span>Valor com cupom</span><strong>' + money(preco) + '</strong></div></div>';
     }
 
     if (valor <= 0) {
@@ -926,8 +946,8 @@
     }
 
     const pode = !(entrada.usar && (!r || r.recusado));
-    const cupom = cupomSalvo();
-    if (cupom) html += '<div class="cupom-ativo">🎟️ Cupom <b>' + esc(cupom.codigo) + '</b> ativado · será aplicado no atendimento</div>';
+    if (cupom) html += '<div class="cupom-ativo">🎟️ Cupom <b>' + esc(cupom.codigo) + '</b> ativado · ' +
+      (descCupom > 0 ? 'desconto de <b>' + money(descCupom) + '</b> já aplicado nos valores acima' : 'será aplicado no atendimento') + '</div>';
     html += '<label class="field nome-cli"><span>Seu nome completo</span>' +
       '<input id="nome-cli" autocomplete="name" autocapitalize="words" placeholder="Ex.: Maria da Silva" value="' + esc(nomeCliente) + '"></label>' +
       '<p class="nome-err" id="nome-err" hidden>Digite seu nome e sobrenome para enviarmos a proposta.</p>';
@@ -948,7 +968,7 @@
 
     const btn = $('#enviar', box);
     if (!pode) { btn.removeAttribute('href'); return; }
-    const montar = () => RB.linkWhats(cat, mensagem(p, temEntrada || consultar ? r : null, aba, pag.parcela, valor, lista, pix));
+    const montar = () => RB.linkWhats(cat, mensagem(p, temEntrada || consultar ? r : null, aba, pag.parcela, valor, lista, pix, descCupom));
     btn.href = montar();
     const campoNome = $('#nome-cli', box);
     campoNome.addEventListener('input', () => {
@@ -994,12 +1014,17 @@
 
   const prazoEncomenda = (p) => String(p.prazo || '').trim() || RB.texto(cat, 'encomendaPrazo');
 
-  function mensagem(p, r, aba, parcela, valor, lista, pix) {
+  function mensagem(p, r, aba, parcela, valor, lista, pix, descCupom) {
     const linhas = ['Olá! Sou *' + nomeCliente.trim() + '* e montei uma proposta pelo site:', ''];
     linhas.push(!RB.ehIphone(p)
       ? ((RB.CATEGORIAS.find((c) => c.id === RB.categoria(p)) || {}).icone || '📦') + ' *' + RB.nomeProduto(p) + '* · ' + p.cor + ' · ' + p.condicao + (p.specs ? ' · ' + p.specs : '')
       : '📱 *' + RB.nomeProduto(p) + '* · ' + p.cor + ' · ' + p.condicao + ' · bateria ' + RB.batTexto(p, cat));
     linhas.push('Valor: ' + money(p.preco));
+    const cupom = cupomSalvo();
+    if (cupom && descCupom > 0) {
+      linhas.push('🎟️ *Cupom ' + cupom.codigo + ':* −' + money(descCupom));
+      linhas.push('*Valor com cupom: ' + money(p.preco - descCupom) + '*');
+    }
     if (RB.sobEncomenda(p)) linhas.push('📦 *Sob encomenda* · prazo: ' + prazoEncomenda(p));
     if (r) {
       const bat = cat.avaliacao.bateria.find((b) => b.id === entrada.bateriaId);
@@ -1022,8 +1047,7 @@
     } else {
       linhas.push('💳 ' + tipo + ': ' + money(valor) + ' · quero ver as formas de pagamento');
     }
-    const cupom = cupomSalvo();
-    if (cupom) linhas.push('', '🎟️ *Cupom:* ' + cupom.codigo + (cupom.titulo ? ' (' + cupom.titulo + ')' : ''));
+    if (cupom && !(descCupom > 0)) linhas.push('', '🎟️ *Cupom:* ' + cupom.codigo + (cupom.titulo ? ' (' + cupom.titulo + ')' : ''));
     return linhas.join('\n');
   }
 })();

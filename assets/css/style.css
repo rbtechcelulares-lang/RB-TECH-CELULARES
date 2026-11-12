@@ -664,6 +664,7 @@ body.loja {
 .escuro .nome-cli input { border: 1.5px solid var(--gold); }
 .nome-cli input.erro { border-color: var(--bad) !important; box-shadow: 0 0 0 3px rgba(192,70,59,.25); }
 .nome-err { margin: -4px 0 0; color: #ff8f84; font-size: 13px; font-weight: 600; }
+.summary .cupom-linha span { color: #f5c542; }
 .cupom-ativo { border: 1.5px dashed #f5c542; background: #1a160a; color: #f5c542; border-radius: 12px; padding: 10px 12px; font-size: 14px; text-align: center; }
 .rbp-cupom button { white-space: nowrap; flex: none; }
 .rbp-cupom strong { min-width: 0; overflow-wrap: anywhere; }

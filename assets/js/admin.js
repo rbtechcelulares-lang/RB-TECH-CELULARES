@@ -718,6 +718,12 @@
           '<label class="field"><span>Selo (opcional)</span>' + inp('popup.selo', pp.selo || '', 'placeholder="Ex.: Só esta semana"') + '</label>' +
           '<label class="field"><span>Cupom (opcional)</span>' + inp('popup.cupom', pp.cupom || '', 'placeholder="Ex.: RBTECH100"') + '</label>' +
         '</div>' +
+        '<div class="ed-grid">' +
+          '<label class="field"><span>Desconto do cupom</span>' + inp('popup.desconto', pp.desconto || '', 'type="number" min="0" step="1" inputmode="decimal" data-num placeholder="Ex.: 100 (0 = sem desconto, ex.: brinde)"') + '</label>' +
+          '<label class="field"><span>Tipo de desconto</span><select data-bind="popup.descontoTipo">' + opt([['reais', 'R$ (valor fixo)'], ['pct', '% do valor do aparelho']], pp.descontoTipo || 'reais') + '</select></label>' +
+          '<label class="field"><span>Vale para</span><select data-bind="popup.descontoEm">' + opt([['iphone', 'Só iPhones'], ['todos', 'Todos os aparelhos']], pp.descontoEm || 'iphone') + '</select></label>' +
+        '</div>' +
+        '<p class="hint">Com desconto, o cupom salvo pelo cliente já desconta o valor na simulação do aparelho e vai na mensagem da proposta no WhatsApp.</p>' +
         '<label class="field"><span>Título</span>' + inp('popup.titulo', pp.titulo || '', 'placeholder="Ex.: Ganhe *R$ 100 OFF* no seu iPhone"') +
           '<small class="hint">Coloque *entre asteriscos* o trecho que fica em amarelo.</small></label>' +
         '<label class="field"><span>Texto</span><textarea data-bind="popup.texto" rows="3" placeholder="Escreva aqui a promoção, as regras do cupom etc.">' + esc(pp.texto || '') + '</textarea></label>' +
