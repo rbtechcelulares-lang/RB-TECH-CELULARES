@@ -916,7 +916,12 @@
     el.innerHTML =
       '<div class="a-head"><div><h2>👥 Clientes</h2><p class="muted">Quem passou nome e WhatsApp no RBChat, com o último aparelho que a IA mandou. Use para o follow-up e para mandar as promoções.</p></div>' +
         (pronto ? '<div class="a-actions"><button class="btn btn-sm btn-outline" id="cli-csv">⬇️ Baixar planilha</button><button class="btn btn-sm btn-ink" id="cli-rec">↻ Atualizar</button></div>' : '') + '</div>' +
-      (pronto ? '' : '<div class="a-card"><h3>Falta configurar</h3><p class="hint">A lista usa o mesmo Supabase do painel de <b>Cliques</b>. Configure lá (endereço, chave pública e chave do painel) e rode no Supabase o arquivo <code>supabase/clientes.sql</code> (SQL Editor › New query › cole › Run).</p></div>') +
+      (pronto ? '' : rs.supabaseUrl && rs.supabaseChave
+        // Supabase já configurado: falta só a chave do painel neste navegador (ex.: janela anônima ou outro aparelho)
+        ? '<form class="a-card cli-chave" id="cli-chave-form"><h3>🔒 Digite a chave do painel</h3>' +
+            '<p class="hint">Por segurança, a lista de clientes só abre com a chave do painel. Ela fica salva só neste navegador: numa janela anônima ou num aparelho novo é preciso digitar de novo. É a mesma chave do painel de Cliques.</p>' +
+            '<div class="cli-chave-row"><input type="password" id="cli-chave" autocomplete="current-password" placeholder="Chave do painel" required><button class="btn btn-sm btn-ink" type="submit">Entrar</button></div></form>'
+        : '<div class="a-card"><h3>Falta configurar</h3><p class="hint">A lista usa o mesmo Supabase do painel de <b>Cliques</b>. Configure lá (endereço, chave pública e chave do painel) e rode no Supabase o arquivo <code>supabase/clientes.sql</code> (SQL Editor › New query › cole › Run).</p></div>') +
       '<details class="a-card cli-msg"' + (pronto ? '' : ' hidden') + '><summary><h3>✏️ Mensagem do botão "Chamar"</h3></summary>' +
         '<p class="hint">Use <code>{nome}</code> para o primeiro nome do cliente e <code>{modelo}</code> para o aparelho que ele pesquisou no chat. Dá para ajustar o texto no WhatsApp antes de enviar.</p>' +
         '<textarea id="cli-msg-txt" rows="3">' + esc(modeloMsgCliente()) + '</textarea>' +
@@ -928,7 +933,18 @@
         '<select id="cli-status"><option value="">Todos os status</option>' + STATUS_CLI.map((s) => '<option value="' + s[0] + '"' + (filtroCli.status === s[0] ? ' selected' : '') + '>' + s[1] + '</option>').join('') + '</select>' +
       '</div>' +
       '<div id="cli-lista">' + (pronto ? '<p class="hint">Carregando…</p>' : '') + '</div>';
-    if (!pronto) return;
+    if (!pronto) {
+      const f = $('#cli-chave-form');
+      if (f) f.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const v = $('#cli-chave').value.trim();
+        if (!v) return;
+        try { localStorage.setItem(PAINEL_KEY, v); } catch (er) { /* ignora */ }
+        clientes = null;
+        renderClientes(); // carrega a lista; se a chave estiver errada, o aviso aparece abaixo
+      });
+      return;
+    }
     $('#cli-rec').addEventListener('click', () => { clientes = null; carregarClientes(rs, chave); });
     $('#cli-csv').addEventListener('click', () => baixarClientes());
     const exemplo = () => { $('#cli-msg-ex').innerHTML = '<b>Exemplo:</b> ' + esc(mensagemCliente({ interesse: 'iPhone 13 Pro 128GB' }, 'João')); };
@@ -964,6 +980,13 @@
       clientes = (await rpcPainel(rs, 'painel_clientes', { chave })) || [];
       desenharClientes(rs, chave);
     } catch (e) {
+      if (/chave do painel incorreta/i.test(e.message)) { // chave errada: esquece e pede de novo
+        try { localStorage.removeItem(PAINEL_KEY); } catch (er) { /* ignora */ }
+        renderClientes();
+        const f = $('#cli-chave-form');
+        if (f) f.insertAdjacentHTML('beforeend', '<p class="err">Chave do painel incorreta. Tente de novo.</p>');
+        return;
+      }
       if (lista) lista.innerHTML = '<div class="a-card err-card">Não foi possível carregar: ' + esc(e.message) + '</div>';
     }
   }

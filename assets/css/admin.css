@@ -312,3 +312,5 @@ details.a-card summary h3 { display: inline; }
   .a-mob-aba { margin-left: auto; font-size: 13px; color: rgba(255,255,255,.7); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40vw; }
   .a-menu { flex: none; width: 42px; height: 42px; border-radius: 12px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.06); color: #fff; font-size: 22px; line-height: 1; cursor: pointer; }
 }
+.cli-chave-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.cli-chave-row input { flex: 1 1 220px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font: inherit; }
