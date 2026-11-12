@@ -2791,7 +2791,9 @@
   ],
   "textos": {
     "conf1S": "Ate 6 meses de garantia ",
-    "conf2T": "Até {parcelas}x no cartão"
+    "conf2T": "Até 24x no cartão",
+    "conf3T": "Seu usado vale dinheiro como entrada",
+    "conf4S": "Tire dúvidas pelo WhatsApp ou fale com a RB-CHAT "
   },
   "rastreamento": {
     "supabaseUrl": "https://krtmdlanpuyqihwvbwxe.supabase.co",
