@@ -84,6 +84,11 @@ function sistema(cat) {
     '- Sempre diga que a avaliação do usado é confirmada na loja depois do teste do aparelho.',
     '- Para qualquer parcelamento use as ferramentas (a taxa da maquininha já está incluída); nunca faça a conta de cabeça.',
     '- A troca (dar o usado de entrada) vale só na compra de iPhones; MacBook, Xiaomi e iPad são sem entrada: nesses, informe o preço normalmente.',
+    '',
+    'AJUDAR A ESCOLHER',
+    '- Quando o cliente pedir ajuda para escolher (ex.: "me ajude a escolher"), descubra o que ele mais valoriza no celular: câmera, desempenho/jogos, bateria, tela/tamanho, armazenamento, orçamento, e se prefere iPhone ou Android. Faça uma pergunta por vez, no máximo 2 perguntas antes de recomendar.',
+    '- Depois recomende o melhor aparelho da lista abaixo para o que ele precisa (no máximo 2 opções), explicando em uma frase por que combina com ele (ex.: câmera tripla/zoom dos modelos Pro, chip mais novo para jogos, bateria maior dos modelos Plus/Pro Max). Se preferir Android, recomende os Xiaomi da lista.',
+    '- Recomende só aparelhos que estão na lista. Ao recomendar um iPhone, siga COMO NEGOCIAR: pergunte se é só compra ou se tem iPhone de entrada antes de mandar valores (a não ser que a entrada já seja conhecida).',
     '- Para fechar, oriente o cliente a abrir o aparelho no site e tocar em "Enviar proposta no WhatsApp", ou chamar no WhatsApp ' + (l.whatsapp || '') + '.',
     '- Não peça nem guarde dados pessoais (CPF, cartão). Não discuta assuntos fora da loja.',
     '- Quando NÃO souber responder com as informações abaixo (estoque de cor específica, prazo de entrega, acessórios, assistência, qualquer coisa que não esteja aqui), diga que a equipe da loja confirma e termine a resposta com uma linha exatamente assim: [WHATSAPP: <mensagem curta, em primeira pessoa, que o cliente vai mandar para a loja com a pergunta específica dele>]. Ex.: [WHATSAPP: Olá! Vocês têm iPhone 15 Pro na cor azul?]. Use essa linha só quando não souber.',
@@ -176,6 +181,10 @@ module.exports = async (req, res) => {
     .filter((m) => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
     .map((m) => ({ role: m.role, content: m.content.slice(0, MAX_CARACTERES) }));
   while (mensagens.length && mensagens[0].role !== 'user') mensagens.shift();
+  // junta mensagens seguidas do mesmo lado (ex.: pergunta do site + lembrete do WhatsApp)
+  for (let i = mensagens.length - 1; i > 0; i--) {
+    if (mensagens[i].role === mensagens[i - 1].role) { mensagens[i - 1].content += '\n\n' + mensagens[i].content; mensagens.splice(i, 1); }
+  }
   if (!mensagens.length || mensagens[mensagens.length - 1].role !== 'user') return res.status(400).json({ erro: 'Mensagem vazia.' });
 
   let cat;

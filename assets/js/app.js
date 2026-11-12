@@ -63,7 +63,7 @@
       if (o) origemClique = o.dataset.origem;
     }, true);
     $$('.js-whats').forEach((a) => a.addEventListener('click', () => RB.registrar(cat, 'whatsapp', { origem: a.dataset.origem || 'geral' })));
-    if ($('#ajuda-btn')) $('#ajuda-btn').addEventListener('click', () => RB.registrar(cat, 'whatsapp', { origem: 'consultoria' }));
+    if ($('#ajuda-btn') && !(cat.chat || {}).ativo) $('#ajuda-btn').addEventListener('click', () => RB.registrar(cat, 'whatsapp', { origem: 'consultoria' }));
     registrarVisita();
     rota();
     agendarPopup();
@@ -123,17 +123,50 @@
       lista.innerHTML = '<div class="rbc-m ass">' + fmt(saud) + '</div>' +
         msgs.map((m) => '<div class="rbc-m ' + (m.role === 'user' ? 'eu' : 'ass') + '">' + fmt(m.content) +
           (m.whatsapp ? '<a class="rbc-wa" target="_blank" rel="noopener" href="' + esc(RB.linkWhats(cat, m.whatsapp)) + '">💬 Perguntar no WhatsApp da loja</a>' : '') + '</div>').join('');
-      sug.innerHTML = msgs.length ? '' : ['Quanto vale meu iPhone 12?', 'Parcelas do iPhone 15 Pro', 'Qual a garantia?', 'Até quando vai a Black Friday?']
+      const ult = msgs[msgs.length - 1];
+      const opcoes = !msgs.length ? ['Me ajude a escolher', 'Quanto vale meu iPhone 12?', 'Parcelas do iPhone 15 Pro', 'Qual a garantia?']
+        : ult && ult.sugestoes ? ult.sugestoes : [];
+      sug.innerHTML = opcoes
         .map((t) => '<button type="button">' + esc(t) + '</button>').join('');
       $$('button', sug).forEach((b) => b.addEventListener('click', () => enviar(b.textContent)));
       lista.scrollTop = lista.scrollHeight;
     };
 
+    // "Me ajude a escolher": a IA entra perguntando o que o cliente mais procura.
+    // Se ele demorar para responder, oferece o WhatsApp da loja com a mesma pergunta.
+    const ESPERA = 60 * 1000;
+    let relogio = null, escolhendo = false;
+    const pedeAjuda = (t) => /ajud\w*\s+(a\s+)?escolher/i.test(t);
+    const esperarResposta = () => {
+      clearTimeout(relogio);
+      if (!escolhendo) return;
+      relogio = setTimeout(() => {
+        if (!escolhendo || ocupado) return;
+        escolhendo = false;
+        msgs.push({ role: 'assistant', content: 'Se preferir, a equipe da loja te ajuda a escolher direto no WhatsApp 👇', whatsapp: 'Olá! Me ajuda a escolher um celular?' });
+        guardar(); desenhar();
+      }, ESPERA);
+    };
+    function escolher() {
+      zerarSeParado();
+      msgs.push({ role: 'user', content: 'Me ajude a escolher' });
+      msgs.push({
+        role: 'assistant',
+        content: 'Bora achar o celular ideal pra você! 😊 O que você *mais* procura num celular?\n\n📸 Câmera · ⚡ Desempenho/jogos · 🔋 Bateria · 📱 Tela grande · 💰 Custo-benefício\n\nE prefere *iPhone* ou *Android*?',
+        sugestoes: ['📸 Câmera', '⚡ Desempenho e jogos', '🔋 Bateria que dura', '💰 Custo-benefício', '🤖 Prefiro Android']
+      });
+      escolhendo = true;
+      guardar(); desenhar(); esperarResposta();
+      RB.registrar(cat, 'popup', { origem: 'chat', detalhe: 'Me ajude a escolher' });
+    }
+
     let ocupado = false;
     async function enviar(texto) {
       texto = String(texto || '').trim();
       if (!texto || ocupado) return;
-      ocupado = true; campo.value = '';
+      campo.value = '';
+      if (pedeAjuda(texto)) return escolher();
+      ocupado = true; clearTimeout(relogio);
       zerarSeParado();
       msgs.push({ role: 'user', content: texto }); guardar(); desenhar();
       lista.insertAdjacentHTML('beforeend', '<div class="rbc-m ass rbc-dig"><i></i><i></i><i></i></div>');
@@ -151,6 +184,8 @@
       }
       msgs.push(Object.assign({ role: 'assistant', content: resposta }, zap ? { whatsapp: zap } : {})); guardar();
       ocupado = false; desenhar();
+      if (zap) escolhendo = false; // já ofereceu o WhatsApp nesta resposta
+      esperarResposta();
       RB.registrar(cat, 'popup', { origem: 'chat', detalhe: texto.slice(0, 190) });
     }
 
@@ -161,6 +196,12 @@
       if (sim) { desenhar(); setTimeout(() => campo.focus(), 50); }
     };
     botao.addEventListener('click', () => abrir(true));
+    // botão "Me ajude a escolher" da página: abre o chat já no modo de escolha
+    const ajuda = $('#ajuda-btn');
+    if (ajuda) ajuda.addEventListener('click', (e) => {
+      e.preventDefault();
+      abrir(true); escolher();
+    });
     $('.rbc-x', painel).addEventListener('click', () => abrir(false));
     $('.rbc-form', painel).addEventListener('submit', (e) => { e.preventDefault(); enviar(campo.value); });
   }
@@ -245,7 +286,9 @@
       if (!forcar && pp.frequencia === 'dia' && localStorage.getItem(chave) === hoje) return;
       if (!forcar && pp.frequencia === 'uma' && localStorage.getItem(chave)) return;
     } catch (e) { /* sem storage: mostra */ }
-    setTimeout(() => {
+    const mostrar = () => {
+      // não cobre a conversa: espera o cliente fechar o chat
+      if (document.body.classList.contains('rbc-aberto')) return setTimeout(mostrar, 3000);
       // a pré-visualização do admin (?popup=1) não conta como "já visto"
       if (!forcar) {
         try {
@@ -254,7 +297,8 @@
         } catch (e) { /* ignora */ }
       }
       RB.abrirPopup(cat, acaoPopup);
-    }, Math.max(0, Number(pp.atraso) || 0) * 1000);
+    };
+    setTimeout(mostrar, Math.max(0, Number(pp.atraso) || 0) * 1000);
   }
 
   function acaoPopup(pp, fechar) {
