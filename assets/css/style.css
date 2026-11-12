@@ -895,6 +895,11 @@ body.loja {
 .rbc-dig i:nth-child(2) { animation-delay: .15s; } .rbc-dig i:nth-child(3) { animation-delay: .3s; }
 @keyframes dig { 0%,80%,100% { opacity: .3; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
 .rbc-sug { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 8px; }
+.rbc-orc { flex-basis: 100%; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+.rbc-orc span { color: #cfc6b5; font-size: 12.5px; flex-basis: 100%; }
+.rbc-orc label { flex: 1; display: flex; align-items: center; gap: 6px; border: 1px solid #d9a51466; background: #17140a; color: #f5c542; border-radius: 999px; padding: 4px 12px; font-size: 14px; font-weight: 700; }
+.rbc-orc input { flex: 1; min-width: 0; background: transparent; border: 0; outline: 0; color: #fff; font: inherit; font-size: 16px; padding: 4px 0; }
+.rbc-sug .rbc-orc button { background: #f5c542; color: #14110f; border: 0; font-weight: 800; }
 .rbc-sug button { border: 1px solid #d9a51466; background: #17140a; color: #f5c542; border-radius: 999px; padding: 6px 10px; font-size: 12.5px; cursor: pointer; }
 .rbc-form { display: flex; gap: 8px; padding: 10px; border-top: 1px solid #222; }
 .rbc-form input { flex: 1; min-width: 0; border: 1px solid #333; background: #181818; color: #fff; border-radius: 999px; padding: 11px 14px; font-size: 16px; outline: none; }

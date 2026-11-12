@@ -142,9 +142,26 @@
       const ult = msgs[msgs.length - 1];
       const opcoes = !msgs.length ? ['Me ajude a escolher', 'Quanto vale meu iPhone 12?', 'Parcelas do iPhone 15 Pro', 'Qual a garantia?']
         : ult && ult.sugestoes ? ult.sugestoes : [];
+      const orcamento = opcoes.some((t) => /^(Até|Mais de) R\$/.test(t));
       sug.innerHTML = opcoes
-        .map((t) => '<button type="button">' + esc(t) + '</button>').join('');
-      $$('button', sug).forEach((b) => b.addEventListener('click', () => enviar(b.textContent)));
+        .map((t) => '<button type="button">' + esc(t) + '</button>').join('') +
+        // faixas de preço: o cliente também pode digitar quanto tem em mãos
+        (orcamento ? '<form class="rbc-orc"><span>Ou digite quanto você tem:</span><label>R$<input inputmode="numeric" placeholder="Ex.: 2.100" aria-label="Quanto você quer investir" maxlength="9"></label><button type="submit">OK</button></form>' : '');
+      $$('.rbc-sug > button', painel).forEach((b) => b.addEventListener('click', () => enviar(b.textContent)));
+      const orc = $('.rbc-orc', sug);
+      if (orc) {
+        const inp = $('input', orc);
+        inp.addEventListener('input', () => {
+          const n = inp.value.replace(/\D/g, '').slice(0, 7);
+          inp.value = n ? Number(n).toLocaleString('pt-BR') : '';
+        });
+        orc.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const n = Number(inp.value.replace(/\D/g, ''));
+          if (!n) { inp.focus(); return; }
+          enviar('Tenho até R$ ' + n.toLocaleString('pt-BR') + ' para investir');
+        });
+      }
       lista.scrollTop = lista.scrollHeight;
     };
 
