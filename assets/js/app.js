@@ -391,7 +391,7 @@
       const zapMsg = 'Olá!' + (contato && contato.nome ? ' Sou *' + contato.nome + '*.' : '') + ' Vim pelo chat do site e preciso de um reparo 🔧\n\n📱 Aparelho: ' + aparelho +
         '\n⚠️ Defeito: ' + rp.defeito + (rp.relato ? '\n📝 Relato: ' + rp.relato : '');
       return '<span class="rbc-ver">' +
-        (link ? '<a class="rbc-os" target="_blank" rel="noopener" href="' + esc(link) + '">📋 Abrir pedido de reparo · ' + esc(aparelho) + ' →</a>' : '') +
+        (link ? '<a class="rbc-os" target="_blank" rel="noopener" href="' + esc(link) + '" title="' + esc(aparelho) + '">📋 Pedir orçamento para o time RB<small>Em alguns minutos você recebe seu orçamento no WhatsApp</small></a>' : '') +
         '<a class="rbc-wa" target="_blank" rel="noopener" href="' + esc(RB.linkWhats(cat, zapMsg)) + '">💬 Falar com um especialista</a></span>';
     }
 
