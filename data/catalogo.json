@@ -330,14 +330,14 @@
   "promocao": {
     "produtoId": "p-15-128gb",
     "faixa": "Oferta EXCLUSIVA ",
-    "texto": "1 ANO DE GARANTIA - Ultimas unidades disponíveis "
+    "texto": "+ 4 BRINDES EXCLUSIVOS - MELHOR PREÇO DO BRASIL!  - Ultimas unidades disponíveis "
   },
   "popup": {
     "ativo": false,
     "selo": "Só esta semana",
-    "titulo": "Ganhe *R$59,90 OFF* no seu iPhone + BRINDE EXCLUSIVO ",
-    "texto": "Toque em \"Salvar meu cupom\" e ganhe o desconto + Brinde  compra de qualquer iPhone Novo ou seminovo.",
-    "cupom": "RBTECHSITE",
+    "titulo": "Ganhe UM BRINDE EXCLUSIVO ",
+    "texto": "Toque em \"Salvar meu cupom\" e Brinde  compra de qualquer iPhone Novo ou seminovo.",
+    "cupom": "BLACKDEANIVERSARIO",
     "botaoTexto": "Salvar meu cupom",
     "acao": "vitrine",
     "produtoId": "",
@@ -2783,9 +2783,9 @@
   },
   "blackfriday": {
     "ativo": true,
-    "fim": "2026-11-30T23:59",
+    "fim": "2026-11-14T23:59",
     "texto": "🔥 Ofertas *esgotando* · preços que não voltam",
-    "intervalo": 18,
+    "intervalo": 19,
     "vendas": true
   }
 }
