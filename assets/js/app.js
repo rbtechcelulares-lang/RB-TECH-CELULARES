@@ -176,7 +176,7 @@
     const f = { tipo: '', marca: '', outraMarca: '', modelo: '', defeitos: [], relato: '', nome: ct.nome || '', fone: foneFmt(ct.whatsapp) };
     box.innerHTML =
       '<h2 class="rep-h">Conte o que aconteceu 🔧</h2>' +
-      '<p class="rbp-txt">É pra já! Quem fica sem celular hoje em dia? 📱 Leva menos de 1 minuto.</p>' +
+      '<p class="rbp-txt">Leva menos de 1 minuto. Um especialista já recebe tudo certinho.</p>' +
       '<div class="rep-form">' +
         '<span class="rep-lbl">Seu aparelho é</span>' +
         '<div class="rep-tipo"><button type="button" data-tipo="Apple">🍎 Apple (iPhone)</button><button type="button" data-tipo="Android">🤖 Android</button></div>' +
