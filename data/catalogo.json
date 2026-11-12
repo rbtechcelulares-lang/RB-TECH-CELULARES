@@ -399,7 +399,7 @@
           "nota": ""
         }
       },
-      "vitrine": false,
+      "vitrine": true,
       "encomenda": true
     },
     {
@@ -487,7 +487,7 @@
       "encomenda": false,
       "categoria": "iphone",
       "specs": "",
-      "topo": true,
+      "topo": false,
       "vitrine": false,
       "prazo": "1 a 2 dias"
     },
@@ -538,7 +538,7 @@
     {
       "id": "p-11promax-256gb",
       "modelo": "iPhone 11 Pro Max",
-      "armazenamento": "256GB",
+      "armazenamento": "64GB",
       "cor": "Cores variadas",
       "corHex": "#4a4845",
       "condicao": "Seminovo",
@@ -576,7 +576,12 @@
           "nota": ""
         }
       },
-      "encomenda": true
+      "encomenda": true,
+      "categoria": "iphone",
+      "specs": "",
+      "topo": false,
+      "vitrine": false,
+      "prazo": ""
     },
     {
       "id": "p-12-64gb",
@@ -755,10 +760,9 @@
       "corHex": "#3f4a5c",
       "condicao": "Seminovo",
       "bateria": null,
-      "preco": 2200,
-      "precoAntigo": 0,
+      "preco": 1800,
+      "precoAntigo": 2200,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -788,7 +792,12 @@
           "nota": ""
         }
       },
-      "encomenda": true
+      "encomenda": true,
+      "vitrine": true,
+      "categoria": "iphone",
+      "specs": "",
+      "topo": false,
+      "prazo": ""
     },
     {
       "id": "p-12promax-256gb",
@@ -841,10 +850,9 @@
       "corHex": "#1f2430",
       "condicao": "Seminovo",
       "bateria": null,
-      "preco": 1900,
-      "precoAntigo": 0,
+      "preco": 1799,
+      "precoAntigo": 2100,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -873,7 +881,13 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "topo": true,
+      "categoria": "iphone",
+      "specs": "",
+      "vitrine": true,
+      "encomenda": false,
+      "prazo": ""
     },
     {
       "id": "p-13-256gb",
@@ -886,7 +900,6 @@
       "preco": 2100,
       "precoAntigo": 0,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -915,7 +928,9 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "topo": false,
+      "vitrine": true
     },
     {
       "id": "p-13pro-128gb",
@@ -928,7 +943,6 @@
       "preco": 2300,
       "precoAntigo": 0,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -957,7 +971,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "vitrine": false
     },
     {
       "id": "p-13pro-256gb",
@@ -1048,7 +1063,7 @@
     {
       "id": "p-13promax-256gb",
       "modelo": "iPhone 13 Pro Max",
-      "armazenamento": "256GB",
+      "armazenamento": "512GB",
       "cor": "Cores variadas",
       "corHex": "#3f4a5c",
       "condicao": "Seminovo",
@@ -1056,7 +1071,6 @@
       "preco": 2850,
       "precoAntigo": 0,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1085,7 +1099,13 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "categoria": "iphone",
+      "specs": "",
+      "topo": false,
+      "vitrine": true,
+      "encomenda": false,
+      "prazo": ""
     },
     {
       "id": "p-14-128gb",
@@ -1095,10 +1115,9 @@
       "corHex": "#a7c1d9",
       "condicao": "Seminovo",
       "bateria": null,
-      "preco": 2299,
-      "precoAntigo": 0,
+      "preco": 1999,
+      "precoAntigo": 2299,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1127,7 +1146,13 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "vitrine": true,
+      "categoria": "iphone",
+      "specs": "",
+      "topo": false,
+      "encomenda": false,
+      "prazo": ""
     },
     {
       "id": "p-14-256gb",
