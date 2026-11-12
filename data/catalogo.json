@@ -369,6 +369,53 @@
   },
   "produtos": [
     {
+      "id": "p-iphone-14-plus-128gb-branco-c598",
+      "categoria": "iphone",
+      "modelo": "iPhone 14 Plus",
+      "armazenamento": "128GB",
+      "cor": "Branco",
+      "corHex": "#f2efe9",
+      "condicao": "Seminovo",
+      "specs": "",
+      "bateria": 88,
+      "preco": 2297,
+      "precoAntigo": 2780,
+      "garantia": "6 meses",
+      "topo": false,
+      "vitrine": true,
+      "disponivel": true,
+      "encomenda": false,
+      "prazo": "",
+      "fotos": [],
+      "observacoes": "",
+      "checklist": {
+        "faceid": {
+          "status": "ok",
+          "nota": ""
+        },
+        "bateria": {
+          "status": "ok",
+          "nota": ""
+        },
+        "sistema": {
+          "status": "ok",
+          "nota": ""
+        },
+        "cameras": {
+          "status": "ok",
+          "nota": ""
+        },
+        "tela": {
+          "status": "ok",
+          "nota": ""
+        },
+        "tampa": {
+          "status": "ok",
+          "nota": ""
+        }
+      }
+    },
+    {
       "id": "p-iphone-11-64gb-cores-variadas-o6oy",
       "modelo": "iPhone 11",
       "armazenamento": "64GB",
