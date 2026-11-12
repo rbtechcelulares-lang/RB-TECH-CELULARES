@@ -884,13 +884,17 @@
           '<div><span>📱 ' + esc(RB.nomeProduto(p)) + (p.cor && !/variad/i.test(p.cor) ? ' · ' + esc(p.cor) : '') + '</span><span>' + esc(p.condicao) + '</span></div>' +
           '<div><span>🛡️ Garantia</span><span>' + esc(RB.garantia(p, cat)) + '</span></div>' +
           (av ? '<div class="pc-ent"><span>🔁 Seu iPhone de entrada</span><span>' + esc(av.descricao) + '</span></div>' : '') +
-          (descCupom > 0 ? '<div class="neg cupom-linha"><span>🎟️ Cupom ' + esc(cupom.codigo) + '</span><span>aplicado</span></div>' : '') +
+          (descCupom > 0
+            ? '<div><span>💰 Valor do aparelho</span><span>' + money(p.preco) + '</span></div>' +
+              '<div class="neg cupom-linha"><span>🎟️ Desconto do cupom ' + esc(cupom.codigo) + '</span><span>−' + money(descCupom) + '</span></div>' +
+              '<div><span>Valor com cupom</span><span><b>' + money(preco) + '</b></span></div>'
+            : cupom ? '<div class="cupom-linha"><span>🎟️ Cupom ' + esc(cupom.codigo) + '</span><span>será aplicado no atendimento</span></div>' : '') +
           '<div class="sum-total"><span>' + (av && av.status === 'ok' ? 'Você paga só a diferença' : av ? 'Valor do aparelho' : 'Valor') + '</span><strong>' + money(valor) + '</strong></div>' +
           (av && av.status === 'ok' ? '<p class="hint ok">A avaliação do seu iPhone é confirmada na loja depois do teste.</p>' : '') +
           (av && av.status !== 'ok' ? '<p class="hint ok">Seu ' + esc(av.descricao.split(' · ')[0]) + ' será avaliado pela loja no WhatsApp e descontado deste valor.</p>' : '') +
         '</div>' +
         '<div class="pay"><h4 class="sim-h">Como você quer pagar?</h4><div id="pc-pag">' + pagamento() + '</div>' +
-          (cupom && !(descCupom > 0) ? '<div class="cupom-ativo">🎟️ Cupom <b>' + esc(cupom.codigo) + '</b> ativado · será aplicado no atendimento</div>' : '') +
+          (descCupom > 0 ? '<div class="cupom-ativo">🎟️ Você economizou <b>' + money(descCupom) + '</b> com o cupom <b>' + esc(cupom.codigo) + '</b></div>' : '') +
           '<label class="field nome-cli"><span>Seu nome completo</span><input id="nome-cli" autocomplete="name" autocapitalize="words" placeholder="Ex.: Maria da Silva" value="' + esc(nomeCliente) + '"></label>' +
           '<p class="nome-err" id="nome-err" hidden>Digite seu nome e sobrenome para enviarmos a proposta.</p>' +
           '<a class="btn btn-whats btn-block" id="enviar" target="_blank" rel="noopener" href="#">Enviar proposta no WhatsApp</a>' +
@@ -904,7 +908,7 @@
       l.push('📱 *' + RB.nomeProduto(p) + '* · ' + p.cor + ' · ' + p.condicao + (RB.ehIphone(p) ? ' · bateria ' + RB.batTexto(p, cat) : p.specs ? ' · ' + p.specs : ''));
       l.push('🛡️ Garantia: ' + RB.garantia(p, cat));
       if (RB.sobEncomenda(p)) l.push('📦 *Sob encomenda* · prazo: ' + prazoEncomenda(p));
-      if (descCupom > 0) l.push('🎟️ *Cupom ' + cupom.codigo + '* aplicado (−' + money(descCupom) + ')');
+      if (descCupom > 0) l.push('Valor: ' + money(p.preco), '🎟️ *Cupom ' + cupom.codigo + ':* −' + money(descCupom), '*Valor com cupom: ' + money(preco) + '*');
       if (av) l.push('', '🔁 *Entrada:* ' + av.descricao + (av.status === 'ok' ? '' : ' (quero avaliar pelo WhatsApp)'));
       l.push('');
       const tipo = av && av.status === 'ok' ? 'Diferença' : 'Valor';
