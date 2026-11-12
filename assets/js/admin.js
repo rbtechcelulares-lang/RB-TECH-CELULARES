@@ -804,6 +804,13 @@
   /* ---------- Clientes do RBChat (CRM) ---------- */
   const STATUS_CLI = [['novo', '🆕 Novo'], ['contatado', '📞 Contatado'], ['negociando', '🤝 Negociando'], ['comprou', '✅ Comprou'], ['perdido', '❌ Perdido']];
   let clientes = null, filtroCli = { busca: '', status: '' };
+  const MSG_CLIENTE_PADRAO = 'Olá {nome}! Aqui é da RB Tech Celulares 😊 Ficou alguma dúvida referente ao {modelo}? Estou à disposição para te ajudar!';
+  const modeloMsgCliente = () => ((cat.chat || {}).msgFollowup || '').trim() || MSG_CLIENTE_PADRAO;
+  // Mensagem do botão "Chamar": troca {nome} e {modelo} pelos dados do cliente
+  function mensagemCliente(c, primeiro) {
+    const modelo = c.interesse ? String(c.interesse).split(' / ')[0] : 'aparelho que você pesquisou no nosso site';
+    return modeloMsgCliente().replace(/\{nome\}/gi, primeiro || '').replace(/\{modelo\}/gi, modelo).replace(/Olá\s+!/, 'Olá!');
+  }
 
   function renderClientes() {
     const el = $('[data-panel="clientes"]');
@@ -815,6 +822,12 @@
       '<div class="a-head"><div><h2>👥 Clientes</h2><p class="muted">Quem passou nome e WhatsApp no RBChat, com o último aparelho que a IA mandou. Use para o follow-up e para mandar as promoções.</p></div>' +
         (pronto ? '<div class="a-actions"><button class="btn btn-sm btn-outline" id="cli-csv">⬇️ Baixar planilha</button><button class="btn btn-sm btn-ink" id="cli-rec">↻ Atualizar</button></div>' : '') + '</div>' +
       (pronto ? '' : '<div class="a-card"><h3>Falta configurar</h3><p class="hint">A lista usa o mesmo Supabase do painel de <b>Cliques</b>. Configure lá (endereço, chave pública e chave do painel) e rode no Supabase o arquivo <code>supabase/clientes.sql</code> (SQL Editor › New query › cole › Run).</p></div>') +
+      '<details class="a-card cli-msg"' + (pronto ? '' : ' hidden') + '><summary><h3>✏️ Mensagem do botão "Chamar"</h3></summary>' +
+        '<p class="hint">Use <code>{nome}</code> para o primeiro nome do cliente e <code>{modelo}</code> para o aparelho que ele pesquisou no chat. Dá para ajustar o texto no WhatsApp antes de enviar.</p>' +
+        '<textarea id="cli-msg-txt" rows="3">' + esc(modeloMsgCliente()) + '</textarea>' +
+        '<div class="a-actions"><button class="btn btn-sm btn-outline" id="cli-msg-pad">Voltar ao padrão</button></div>' +
+        '<p class="hint" id="cli-msg-ex"></p>' +
+      '</details>' +
       '<div class="a-card cli-filtros"' + (pronto ? '' : ' hidden') + '>' +
         '<input id="cli-busca" placeholder="Buscar por nome, WhatsApp ou aparelho" value="' + esc(filtroCli.busca) + '">' +
         '<select id="cli-status"><option value="">Todos os status</option>' + STATUS_CLI.map((s) => '<option value="' + s[0] + '"' + (filtroCli.status === s[0] ? ' selected' : '') + '>' + s[1] + '</option>').join('') + '</select>' +
@@ -823,6 +836,15 @@
     if (!pronto) return;
     $('#cli-rec').addEventListener('click', () => { clientes = null; carregarClientes(rs, chave); });
     $('#cli-csv').addEventListener('click', () => baixarClientes());
+    const exemplo = () => { $('#cli-msg-ex').innerHTML = '<b>Exemplo:</b> ' + esc(mensagemCliente({ interesse: 'iPhone 13 Pro 128GB' }, 'João')); };
+    const mudarMsg = (v) => {
+      cat.chat = cat.chat || {};
+      cat.chat.msgFollowup = v.trim() === MSG_CLIENTE_PADRAO ? '' : v;
+      salvar(); exemplo(); desenharClientes(rs, chave);
+    };
+    $('#cli-msg-txt').addEventListener('input', (e) => mudarMsg(e.target.value));
+    $('#cli-msg-pad').addEventListener('click', () => { $('#cli-msg-txt').value = MSG_CLIENTE_PADRAO; mudarMsg(MSG_CLIENTE_PADRAO); });
+    exemplo();
     $('#cli-busca').addEventListener('input', (e) => { filtroCli.busca = e.target.value; desenharClientes(rs, chave); });
     $('#cli-status').addEventListener('change', (e) => { filtroCli.status = e.target.value; desenharClientes(rs, chave); });
     if (clientes) desenharClientes(rs, chave); else carregarClientes(rs, chave);
@@ -867,7 +889,7 @@
         .map((k, i) => '<div class="kpi2' + (i === 0 ? ' kpi2-gold' : '') + '"><strong>' + k[2] + '</strong><span>' + k[1] + '</span></div>').join('') + '</div>' +
       (itens.length ? itens.map((c) => {
         const primeiro = String(c.nome || '').split(' ')[0];
-        const msg = 'Olá ' + primeiro + '! Aqui é da ' + (cat.loja.nome || 'RB Tech') + ' 😊' + (c.interesse ? ' Vi que você se interessou pelo ' + c.interesse.split(' / ')[0] + '. Ainda está procurando?' : '');
+        const msg = mensagemCliente(c, primeiro);
         return '<div class="a-card cli" data-id="' + c.id + '">' +
           '<div class="cli-top"><div><b class="cli-nome">' + esc(c.nome) + '</b><span class="cli-zap">' + esc(foneBonito(c.whatsapp)) + '</span></div>' +
             '<a class="btn btn-sm cli-wa" target="_blank" rel="noopener" href="https://wa.me/' + esc(c.whatsapp) + '?text=' + encodeURIComponent(msg) + '">💬 Chamar</a></div>' +

@@ -268,3 +268,6 @@ details.a-card summary h3 { display: inline; }
 .cli-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
 .cli-acoes input { flex: 1 1 200px; }
 .a-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.cli-msg textarea { width: 100%; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font: inherit; margin: 6px 0 8px; }
+.cli-msg summary { cursor: pointer; list-style: none; }
+.cli-msg summary h3 { display: inline; }
