@@ -79,9 +79,140 @@
     if ($('#ajuda-btn') && !(cat.chat || {}).ativo) $('#ajuda-btn').addEventListener('click', () => RB.registrar(cat, 'whatsapp', { origem: 'consultoria' }));
     registrarVisita();
     rota();
+    boasVindas();
     agendarPopup();
     blackFriday();
     rbChat();
+  }
+
+  /* ---------- Boas-vindas: reparo ou ver celulares ---------- */
+  function boasVindas() {
+    const r = cat.reparos || {};
+    if (r.ativo === false || !r.boasVindas || preview || location.hash.startsWith('#p/')) return;
+    const chave = 'rbtech_bv';
+    try {
+      if (r.frequencia === 'dia' && localStorage.getItem(chave) === new Date().toDateString()) return;
+      if (r.frequencia !== 'dia' && sessionStorage.getItem(chave)) return;
+      sessionStorage.setItem(chave, '1'); localStorage.setItem(chave, new Date().toDateString());
+    } catch (e) { /* sem storage: mostra */ }
+    const el = document.createElement('div');
+    el.className = 'rbp bv'; el.id = 'rb-bv';
+    el.innerHTML = '<div class="rbp-back" data-x></div>' +
+      '<div class="rbp-box bv-box" role="dialog" aria-modal="true" aria-label="Boas-vindas">' +
+        '<button type="button" class="rbp-close" data-x aria-label="Fechar">×</button>' +
+        '<div class="bv-logo"><img src="img/marca/logo-marca.webp" alt="' + esc(cat.loja.nome || 'RB Tech Celulares') + '"></div>' +
+        '<div class="rbp-body">' +
+          '<h2>' + RB.formatar(cat, r.titulo || 'Bem-vindo à *RB Tech Celulares*!') + '</h2>' +
+          (r.texto ? '<p class="rbp-txt">' + RB.formatar(cat, r.texto) + '</p>' : '') +
+          '<div class="bv-btns">' +
+            '<button type="button" class="bv-op bv-rep" data-rep>' + esc(r.botaoReparo || '🔧 Preciso de reparo') + '<small>Conte o defeito e fale com um especialista</small></button>' +
+            '<button type="button" class="bv-op bv-vit" data-vit>' + esc(r.botaoVitrine || '📱 Quero ver celulares disponíveis') + '<small>iPhones novos e seminovos com garantia</small></button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(el);
+    document.body.classList.add('no-scroll');
+    const fechar = () => { el.remove(); document.body.classList.remove('no-scroll'); };
+    $$('[data-x]', el).forEach((b) => b.addEventListener('click', fechar));
+    $('[data-rep]', el).addEventListener('click', () => {
+      RB.registrar(cat, 'popup', { origem: 'reparo', detalhe: 'boas-vindas' });
+      el.classList.add('bv-form');
+      formReparo($('.rbp-body', el), fechar);
+    });
+    $('[data-vit]', el).addEventListener('click', () => {
+      RB.registrar(cat, 'popup', { origem: 'vitrine', detalhe: 'boas-vindas' });
+      fechar();
+      const v = document.getElementById('vitrine');
+      if (v) v.scrollIntoView({ behavior: 'smooth' });
+    });
+    document.addEventListener('keydown', function esc1(e) { if (e.key === 'Escape') { fechar(); document.removeEventListener('keydown', esc1); } });
+  }
+
+  /* ---------- Reparo: o cliente conta o defeito e escolhe falar com especialista ou pedir orçamento ---------- */
+  function abrirReparo(origem) {
+    if (document.getElementById('rb-bv')) document.getElementById('rb-bv').remove();
+    RB.registrar(cat, 'popup', { origem: 'reparo', detalhe: origem || 'site' });
+    const el = document.createElement('div');
+    el.className = 'rbp bv bv-form'; el.id = 'rb-bv';
+    el.innerHTML = '<div class="rbp-back" data-x></div>' +
+      '<div class="rbp-box bv-box" role="dialog" aria-modal="true" aria-label="Reparo">' +
+        '<button type="button" class="rbp-close" data-x aria-label="Fechar">×</button>' +
+        '<div class="bv-logo"><img src="img/marca/logo-marca.webp" alt="' + esc(cat.loja.nome || 'RB Tech Celulares') + '"></div>' +
+        '<div class="rbp-body"></div>' +
+      '</div>';
+    document.body.appendChild(el);
+    document.body.classList.add('no-scroll');
+    const fechar = () => { el.remove(); document.body.classList.remove('no-scroll'); };
+    $$('[data-x]', el).forEach((b) => b.addEventListener('click', fechar));
+    formReparo($('.rbp-body', el), fechar);
+  }
+
+  function formReparo(box, fechar) {
+    const r = cat.reparos || {};
+    const temLink = /^https:\/\//.test(r.link || '');
+    const MARCAS = ['Samsung', 'Motorola', 'Xiaomi', 'Realme', 'LG', 'Asus', 'Outra'];
+    const DEFEITOS = ['Tela quebrada', 'Bateria', 'Não liga', 'Não carrega', 'Câmera', 'Som ou microfone', 'Face ID / biometria', 'Molhou', 'Outro'];
+    const f = { tipo: '', marca: '', outraMarca: '', modelo: '', defeitos: [], relato: '' };
+    box.innerHTML =
+      '<h2 class="rep-h">Conte o que aconteceu 🔧</h2>' +
+      '<p class="rbp-txt">Leva menos de 1 minuto. Um especialista já recebe tudo certinho.</p>' +
+      '<div class="rep-form">' +
+        '<span class="rep-lbl">Seu aparelho é</span>' +
+        '<div class="rep-tipo"><button type="button" data-tipo="Apple">🍎 Apple (iPhone)</button><button type="button" data-tipo="Android">🤖 Android</button></div>' +
+        '<label class="rep-marca" hidden><span class="rep-lbl">Marca</span><select id="rep-marca"><option value="">Selecione…</option>' +
+          MARCAS.map((m) => '<option>' + m + '</option>').join('') + '</select></label>' +
+        '<label class="rep-outra" hidden><span class="rep-lbl">Qual marca?</span><input id="rep-outra" maxlength="30" placeholder="Ex.: Nokia"></label>' +
+        '<label><span class="rep-lbl">Modelo</span><input id="rep-modelo" maxlength="40" placeholder="Ex.: iPhone 13 Pro ou Galaxy A54"></label>' +
+        '<span class="rep-lbl">Qual o defeito?</span>' +
+        '<div class="rep-defs">' + DEFEITOS.map((d) => '<button type="button" data-def="' + esc(d) + '">' + esc(d) + '</button>').join('') + '</div>' +
+        '<label><span class="rep-lbl">Conte com suas palavras</span><textarea id="rep-relato" rows="3" maxlength="500" placeholder="Ex.: caiu no chão, a tela trincou e o touch não funciona embaixo."></textarea></label>' +
+        '<p class="rep-err" hidden>Escolha Apple ou Android, informe o modelo e o defeito.</p>' +
+        '<button type="button" class="bv-op rep-zap">💬 Conversar com um especialista<small>Abre o WhatsApp com tudo preenchido</small></button>' +
+        (temLink ? '<button type="button" class="bv-op bv-rep rep-orc">📋 Solicitar orçamento<small>Gera sua ordem de serviço no nosso sistema</small></button>' : '') +
+        '<p class="rep-dica" hidden>✅ Copiamos a descrição do seu defeito: é só colar no formulário do orçamento.</p>' +
+      '</div>';
+    const marcaFinal = () => f.tipo === 'Apple' ? 'Apple' : f.marca === 'Outra' ? f.outraMarca.trim() : f.marca;
+    const resumo = () => {
+      const l = ['📱 Aparelho: ' + [marcaFinal(), f.modelo.trim()].filter(Boolean).join(' · ') + (f.tipo ? ' (' + f.tipo + ')' : '')];
+      if (f.defeitos.length) l.push('⚠️ Defeito: ' + f.defeitos.join(', '));
+      if (f.relato.trim()) l.push('📝 Relato: ' + f.relato.trim());
+      return l.join('\n');
+    };
+    const valido = () => f.tipo && f.modelo.trim() && (f.defeitos.length || f.relato.trim()) && (f.tipo === 'Apple' || marcaFinal());
+    $$('[data-tipo]', box).forEach((b) => b.addEventListener('click', () => {
+      f.tipo = b.dataset.tipo;
+      $$('[data-tipo]', box).forEach((x) => x.classList.toggle('on', x === b));
+      $('.rep-marca', box).hidden = f.tipo !== 'Android';
+      $('.rep-outra', box).hidden = !(f.tipo === 'Android' && f.marca === 'Outra');
+      $('#rep-modelo', box).placeholder = f.tipo === 'Apple' ? 'Ex.: iPhone 13 Pro' : 'Ex.: Galaxy A54, Moto G84';
+    }));
+    $('#rep-marca', box).addEventListener('change', (e) => { f.marca = e.target.value; $('.rep-outra', box).hidden = f.marca !== 'Outra'; });
+    $('#rep-outra', box).addEventListener('input', (e) => { f.outraMarca = e.target.value; });
+    $('#rep-modelo', box).addEventListener('input', (e) => { f.modelo = e.target.value; });
+    $('#rep-relato', box).addEventListener('input', (e) => { f.relato = e.target.value; });
+    $$('[data-def]', box).forEach((b) => b.addEventListener('click', () => {
+      const d = b.dataset.def;
+      f.defeitos = f.defeitos.includes(d) ? f.defeitos.filter((x) => x !== d) : f.defeitos.concat(d);
+      b.classList.toggle('on', f.defeitos.includes(d));
+    }));
+    ['input', 'change', 'click'].forEach((ev) => box.addEventListener(ev, () => { if (valido()) $('.rep-err', box).hidden = true; }));
+    $('.rep-zap', box).addEventListener('click', () => {
+      if (!valido()) { $('.rep-err', box).hidden = false; return; }
+      const msg = 'Olá! Vim pelo site e preciso de um reparo 🔧\n\n' + resumo() + '\n\nPode me ajudar?';
+      RB.registrar(cat, 'whatsapp', { origem: 'reparo', detalhe: (marcaFinal() + ' ' + f.modelo + ' · ' + f.defeitos.join(', ')).slice(0, 190) });
+      const url = RB.linkWhats(cat, msg);
+      const w = window.open(url, '_blank');
+      if (w) w.opener = null; else location.href = url;
+      fechar();
+    });
+    const orc = $('.rep-orc', box);
+    if (orc) orc.addEventListener('click', () => {
+      RB.registrar(cat, 'popup', { origem: 'reparo-orcamento', detalhe: (marcaFinal() + ' ' + f.modelo).trim().slice(0, 190) || 'sem dados' });
+      const texto = resumo();
+      if ((f.modelo.trim() || f.defeitos.length || f.relato.trim()) && navigator.clipboard) navigator.clipboard.writeText(texto).then(() => { $('.rep-dica', box).hidden = false; }).catch(() => {});
+      const w = window.open(r.link, '_blank');
+      if (w) w.opener = null; else location.href = r.link;
+    });
   }
 
   /* ---------- RBChat: assistente virtual (Claude Haiku via api/chat) ---------- */
@@ -138,6 +269,7 @@
       lista.innerHTML = '<div class="rbc-m ass">' + fmt(saud) + '</div>' +
         msgs.map((m, i) => '<div class="rbc-m ' + (m.role === 'user' ? 'eu' : 'ass') + '">' + fmt(m.content) +
           (m.produtos && m.produtos.length ? '<span class="rbc-ver">' + m.produtos.map((x) => '<a class="rbc-prod" href="#p/' + encodeURIComponent(x.id) + '" data-id="' + esc(x.id) + '" data-m="' + i + '" data-origem="chat">📱 Ver proposta: ' + esc(x.nome) + (x.cor && !/variad/i.test(x.cor) ? ' · ' + esc(x.cor) : '') + ' →</a>').join('') + '</span>' : '') +
+          (m.reparo ? '<a class="rbc-rep" target="_blank" rel="noopener" href="' + esc(m.reparo) + '">🔧 Contar o defeito / pedir orçamento</a>' : '') +
           (m.whatsapp ? '<a class="rbc-wa" target="_blank" rel="noopener" href="' + esc(RB.linkWhats(cat, m.whatsapp)) + '">💬 Falar no WhatsApp da loja</a>' : '') + '</div>').join('');
       const ult = msgs[msgs.length - 1];
       const opcoes = !msgs.length ? ['Me ajude a escolher', 'Quanto vale meu iPhone 12?', 'Parcelas do iPhone 15 Pro', 'Qual a garantia?']
@@ -227,7 +359,8 @@
       // botões rápidos: os que a IA mandou, ou as faixas de preço quando ela pergunta o orçamento
       let botoes = Array.isArray(dados.sugestoes) ? dados.sugestoes.slice(0, 6).map(String) : null;
       if (!botoes && /quanto (você )?(quer|pretende|pode) (investir|gastar)|orçamento|faixa de (preço|valor)/i.test(resposta || '')) botoes = FAIXAS;
-      msgs.push(Object.assign({ role: 'assistant', content: resposta }, zap ? { whatsapp: zap } : {}, botoes ? { sugestoes: botoes } : {}, Array.isArray(dados.produtos) && dados.produtos.length ? { produtos: dados.produtos.slice(0, 3), avaliacao: dados.avaliacao || null } : {})); guardar();
+      msgs.push(Object.assign({ role: 'assistant', content: resposta }, zap ? { whatsapp: zap } : {}, botoes ? { sugestoes: botoes } : {}, Array.isArray(dados.produtos) && dados.produtos.length ? { produtos: dados.produtos.slice(0, 3), avaliacao: dados.avaliacao || null } : {},
+        dados.reparo ? { reparo: String(dados.reparo) } : {})); guardar();
       ocupado = false; desenhar();
       if (zap) escolhendo = false; // já ofereceu o WhatsApp nesta resposta
       esperarResposta();
@@ -251,6 +384,7 @@
     $('.rbc-x', painel).addEventListener('click', () => abrir(false));
     // abrir um aparelho pelo chat: no celular fecha o chat para mostrar o aparelho
     lista.addEventListener('click', (e) => {
+      if (e.target.closest('.rbc-rep')) { e.preventDefault(); if (innerWidth < 760) abrir(false); abrirReparo('chat'); return; }
       const a = e.target.closest('.rbc-prod');
       if (!a) return;
       const p = cat.produtos.find((x) => x.id === a.dataset.id);
@@ -304,7 +438,7 @@
     const intervalo = Math.max(8, Number(bf.intervalo) || 18) * 1000;
     let timer;
     const mostrar = () => {
-      if (!$('#sheet').hidden || document.getElementById('rb-popup') || document.getElementById('rb-aviso')) { timer = setTimeout(mostrar, 4000); return; }
+      if (!$('#sheet').hidden || document.getElementById('rb-popup') || document.getElementById('rb-aviso') || document.getElementById('rb-bv')) { timer = setTimeout(mostrar, 4000); return; }
       const p = pool[Math.floor(Math.random() * pool.length)];
       const min = 2 + Math.floor(Math.random() * 38);
       box.innerHTML = '<span class="bv-img">' + RB.imagemProduto(p, true) + '</span>' +
@@ -347,7 +481,7 @@
       // não cobre a conversa: espera o cliente fechar o chat
       // (nem a proposta pronta do chat)
       const propostaAberta = !$('#sheet').hidden && $('#sheet-body').classList.contains('pc-modo');
-      if (document.body.classList.contains('rbc-aberto') || propostaAberta) return setTimeout(mostrar, 3000);
+      if (document.body.classList.contains('rbc-aberto') || propostaAberta || document.getElementById('rb-bv')) return setTimeout(mostrar, 3000);
       // a pré-visualização do admin (?popup=1) não conta como "já visto"
       if (!forcar) {
         try {

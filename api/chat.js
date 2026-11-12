@@ -71,6 +71,7 @@ function avaliar(cat, entrada) {
 function sistema(cat) {
   const l = cat.loja || {};
   const ch = cat.chat || {};
+  const rep = cat.reparos || {};
   const bf = cat.blackfriday || {};
   // a data vem do admin sem fuso (horário de Brasília)
   const fimBf = bf.fim ? new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(bf.fim) ? bf.fim : bf.fim + '-03:00') : null;
@@ -111,6 +112,9 @@ function sistema(cat) {
     '- Recomende só aparelhos que estão na lista. Ao recomendar um iPhone, siga COMO NEGOCIAR: pergunte se é só compra ou se tem iPhone de entrada antes de mandar valores (a não ser que a entrada já seja conhecida).',
     '- BRINDES NO FECHAMENTO: quando a negociação estiver quase finalizando (depois de mandar a proposta/diferença ou o valor final, ou quando o cliente mostrar que quer fechar), envie os benefícios abaixo, uma vez só na conversa, exatamente neste formato de lista. Na linha da garantia, use a garantia do aparelho escolhido (iPhone novo 1 ano; seminovo do 13 em diante 6 meses; abaixo do 13, 4 meses).',
     '  BENEFÍCIOS:\n' + (ch.beneficios || BENEFICIOS),
+    rep.ativo !== false
+      ? '- CONSERTO/REPARO: SIM, a loja faz conserto e assistência técnica' + (rep.servicos ? ' (' + rep.servicos + ')' : '') + '. Se o cliente perguntar sobre conserto, reparo, troca de tela/bateria, aparelho com defeito etc., responda que sim, que não passamos valor de reparo pelo chat, e que ele pede o orçamento pelo botão abaixo (descrevendo o problema, gera a ordem de serviço na hora). Termine a resposta com uma linha exatamente assim: [REPARO]'
+      : '',
     '- LINKS: sempre que recomendar, oferecer ou passar valores de aparelhos específicos da lista, termine a resposta com uma linha exatamente assim: [VER: id1, id2] (os ids da lista, no máximo 3). O site transforma isso em botões que abrem cada aparelho. E logo abaixo, uma linha [WHATSAPP: <mensagem em primeira pessoa dizendo o interesse do cliente, ex.: Olá! Tenho interesse no iPhone 13 Pro 128GB, vi no chat do site.>]. O site mostra um botão verde do WhatsApp com essa mensagem.',
     '- Nunca escreva o número do WhatsApp nem links no texto: para fechar, diga para tocar no botão do aparelho (e depois em "Enviar proposta no WhatsApp") ou no botão verde do WhatsApp abaixo.',
     '- CONTATO DO CLIENTE: veja em MEMÓRIA DO CLIENTE se já sabemos o nome dele. Se ainda não sabemos, na sua PRIMEIRA resposta (depois de responder o que ele pediu, em uma frase) pergunte de forma leve, UMA ÚNICA VEZ na conversa, o nome dele e o WhatsApp, dizendo que é para mandar as melhores promoções. Se ele não responder ou não quiser passar, siga o atendimento normalmente e NUNCA peça de novo (a página da proposta pede nome e WhatsApp na hora de enviar).',
@@ -339,6 +343,9 @@ module.exports = async (req, res) => {
         let sugestoes = null;
         texto = texto.replace(/\[FAIXAS\]/gi, () => { sugestoes = FAIXAS; return ''; })
           .replace(/\[PLATAFORMA\]/gi, () => { sugestoes = sugestoes || ['🍎 iPhone', '🤖 Android']; return ''; }).trim();
+        // [REPARO] vira o botão do pedido de orçamento de conserto (sistema da loja)
+        let reparo = null;
+        texto = texto.replace(/\[REPARO\]/gi, () => { const r = cat.reparos || {}; if (r.ativo !== false && /^https:\/\//.test(r.link || '')) reparo = r.link; return ''; }).trim();
         // [VER: ids] vira botões que abrem os aparelhos no site
         let produtos = [];
         texto = texto.replace(/\[VER:\s*([^\]]{1,300})\]/gi, (m, ids) => {
@@ -365,7 +372,7 @@ module.exports = async (req, res) => {
             valor: av.pre_avaliacao ? Number(String(av.pre_avaliacao).replace(/[^\d,]/g, '').replace(',', '.')) || 0 : 0
           };
         }
-        return res.status(200).json({ resposta: texto || 'Pode repetir a pergunta?', entrada: entradaNova, whatsapp, sugestoes, produtos, contato: contatoNovo, avaliacao });
+        return res.status(200).json({ resposta: texto || 'Pode repetir a pergunta?', entrada: entradaNova, whatsapp, sugestoes, produtos, contato: contatoNovo, avaliacao, reparo });
       }
       conversa.push({ role: 'assistant', content: resp.content });
       const resultados = resp.content.filter((b) => b.type === 'tool_use').map((b) => {

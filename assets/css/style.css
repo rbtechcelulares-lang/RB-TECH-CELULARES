@@ -965,3 +965,33 @@ body.rbc-aberto .fab-whats, body.rbc-aberto .bf-venda { display: none !important
 .pc-contato { display: grid; gap: 8px; }
 @media (min-width: 560px) { .pc-contato { grid-template-columns: 1fr 1fr; } }
 .pc-modo #enviar.pc-off { opacity: .55; }
+
+/* Boas-vindas: reparo ou ver celulares */
+.bv .bv-box { max-width: 460px; }
+.bv-logo { display: grid; place-items: center; padding: 30px 20px 4px; background: radial-gradient(60% 80% at 50% 30%, rgba(245,197,66,.22), transparent 70%); border-radius: 20px 20px 0 0; }
+.bv-logo img { width: min(230px, 62vw); height: auto; filter: drop-shadow(0 10px 30px rgba(245,197,66,.25)); }
+.bv-btns { display: grid; gap: 10px; width: 100%; margin-top: 6px; }
+.bv-op { display: grid; gap: 2px; width: 100%; border-radius: 18px; padding: 15px 18px; font-weight: 800; font-size: 17px; text-decoration: none; text-align: center; cursor: pointer; font-family: inherit; }
+.bv-op small { font-weight: 500; font-size: 12.5px; opacity: .75; }
+.bv-rep { background: #17140a; color: #f5c542 !important; border: 2px solid #f5c542; }
+.bv-vit { border: 0; color: #111; background: linear-gradient(135deg, #fbe38e 0%, #f5c542 40%, #c9971b 100%); box-shadow: 0 8px 24px rgba(245,197,66,.25); }
+.rbc-rep { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; margin-right: 6px; background: #17140a; border: 1.5px solid #f5c542; color: #f5c542 !important; border-radius: 999px; padding: 7px 12px; font-size: 13px; font-weight: 700; text-decoration: none; }
+
+/* Formulário de reparo */
+.bv-form .bv-logo { padding: 16px 20px 0; }
+.bv-form .bv-logo img { width: 120px; }
+.bv-form .rbp-body { padding: 12px 18px 18px; gap: 8px; }
+.rep-h { font-size: clamp(22px, 6vw, 26px) !important; }
+.rep-form { display: grid; gap: 8px; width: 100%; text-align: left; }
+.rep-form label { display: grid; gap: 4px; }
+.rep-lbl { font-size: 12.5px; color: rgba(255,255,255,.7); font-weight: 600; margin-top: 4px; }
+.rep-form input, .rep-form select, .rep-form textarea { width: 100%; background: #17140a; border: 1.5px solid #3b3220; color: #fff; border-radius: 12px; padding: 11px 12px; font: inherit; font-size: 16px; }
+.rep-form input:focus, .rep-form select:focus, .rep-form textarea:focus { border-color: #f5c542; outline: 0; }
+.rep-tipo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.rep-tipo button, .rep-defs button { border: 1.5px solid #3b3220; background: #17140a; color: #fff; border-radius: 12px; padding: 11px 8px; font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }
+.rep-defs { display: flex; flex-wrap: wrap; gap: 6px; }
+.rep-defs button { padding: 7px 11px; font-size: 13px; font-weight: 600; border-radius: 999px; }
+.rep-tipo button.on, .rep-defs button.on { border-color: #f5c542; background: #f5c542; color: #111; }
+.rep-err { color: #ff8a7a; font-size: 13px; margin: 0; }
+.rep-dica { color: #9be3a8; font-size: 13px; margin: 0; }
+.rep-zap { border: 0; color: #fff; background: #1fa855; margin-top: 4px; }

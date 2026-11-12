@@ -148,7 +148,7 @@
   function render() {
     ({
       produtos: renderProdutos, promocoes: renderPromocoes, cliques: renderCliques, avaliacao: renderAvaliacao,
-      pagamento: renderPagamento, loja: renderLoja, ia: renderIA, clientes: renderClientes, textos: renderTextos, publicar: renderPublicar
+      pagamento: renderPagamento, loja: renderLoja, ia: renderIA, reparos: renderReparos, clientes: renderClientes, textos: renderTextos, publicar: renderPublicar
     })[aba]();
   }
 
@@ -675,6 +675,41 @@
     });
   }
 
+
+  /* ---------- Reparos: boas-vindas e link do sistema de ordens de serviço ---------- */
+  function renderReparos() {
+    const el = $('[data-panel="reparos"]');
+    cat.reparos = cat.reparos || { ativo: true, boasVindas: true, link: '', frequencia: 'sessao' };
+    const r = cat.reparos;
+    const opt = (pares, v) => pares.map(([k, t]) => '<option value="' + k + '"' + (k === v ? ' selected' : '') + '>' + t + '</option>').join('');
+    el.innerHTML =
+      '<div class="a-head"><div><h2>🔧 Reparos</h2><p class="muted">Conserto e assistência técnica. O cliente pede o orçamento pelo link do seu sistema e a ordem de serviço é criada lá automaticamente.</p></div></div>' +
+      '<div class="a-card"><div class="pop-head"><h3>Reparos no site</h3>' +
+        '<label class="switch" title="Ligar reparos"><input type="checkbox" data-bind="reparos.ativo"' + (r.ativo !== false ? ' checked' : '') + '><span></span></label></div>' +
+        '<p class="hint">Ligado: o pop-up de boas-vindas mostra o botão de reparo e o RBChat responde que a loja faz conserto, com o botão do orçamento.</p>' +
+        '<label class="field"><span>Link do pedido de orçamento (seu sistema)</span>' + inp('reparos.link', r.link || '', 'type="url" placeholder="https://…"') +
+          '<small class="hint" id="rep-teste"></small></label>' +
+        '<label class="field"><span>Serviços que a loja faz (o RBChat usa para responder)</span><textarea data-bind="reparos.servicos" rows="3" placeholder="Ex.: troca de tela, bateria, conector de carga…">' + esc(r.servicos || '') + '</textarea></label>' +
+      '</div>' +
+      '<div class="a-card"><div class="pop-head"><h3>👋 Pop-up de boas-vindas</h3>' +
+        '<label class="switch" title="Ligar boas-vindas"><input type="checkbox" data-bind="reparos.boasVindas"' + (r.boasVindas ? ' checked' : '') + '><span></span></label></div>' +
+        '<p class="hint">Aparece quando o cliente abre o site, com a logo da loja e dois botões. O pop-up do cupom aparece depois que ele fechar este.</p>' +
+        '<label class="field"><span>Título</span>' + inp('reparos.titulo', r.titulo || '', 'placeholder="Bem-vindo à *RB Tech Celulares*!"') + '<small class="hint">Coloque *entre asteriscos* o trecho que fica em amarelo.</small></label>' +
+        '<label class="field"><span>Texto</span><textarea data-bind="reparos.texto" rows="2">' + esc(r.texto || '') + '</textarea></label>' +
+        '<div class="ed-grid">' +
+          '<label class="field"><span>Botão de reparo</span>' + inp('reparos.botaoReparo', r.botaoReparo || '', 'placeholder="🔧 Preciso de reparo"') + '</label>' +
+          '<label class="field"><span>Botão dos celulares</span>' + inp('reparos.botaoVitrine', r.botaoVitrine || '', 'placeholder="📱 Quero ver celulares disponíveis"') + '</label>' +
+          '<label class="field"><span>Mostrar</span><select data-bind="reparos.frequencia">' + opt([['sessao', 'Toda vez que o cliente abrir o site'], ['dia', 'Uma vez por dia']], r.frequencia || 'sessao') + '</select></label>' +
+        '</div>' +
+        '<p class="hint">Depois de publicar, abra o site numa aba anônima para ver o pop-up (ele aparece uma vez por visita).</p>' +
+      '</div>';
+    const teste = () => {
+      const ok = /^https:\/\//.test(cat.reparos.link || '');
+      $('#rep-teste').innerHTML = ok ? '<a href="' + esc(cat.reparos.link) + '" target="_blank" rel="noopener">Abrir o link para testar →</a>' : '⚠️ Cole o link completo, começando com https://';
+    };
+    bind(el, teste);
+    teste();
+  }
 
   /* ---------- IA: RBChat ---------- */
   function renderIA() {
