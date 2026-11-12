@@ -76,10 +76,27 @@
     const ch = cat.chat || {};
     if (!ch.ativo) return;
     const nomeChat = ch.nome || 'RBChat';
-    const CHAVE = 'rbtech_chat';
-    let msgs = [];
-    try { msgs = JSON.parse(sessionStorage.getItem(CHAVE) || '[]'); } catch (e) { msgs = []; }
-    const guardar = () => { try { sessionStorage.setItem(CHAVE, JSON.stringify(msgs.slice(-30))); } catch (e) { /* ignora */ } };
+    // A conversa fica salva no celular do cliente. Depois de 5 minutos parada, começa uma nova,
+    // mas o iPhone de entrada que ele informou continua guardado para a próxima conversa.
+    const CHAVE = 'rbtech_chat_v2';
+    const INATIVO = 5 * 60 * 1000;
+    let est = {};
+    try { est = JSON.parse(localStorage.getItem(CHAVE) || '{}') || {}; } catch (e) { est = {}; }
+    let msgs = Array.isArray(est.msgs) ? est.msgs : [];
+    let entradaMem = est.entrada || null; // { modelo, armazenamento, bateria_abaixo_de_80, defeitos }
+    let anterior = !!est.anterior; // true quando a entrada veio de uma conversa anterior
+    const guardar = () => {
+      est.ultimo = Date.now();
+      try { localStorage.setItem(CHAVE, JSON.stringify({ msgs: msgs.slice(-30), entrada: entradaMem, anterior, ultimo: est.ultimo })); } catch (e) { /* ignora */ }
+    };
+    const zerarSeParado = () => {
+      if (msgs.length && Date.now() - (Number(est.ultimo) || 0) > INATIVO) {
+        msgs = [];
+        if (entradaMem) anterior = true;
+        guardar();
+      }
+    };
+    zerarSeParado();
     const fmt = (t) => esc(t).replace(/\*\*?([^*\n]+)\*\*?/g, '<b>$1</b>').replace(/\n/g, '<br>');
 
     const botao = document.createElement('button');
@@ -100,9 +117,12 @@
     const lista = $('.rbc-msgs', painel), campo = $('.rbc-form input', painel), sug = $('.rbc-sug', painel);
 
     const desenhar = () => {
-      const saud = ch.saudacao || 'Oi! 👋 Sou o ' + nomeChat + '. Posso te ajudar com preços, parcelas, avaliação do seu usado e garantia.';
+      const saud = entradaMem && anterior
+        ? 'Oi de novo! 👋 Da última vez você falou do seu *' + entradaMem.modelo + ' ' + (entradaMem.armazenamento || '') + '* para dar de entrada. Ainda tem interesse em dar ele de entrada?'
+        : ch.saudacao || 'Oi! 👋 Sou o ' + nomeChat + '. Posso te ajudar com preços, parcelas, avaliação do seu usado e garantia.';
       lista.innerHTML = '<div class="rbc-m ass">' + fmt(saud) + '</div>' +
-        msgs.map((m) => '<div class="rbc-m ' + (m.role === 'user' ? 'eu' : 'ass') + '">' + fmt(m.content) + '</div>').join('');
+        msgs.map((m) => '<div class="rbc-m ' + (m.role === 'user' ? 'eu' : 'ass') + '">' + fmt(m.content) +
+          (m.whatsapp ? '<a class="rbc-wa" target="_blank" rel="noopener" href="' + esc(RB.linkWhats(cat, m.whatsapp)) + '">💬 Perguntar no WhatsApp da loja</a>' : '') + '</div>').join('');
       sug.innerHTML = msgs.length ? '' : ['Quanto vale meu iPhone 12?', 'Parcelas do iPhone 15 Pro', 'Qual a garantia?', 'Até quando vai a Black Friday?']
         .map((t) => '<button type="button">' + esc(t) + '</button>').join('');
       $$('button', sug).forEach((b) => b.addEventListener('click', () => enviar(b.textContent)));
@@ -114,23 +134,28 @@
       texto = String(texto || '').trim();
       if (!texto || ocupado) return;
       ocupado = true; campo.value = '';
+      zerarSeParado();
       msgs.push({ role: 'user', content: texto }); guardar(); desenhar();
       lista.insertAdjacentHTML('beforeend', '<div class="rbc-m ass rbc-dig"><i></i><i></i><i></i></div>');
       lista.scrollTop = lista.scrollHeight;
-      let resposta;
+      let resposta, zap = '';
       try {
-        const r = await fetch('api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensagens: msgs }) });
+        const r = await fetch('api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensagens: msgs, memoria: { entrada: entradaMem, anterior } }) });
         const d = await r.json().catch(() => ({}));
+        if (d.entrada && d.entrada.modelo) { entradaMem = d.entrada; anterior = false; }
+        zap = d.whatsapp || (d.erro ? 'Olá! Vim pelo chat do site e tenho uma dúvida: ' + texto : '');
         resposta = d.resposta || (d.erro ? d.erro + ' Se preferir, chame a gente no WhatsApp.' : 'Não consegui responder agora. Chame a gente no WhatsApp!');
       } catch (e) {
         resposta = 'Sem conexão agora. Tente de novo ou chame a gente no WhatsApp!';
+        zap = 'Olá! Vim pelo chat do site e tenho uma dúvida: ' + texto;
       }
-      msgs.push({ role: 'assistant', content: resposta }); guardar();
+      msgs.push(Object.assign({ role: 'assistant', content: resposta }, zap ? { whatsapp: zap } : {})); guardar();
       ocupado = false; desenhar();
       RB.registrar(cat, 'popup', { origem: 'chat', detalhe: texto.slice(0, 190) });
     }
 
     const abrir = (sim) => {
+      if (sim) zerarSeParado();
       painel.hidden = !sim; botao.hidden = sim;
       document.body.classList.toggle('rbc-aberto', sim);
       if (sim) { desenhar(); setTimeout(() => campo.focus(), 50); }

@@ -76,7 +76,8 @@ function sistema(cat) {
     '- Só fale de preços, aparelhos, prazos e condições que estão abaixo. Nunca invente modelo, cor, preço, estoque ou política. Se não souber, diga que confirma pelo WhatsApp.',
     '',
     'COMO NEGOCIAR (siga esta ordem)',
-    '1. Quando o cliente perguntar se tem um iPhone (ou pedir preço de um iPhone), NÃO mande o preço ainda. Confirme se temos o modelo (memórias e cores disponíveis) e pergunte: "Você está procurando só a compra ou tem algum iPhone para dar de entrada?".',
+    '0. Veja a seção MEMÓRIA DO CLIENTE no fim. Se o iPhone de entrada já é conhecido (nesta conversa ou em uma anterior), NUNCA pergunte de novo se é só compra ou se vai dar entrada: quando ele perguntar por outro iPhone, use proposta_troca direto com esse mesmo iPhone de entrada e mande só a diferença.',
+    '1. Quando o cliente perguntar se tem um iPhone (ou pedir preço de um iPhone) e ainda não sabemos se ele tem entrada, NÃO mande o preço ainda. Confirme se temos o modelo (memórias e cores disponíveis) e pergunte: "Você está procurando só a compra ou tem algum iPhone para dar de entrada?".',
     '2. Se for só compra: aí sim informe o preço à vista e use calcular_parcelas para as parcelas no cartão.',
     '3. Se tiver iPhone de entrada: pergunte modelo, armazenamento, se a bateria está abaixo de 80% e se tem algum detalhe (tela ou tampa trincada, Face ID, câmera etc.). Com isso, use a ferramenta proposta_troca e responda SOMENTE com o valor da diferença a pagar (à vista e as parcelas da diferença). Não informe o preço cheio do aparelho, nem o valor da avaliação do usado, nem o desconto de cada defeito.',
     '4. Só informe o preço cheio do aparelho ou o valor da avaliação do usado se o cliente perguntar especificamente por eles depois da proposta.',
@@ -85,6 +86,7 @@ function sistema(cat) {
     '- A troca (dar o usado de entrada) vale só na compra de iPhones; MacBook, Xiaomi e iPad são sem entrada: nesses, informe o preço normalmente.',
     '- Para fechar, oriente o cliente a abrir o aparelho no site e tocar em "Enviar proposta no WhatsApp", ou chamar no WhatsApp ' + (l.whatsapp || '') + '.',
     '- Não peça nem guarde dados pessoais (CPF, cartão). Não discuta assuntos fora da loja.',
+    '- Quando NÃO souber responder com as informações abaixo (estoque de cor específica, prazo de entrega, acessórios, assistência, qualquer coisa que não esteja aqui), diga que a equipe da loja confirma e termine a resposta com uma linha exatamente assim: [WHATSAPP: <mensagem curta, em primeira pessoa, que o cliente vai mandar para a loja com a pergunta específica dele>]. Ex.: [WHATSAPP: Olá! Vocês têm iPhone 15 Pro na cor azul?]. Use essa linha só quando não souber.',
     bfAtiva
       ? '- BLACK FRIDAY ATIVA' + (fimBf ? ' até ' + fimBf.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }) : '') +
         '. Crie senso de urgência de forma honesta: as condições valem só até essa data e o estoque é limitado. Nunca invente quantidades em estoque nem vendas.'
@@ -186,15 +188,32 @@ module.exports = async (req, res) => {
   }
   if (!(cat.chat || {}).ativo) return res.status(403).json({ erro: 'Chat desligado.' });
 
+  // Memória guardada no celular do cliente: o iPhone que ele informou para dar de entrada
+  const mem = (req.body || {}).memoria || {};
+  const e0 = mem.entrada && typeof mem.entrada === 'object' ? mem.entrada : null;
+  const ent = e0 && typeof e0.modelo === 'string' ? {
+    modelo: e0.modelo.slice(0, 40), armazenamento: String(e0.armazenamento || '').slice(0, 10),
+    bateria_abaixo_de_80: !!e0.bateria_abaixo_de_80,
+    defeitos: Array.isArray(e0.defeitos) ? e0.defeitos.slice(0, 8).map((d) => String(d).slice(0, 60)) : []
+  } : null;
+  const descricao = ent ? ent.modelo + ' ' + ent.armazenamento + ', bateria ' + (ent.bateria_abaixo_de_80 ? 'abaixo de 80%' : '80% ou mais') +
+    ', ' + (ent.defeitos.length ? 'detalhes: ' + ent.defeitos.join(', ') : 'sem detalhes') : '';
+  const memoria = 'MEMÓRIA DO CLIENTE\n' + (!ent
+    ? 'Primeira conversa: ainda não sabemos se ele tem iPhone de entrada. Siga o passo 1 quando ele perguntar por um iPhone.'
+    : mem.anterior
+      ? 'Em uma conversa anterior o cliente informou este iPhone de entrada: ' + descricao + '. O site já abriu esta conversa nova perguntando: "Da última vez você falou do seu ' + ent.modelo + ' ' + ent.armazenamento + ' para dar de entrada. Ainda tem interesse em dar ele de entrada?". A primeira mensagem do cliente pode ser a resposta a isso. Se confirmar, use proposta_troca com esse aparelho e mande só a diferença; se não, trate como compra direta (ou pegue o novo aparelho de entrada). Se ele não respondeu a isso e perguntou outra coisa, pergunte de forma natural se ainda vai dar esse aparelho de entrada antes de mandar valores.'
+      : 'Nesta conversa o cliente já informou este iPhone de entrada: ' + descricao + '. Não pergunte de novo: para qualquer iPhone que ele perguntar, use proposta_troca com esse aparelho e mande só a diferença.');
+
   const client = new Anthropic();
   const conversa = mensagens.slice();
+  let entradaNova = null; // devolvida ao site para guardar no celular do cliente
   try {
     for (let rodada = 0; rodada < 4; rodada++) {
       const resp = await client.messages.create({
         model: MODELO,
         max_tokens: 2048,
         output_config: { effort: 'low' },
-        system: [{ type: 'text', text: sistema(cat), cache_control: { type: 'ephemeral' } }],
+        system: [{ type: 'text', text: sistema(cat), cache_control: { type: 'ephemeral' } }, { type: 'text', text: memoria }],
         tools: FERRAMENTAS,
         messages: conversa
       });
@@ -202,8 +221,11 @@ module.exports = async (req, res) => {
         return res.status(200).json({ resposta: 'Sobre isso não consigo ajudar por aqui. Posso te ajudar com preços, parcelas, trocas e garantia, ou é só chamar a gente no WhatsApp! 😉' });
       }
       if (resp.stop_reason !== 'tool_use') {
-        const texto = resp.content.filter((b) => b.type === 'text').map((b) => b.text).join('\n').trim();
-        return res.status(200).json({ resposta: texto || 'Pode repetir a pergunta?' });
+        let texto = resp.content.filter((b) => b.type === 'text').map((b) => b.text).join('\n').trim();
+        // pedido de WhatsApp com a pergunta do cliente (vira um botão no chat)
+        let whatsapp = null;
+        texto = texto.replace(/\[WHATSAPP:\s*([^\]]{3,300})\]/i, (m, q) => { whatsapp = q.trim(); return ''; }).trim();
+        return res.status(200).json({ resposta: texto || 'Pode repetir a pergunta?', entrada: entradaNova, whatsapp });
       }
       conversa.push({ role: 'assistant', content: resp.content });
       const resultados = resp.content.filter((b) => b.type === 'tool_use').map((b) => {
@@ -215,6 +237,10 @@ module.exports = async (req, res) => {
               : b.name === 'proposta_troca' ? propostaTroca(cat, b.input) : { erro: 'ferramenta desconhecida' };
         } catch (e) {
           return { type: 'tool_result', tool_use_id: b.id, content: 'erro: ' + e.message, is_error: true };
+        }
+        if ((b.name === 'proposta_troca' || b.name === 'avaliar_entrada') && saida && !saida.erro && !saida.recusado) {
+          const i = b.input;
+          entradaNova = { modelo: i.modelo, armazenamento: i.armazenamento, bateria_abaixo_de_80: !!i.bateria_abaixo_de_80, defeitos: i.defeitos || [] };
         }
         return { type: 'tool_result', tool_use_id: b.id, content: JSON.stringify(saida) };
       });
