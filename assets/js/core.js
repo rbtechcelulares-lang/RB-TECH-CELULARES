@@ -103,9 +103,21 @@
     return round2(valor * (1 - d / 100));
   }
 
+  // Código curto da visita ("Ref. RB-7K2Q9X", o fim da sessão) que vai no fim da mensagem pronta do WhatsApp.
+  // Quando a mensagem chega, a RB Central lê o código e liga o número do cliente ao que ele viu no site.
+  function codigoRef(cat) {
+    const r = (cat && cat.rastreamento) || {};
+    if (!r.supabaseUrl || !r.supabaseChave) return '';
+    try { if (localStorage.getItem('rbtech_admin_dispositivo')) return ''; } catch (e) { /* ignora */ }
+    const s = sessao();
+    return s.length >= 6 ? s.slice(-6).toUpperCase() : '';
+  }
+
   function linkWhats(cat, texto) {
     const num = String(cat.loja.whatsapp || '').replace(/\D/g, '');
-    return 'https://wa.me/' + num + (texto ? '?text=' + encodeURIComponent(texto) : '');
+    const ref = texto && !/\bRB-[A-Z0-9]{6}\b/.test(texto) ? codigoRef(cat) : '';
+    const t = ref ? texto + '\n\nRef. RB-' + ref : texto;
+    return 'https://wa.me/' + num + (t ? '?text=' + encodeURIComponent(t) : '');
   }
 
   /* ---------- Categorias ---------- */

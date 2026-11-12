@@ -314,3 +314,24 @@ details.a-card summary h3 { display: inline; }
 }
 .cli-chave-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .cli-chave-row input { flex: 1 1 220px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font: inherit; }
+
+/* Funil do WhatsApp (Clientes) */
+.cli-vistas { margin-bottom: 14px; display: inline-flex; flex-wrap: wrap; }
+.fu-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.fu-chip { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 7px 12px; font: inherit; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
+.fu-chip strong { color: var(--ink); margin-right: 2px; }
+.fu-chip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+.fu-chip.on strong { color: var(--gold-2, #f0e3c8); }
+.fu-sit { flex: none; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 4px 10px; background: #f1ece3; color: #5c5246; white-space: nowrap; }
+.fu-sit.sit-loja_sem_responder { background: #fde4e1; color: #b3261e; }
+.fu-sit.sit-cliente_sumiu { background: #ffe9d6; color: #b35400; }
+.fu-sit.sit-nao_buscou { background: #fff3c4; color: #8a6400; }
+.fu-sit.sit-fechado, .fu-sit.sit-comprou { background: #dff3e6; color: #1b7a43; }
+.fu-sit.sit-perdido, .fu-sit.sit-clicou { background: #eeeae4; color: #7a6f62; }
+.fu-tempo { margin: 6px 0 0; font-size: 13px; font-weight: 600; color: #5c5246; }
+.fu-anon { opacity: .85; }
+.fu-etapa { border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; font: inherit; background: #fff; }
+.fu-conversa { margin-top: 10px; display: grid; gap: 6px; max-height: 360px; overflow: auto; background: #f7f3ec; border-radius: 12px; padding: 10px; }
+.fu-msg { max-width: 85%; display: grid; gap: 2px; padding: 7px 10px; border-radius: 12px; font-size: 14px; background: #fff; white-space: pre-wrap; overflow-wrap: anywhere; }
+.fu-msg.loja { justify-self: end; background: #dcf5e3; }
+.fu-msg small { font-size: 11px; color: var(--muted); }

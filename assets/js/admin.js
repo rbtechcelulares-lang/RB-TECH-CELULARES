@@ -899,6 +899,10 @@
   /* ---------- Clientes do RBChat (CRM) ---------- */
   const STATUS_CLI = [['novo', '🆕 Novo'], ['contatado', '📞 Contatado'], ['negociando', '🤝 Negociando'], ['comprou', '✅ Comprou'], ['perdido', '❌ Perdido']];
   let clientes = null, filtroCli = { busca: '', status: '' };
+  let vistaCli = 'funil'; // 'funil' (WhatsApp, pela RB Central) ou 'rbchat' (contatos deixados no chat do site)
+  const abasCli = () => '<div class="periodo cli-vistas">' +
+    [['funil', '📲 Funil do WhatsApp'], ['rbchat', '💬 Contatos do RBChat']].map((v) => '<button type="button" data-vista="' + v[0] + '"' + (vistaCli === v[0] ? ' class="on"' : '') + '>' + v[1] + '</button>').join('') + '</div>';
+  const ligarAbasCli = (el) => $$('[data-vista]', el).forEach((b) => b.addEventListener('click', () => { vistaCli = b.dataset.vista; renderClientes(); }));
   const MSG_CLIENTE_PADRAO = 'Olá {nome}! Aqui é da RB Tech Celulares 😊 Ficou alguma dúvida referente ao {modelo}? Estou à disposição para te ajudar!';
   const modeloMsgCliente = () => ((cat.chat || {}).msgFollowup || '').trim() || MSG_CLIENTE_PADRAO;
   // Mensagem do botão "Chamar": troca {nome} e {modelo} pelos dados do cliente
@@ -913,9 +917,11 @@
     let chave = '';
     try { chave = localStorage.getItem(PAINEL_KEY) || ''; } catch (e) { /* ignora */ }
     const pronto = rs.supabaseUrl && rs.supabaseChave && chave;
+    if (pronto && vistaCli === 'funil') return renderFunil(el, rs, chave);
     el.innerHTML =
       '<div class="a-head"><div><h2>👥 Clientes</h2><p class="muted">Quem passou nome e WhatsApp no RBChat, com o último aparelho que a IA mandou. Use para o follow-up e para mandar as promoções.</p></div>' +
         (pronto ? '<div class="a-actions"><button class="btn btn-sm btn-outline" id="cli-csv">⬇️ Baixar planilha</button><button class="btn btn-sm btn-ink" id="cli-rec">↻ Atualizar</button></div>' : '') + '</div>' +
+      (pronto ? abasCli() : '') +
       (pronto ? '' : rs.supabaseUrl && rs.supabaseChave
         // Supabase já configurado: falta só a chave do painel neste navegador (ex.: janela anônima ou outro aparelho)
         ? '<form class="a-card cli-chave" id="cli-chave-form"><h3>🔒 Digite a chave do painel</h3>' +
@@ -945,6 +951,7 @@
       });
       return;
     }
+    ligarAbasCli(el);
     $('#cli-rec').addEventListener('click', () => { clientes = null; carregarClientes(rs, chave); });
     $('#cli-csv').addEventListener('click', () => baixarClientes());
     const exemplo = () => { $('#cli-msg-ex').innerHTML = '<b>Exemplo:</b> ' + esc(mensagemCliente({ interesse: 'iPhone 13 Pro 128GB' }, 'João')); };
@@ -1035,6 +1042,173 @@
         clientes = clientes.filter((x) => x.id !== id);
         salvarCli({ p_apagar: true }, 'Cliente apagado.'); desenharClientes(rs, chave);
       });
+    });
+  }
+
+  /* ---------- Funil do WhatsApp: site → WhatsApp → venda (dados da RB Central, no mesmo Supabase) ---------- */
+  const CENTRAL_URL = 'https://rbcentral.vercel.app';
+  const SIT = {
+    loja_sem_responder: ['🔴', 'Loja sem responder', 'Cliente esperando há mais de 30 min'],
+    cliente_sumiu: ['🟠', 'Cliente sumiu', 'A loja respondeu e o cliente está há mais de 24 h sem responder'],
+    nao_buscou: ['🟡', 'Fechou e não buscou', 'Passaram 2 dias do dia combinado e nenhuma venda foi registrada'],
+    fechado: ['🤝', 'Fechou', 'Combinou a compra; falta pagar ou buscar'],
+    aguardando_loja: ['💬', 'Mensagem nova', 'Chegou há menos de 30 min'],
+    em_conversa: ['🗨️', 'Em conversa', 'Conversa em andamento'],
+    comprou: ['✅', 'Comprou', 'Venda registrada no sistema ou marcada por você'],
+    perdido: ['❌', 'Perdido', 'Desistiu ou ficou 7 dias sem responder'],
+    clicou: ['👻', 'Clicou e não mandou', 'Tocou no WhatsApp do site e a mensagem não chegou em 2 h (sem número para chamar)']
+  };
+  const ORDEM_SIT = ['loja_sem_responder', 'cliente_sumiu', 'nao_buscou', 'fechado', 'aguardando_loja', 'em_conversa', 'comprou', 'perdido'];
+  const ETAPAS_WA = [['novo', 'Novo'], ['em_atendimento', 'Em atendimento'], ['orcamento', 'Orçamento'], ['negociando', 'Negociando'], ['fechado', 'Fechado'], ['comprou', 'Comprou'], ['perdido', 'Perdido'], ['pos_venda', 'Pós-venda']];
+  let funil = null, filtroFunil = '';
+
+  const haQuanto = (d) => {
+    const min = Math.round((Date.now() - new Date(d).getTime()) / 60000);
+    if (min < 60) return min <= 1 ? 'agora' : min + ' min';
+    if (min < 48 * 60) return Math.round(min / 60) + ' h';
+    return Math.round(min / 1440) + ' dias';
+  };
+  const dataCurta = (d) => (d ? String(d).slice(0, 10).split('-').reverse().slice(0, 2).join('/') : '');
+  const deOnde = (h) => {
+    const x = String(h || '').toLowerCase();
+    if (!x || x === 'direto') return 'acesso direto';
+    if (/instagram/.test(x)) return 'Instagram';
+    if (/facebook|fb\./.test(x)) return 'Facebook';
+    if (/google/.test(x)) return 'Google';
+    if (/whatsapp|wa\.me/.test(x)) return 'WhatsApp';
+    if (/tiktok/.test(x)) return 'TikTok';
+    return x;
+  };
+  const reaisF = (v) => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  function renderFunil(el, rs, chave) {
+    el.innerHTML =
+      '<div class="a-head"><div><h2>👥 Clientes</h2><p class="muted">Quem quer comprar iPhone e conversou no WhatsApp da loja: o que viu no site, o que falou no WhatsApp e em que pé está. A RB Central lê as conversas e atualiza sozinha.</p></div>' +
+        '<div class="a-actions"><button class="btn btn-sm btn-ink" id="fu-rec">↻ Atualizar</button></div></div>' +
+      abasCli() +
+      '<div id="fu-lista"><p class="hint">Carregando…</p></div>';
+    ligarAbasCli(el);
+    $('#fu-rec').addEventListener('click', () => { funil = null; carregarFunil(rs, chave); });
+    if (funil) desenharFunil(rs, chave); else carregarFunil(rs, chave);
+  }
+
+  async function carregarFunil(rs, chave) {
+    const lista = $('#fu-lista');
+    try {
+      funil = (await rpcPainel(rs, 'painel_funil_whatsapp', { chave, p_dias: 30 })) || { contatos: [], cliques_sem_mensagem: [] };
+      desenharFunil(rs, chave);
+    } catch (e) {
+      const msg = /supabase\/clientes\.sql/.test(e.message)
+        ? 'Falta rodar o SQL da RB Central no Supabase (arquivo supabase/central_conversas.sql do repositório Rbcentral). Ele cria o funil do WhatsApp.'
+        : e.message;
+      if (lista) lista.innerHTML = '<div class="a-card err-card">Não foi possível carregar o funil: ' + esc(msg) + '</div>';
+    }
+  }
+
+  // o pedido que vai pronto para a RB Central (o dono confere e toca em enviar; a mensagem só sai no Confirmar)
+  function pedidoFollowup(c) {
+    const quem = (c.nome || 'o cliente') + ' (' + c.numero + ')';
+    const base = 'Leia a conversa de WhatsApp com ' + quem + ' e prepare ';
+    const fim = ', para eu confirmar.';
+    switch (c.situacao) {
+      case 'loja_sem_responder': case 'aguardando_loja': return base + 'a resposta para o que ele perguntou' + fim;
+      case 'cliente_sumiu': return base + 'uma mensagem de follow-up (ele parou de responder), retomando o aparelho e o valor que conversamos, curta e sem pressão' + fim;
+      case 'nao_buscou': return base + 'um lembrete educado de que o aparelho está separado esperando por ele' + (c.retirada_em ? ' (combinado para ' + dataCurta(c.retirada_em) + ')' : '') + ' e pergunte quando ele pode vir' + fim;
+      case 'fechado': return base + 'uma mensagem confirmando o dia e o horário de buscar ou pagar' + fim;
+      case 'perdido': return base + 'uma última mensagem para tentar recuperar a venda, sem insistir' + fim;
+      case 'comprou': return base + 'uma mensagem de pós-venda perguntando se está tudo certo com o aparelho' + fim;
+      default: return base + 'a próxima mensagem' + fim;
+    }
+  }
+
+  function cartaoFunil(c) {
+    const s = SIT[c.situacao] || SIT.em_conversa;
+    const tempo = {
+      loja_sem_responder: 'Cliente esperando há ' + haQuanto(c.ultimo_contato),
+      aguardando_loja: 'Cliente mandou há ' + haQuanto(c.ultimo_contato),
+      cliente_sumiu: 'Sem resposta do cliente há ' + haQuanto(c.ultimo_contato),
+      nao_buscou: 'Fechou' + (c.retirada_em ? ' · combinado para ' + dataCurta(c.retirada_em) : '') + ' · ainda sem venda registrada',
+      fechado: 'Fechou' + (c.retirada_em ? ' · combinado para ' + dataCurta(c.retirada_em) : ''),
+      comprou: c.venda_em ? 'Venda registrada em ' + quando(c.venda_em) : 'A conversa mostra a compra concluída',
+      perdido: 'Último contato há ' + haQuanto(c.ultimo_contato)
+    }[c.situacao] || 'Último contato há ' + haQuanto(c.ultimo_contato);
+    const site = c.site;
+    const linhaSite = site ? '🌐 veio do ' + esc(deOnde(site.origem)) +
+      ((site.produtos || []).length ? ' · viu ' + site.produtos.map((p) => esc(p.nome) + (p.vezes > 1 ? ' (' + p.vezes + 'x)' : '')).join(', ') : '') +
+      (site.cliques ? ' · ' + site.cliques + (site.cliques === 1 ? ' clique' : ' cliques') : '') +
+      (site.whatsapp ? ' · tocou no WhatsApp ' + quando(site.whatsapp.quando) + (site.whatsapp.detalhe ? ' <span class="muted">(' + esc(site.whatsapp.origem || '') + ': ' + esc(site.whatsapp.detalhe) + ')</span>' : '') : '')
+      : '';
+    const etapaSel = '<select class="fu-etapa" title="Etiqueta"><option value="auto"' + (c.etapa_fixa ? '' : ' selected') + '>🤖 IA decide' + (c.etapa_fixa ? '' : ' (agora: ' + esc((ETAPAS_WA.find((e) => e[0] === c.etapa) || [0, c.etapa])[1]) + ')') + '</option>' +
+      ETAPAS_WA.map((e) => '<option value="' + e[0] + '"' + (c.etapa_fixa && c.etapa === e[0] ? ' selected' : '') + '>🏷️ ' + e[1] + '</option>').join('') + '</select>';
+    return '<div class="a-card cli fu" data-numero="' + esc(c.numero) + '">' +
+      '<div class="cli-top"><div><b class="cli-nome">' + esc(c.nome || foneBonito(c.numero)) + '</b><span class="cli-zap">' + esc(foneBonito(c.numero)) + '</span></div>' +
+        '<span class="fu-sit sit-' + esc(c.situacao) + '" title="' + esc(s[2]) + '">' + s[0] + ' ' + s[1] + '</span></div>' +
+      '<p class="fu-tempo">' + esc(tempo) + '</p>' +
+      '<dl class="cli-dl">' +
+        (linhaSite ? '<dt>Site</dt><dd>' + linhaSite + '</dd>' : '') +
+        (c.rbchat ? '<dt>RBChat</dt><dd>💬 deixou o contato' + (c.rbchat.interesse ? ': ' + esc(c.rbchat.interesse) : '') + (c.rbchat.entrada ? ' · entrada ' + esc(c.rbchat.entrada) : '') + '</dd>' : '') +
+        '<dt>WhatsApp</dt><dd>' + (c.interesse ? '📱 ' + esc(c.interesse) + (Number(c.valor) > 0 ? ' · ' + reaisF(c.valor) : '') : '') + (c.resumo ? (c.interesse ? ' — ' : '') + esc(c.resumo) : (c.msgs_novas > 0 ? '<span class="muted">a IA ainda vai ler esta conversa</span>' : '')) + '</dd>' +
+        (c.proxima_acao && !/comprou|perdido/.test(c.situacao) ? '<dt>Próximo passo</dt><dd>➡️ ' + esc(c.proxima_acao) + '</dd>' : '') +
+        (c.ultima_msg ? '<dt>Última</dt><dd>' + (c.ultima_de === 'cliente' ? 'Cliente' : 'Loja') + ': “' + esc(c.ultima_msg) + '”</dd>' : '') +
+      '</dl>' +
+      '<div class="cli-acoes">' + etapaSel +
+        '<button type="button" class="btn btn-sm btn-outline fu-ver">Ver conversa</button>' +
+        '<a class="btn btn-sm btn-ink" target="_blank" rel="noopener" href="' + CENTRAL_URL + '/?pedir=' + encodeURIComponent(pedidoFollowup(c)) + '">↗ Follow-up pela Central</a></div>' +
+      '<div class="fu-conversa" hidden></div>' +
+    '</div>';
+  }
+
+  function cartaoClique(k) {
+    return '<div class="a-card cli fu fu-anon"><div class="cli-top"><div><b class="cli-nome">Visitante do site</b><span class="cli-zap">sem número</span></div>' +
+      '<span class="fu-sit sit-clicou">' + SIT.clicou[0] + ' ' + SIT.clicou[1] + '</span></div>' +
+      '<p class="fu-tempo">Tocou no WhatsApp ' + esc(quando(k.quando)) + ' · veio do ' + esc(deOnde(k.veio_de)) + '</p>' +
+      '<dl class="cli-dl">' + (k.produto ? '<dt>Aparelho</dt><dd>📱 ' + esc(k.produto) + '</dd>' : '') +
+        (k.detalhe ? '<dt>Proposta</dt><dd>' + esc(k.detalhe) + '</dd>' : '') + '<dt>Botão</dt><dd>' + esc(k.botao || '—') + '</dd></dl></div>';
+  }
+
+  function desenharFunil(rs, chave) {
+    const lista = $('#fu-lista');
+    if (!lista || !funil) return;
+    const contatos = funil.contatos || [], cliques = funil.cliques_sem_mensagem || [];
+    const cont = { clicou: cliques.length };
+    contatos.forEach((c) => (cont[c.situacao] = (cont[c.situacao] || 0) + 1));
+    const chips = ORDEM_SIT.concat(['clicou']).filter((k) => cont[k] || ['loja_sem_responder', 'cliente_sumiu', 'nao_buscou'].includes(k));
+    const itens = filtroFunil === 'clicou' ? [] : contatos
+      .filter((c) => !filtroFunil || c.situacao === filtroFunil)
+      .sort((a, b) => ORDEM_SIT.indexOf(a.situacao) - ORDEM_SIT.indexOf(b.situacao) || new Date(b.ultimo_contato) - new Date(a.ultimo_contato));
+    lista.innerHTML =
+      '<div class="fu-chips">' +
+        '<button type="button" class="fu-chip' + (filtroFunil ? '' : ' on') + '" data-sit=""><strong>' + contatos.length + '</strong> Todos</button>' +
+        chips.map((k) => '<button type="button" class="fu-chip sit-' + k + (filtroFunil === k ? ' on' : '') + '" data-sit="' + k + '" title="' + esc(SIT[k][2]) + '"><strong>' + (cont[k] || 0) + '</strong> ' + SIT[k][0] + ' ' + SIT[k][1] + '</button>').join('') +
+      '</div>' +
+      (filtroFunil && SIT[filtroFunil] ? '<p class="hint">' + esc(SIT[filtroFunil][2]) + '.</p>' : '') +
+      (filtroFunil === 'clicou'
+        ? (cliques.length ? cliques.map(cartaoClique).join('') : '<div class="a-card"><p class="hint">Ninguém desistiu no meio do caminho nos últimos 30 dias. 👍</p></div>')
+        : itens.length ? itens.map(cartaoFunil).join('')
+          : '<div class="a-card"><p class="hint">' + (contatos.length ? 'Ninguém nessa situação agora. 👍' : 'Ainda não tem conversas de quem quer comprar iPhone. Elas aparecem aqui quando os clientes mandam mensagem no WhatsApp da loja (a leitura do WhatsApp é ligada na RB Central).') + '</p></div>') +
+      '<p class="hint">Prazos: loja sem responder depois de 30 min · cliente sumido depois de 24 h · perdido depois de 7 dias · fechou e não buscou 2 dias depois do dia combinado. "Comprou" fica certo quando a venda é registrada no sistema de OS com o mesmo WhatsApp.</p>';
+    $$('.fu-chip', lista).forEach((b) => b.addEventListener('click', () => { filtroFunil = b.dataset.sit; desenharFunil(rs, chave); }));
+    $$('.fu[data-numero]', lista).forEach((card) => {
+      const numero = card.dataset.numero;
+      const c = contatos.find((x) => x.numero === numero);
+      $('.fu-etapa', card).addEventListener('change', async (e) => {
+        try {
+          await rpcPainel(rs, 'central_wa_etiquetar', { chave, p_numero: numero, p_etapa: e.target.value });
+          toast(e.target.value === 'auto' ? 'A IA volta a escolher a etiqueta.' : 'Etiqueta salva.');
+          funil = null; carregarFunil(rs, chave);
+        } catch (er) { toast(er.message, true); }
+      });
+      $('.fu-ver', card).addEventListener('click', async () => {
+        const box = $('.fu-conversa', card);
+        if (!box.hidden) { box.hidden = true; return; }
+        box.hidden = false; box.innerHTML = '<p class="hint">Carregando…</p>';
+        try {
+          const d = await rpcPainel(rs, 'central_wa_conversa', { chave, p_numero: numero, p_limite: 40 });
+          const msgs = (d && d.mensagens) || [];
+          box.innerHTML = msgs.length ? msgs.map((m) => '<div class="fu-msg ' + (m.de_mim ? 'loja' : 'cliente') + '"><span>' + esc(m.texto) + '</span><small>' + esc(quando(m.criado)) + '</small></div>').join('') : '<p class="hint">Sem mensagens guardadas.</p>';
+        } catch (er) { box.innerHTML = '<p class="err">' + esc(er.message) + '</p>'; }
+      });
+      if (!c) card.remove();
     });
   }
 
