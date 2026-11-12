@@ -190,7 +190,7 @@
       lista.scrollTop = lista.scrollHeight;
       let resposta, zap = '', dados = {};
       try {
-        const r = await fetch('api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensagens: msgs, memoria: { entrada: entradaMem, anterior, contato: contato ? { nome: contato.nome, whatsapp: !!contato.whatsapp } : null } }) });
+        const r = await fetch('api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensagens: msgs, memoria: { entrada: entradaMem, anterior, contato: contato ? { nome: contato.nome, whatsapp: !!contato.whatsapp } : null, cupom: cupomSalvo() ? { codigo: cupomSalvo().codigo } : null } }) });
         const d = await r.json().catch(() => ({}));
         dados = d;
         if (d.entrada && d.entrada.modelo) { entradaMem = d.entrada; anterior = false; }

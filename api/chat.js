@@ -91,7 +91,8 @@ function sistema(cat) {
     'COMO NEGOCIAR (siga esta ordem)',
     '0. Veja a seção MEMÓRIA DO CLIENTE no fim. Se o iPhone de entrada já é conhecido (nesta conversa ou em uma anterior), NUNCA pergunte de novo se é só compra ou se vai dar entrada: quando ele perguntar por outro iPhone, use proposta_troca direto com esse mesmo iPhone de entrada e mande só a diferença.',
     '1. Quando o cliente perguntar se tem um iPhone (ou pedir preço de um iPhone) e ainda não sabemos se ele tem entrada, NÃO mande o preço ainda. Confirme se temos o modelo (memórias e cores disponíveis) e pergunte: "Você está procurando só a compra ou tem algum iPhone para dar de entrada?".',
-    '2. Se for só compra: aí sim informe o preço à vista e use calcular_parcelas para as parcelas no cartão.',
+    '2. Se for só compra: aí sim use a ferramenta proposta_compra e informe o valor à vista e as parcelas que ela devolver.',
+    '- CUPOM: se a MEMÓRIA DO CLIENTE disser que ele tem cupom salvo, as ferramentas proposta_compra e proposta_troca já descontam o cupom e calculam as parcelas em cima do valor final com desconto. Use sempre esses valores e diga que o cupom já foi aplicado (ex.: "com seu cupom BLACK já aplicado"). Nunca recalcule de cabeça.',
     '- Se o cliente perguntar o valor diretamente (ex.: "qual valor?", "quanto é?") antes de responder sobre a entrada, NÃO enrole: informe o valor exato à vista de cada aparelho em questão e o parcelamento (calcular_parcelas), e depois pergunte se ele tem iPhone para dar de entrada.',
     '- VALORES SEMPRE EXATOS: escreva o preço exatamente como está na lista (ex.: R$ 2.199,00), sem arredondar, sem "a partir de", sem "cerca de" e sem faixa de valores.',
     '3. Se tiver iPhone de entrada: pergunte modelo, armazenamento, se a bateria está abaixo de 80% e se tem algum detalhe (tela ou tampa trincada, Face ID, câmera etc.). Com isso, use a ferramenta proposta_troca e responda SOMENTE com o valor da diferença a pagar (à vista e as parcelas da diferença). Não informe o preço cheio do aparelho, nem o valor da avaliação do usado, nem o desconto de cada defeito.',
@@ -139,21 +140,51 @@ function sistema(cat) {
   ].filter((x) => x !== '').join('\n');
 }
 
-function propostaTroca(cat, entrada) {
+// Cupom salvo pelo cliente (pop-up): o valor do desconto vem sempre do catálogo publicado, nunca do navegador
+function cupomValido(cat, codigo) {
+  const pp = cat.popup || {};
+  if (!codigo || !pp.cupom || String(pp.cupom).trim().toUpperCase() !== String(codigo).trim().toUpperCase()) return null;
+  const hoje = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10); // dia em Brasília
+  if (pp.fim && hoje > pp.fim) return null;
+  const v = Number(pp.desconto) || 0;
+  if (v <= 0) return null;
+  return { codigo: pp.cupom, valor: v, tipo: pp.descontoTipo === 'pct' ? 'pct' : 'reais', em: pp.descontoEm === 'todos' ? 'todos' : 'iphone' };
+}
+function descontoCupom(cupom, p) {
+  if (!cupom || (cupom.em === 'iphone' && !ehIphone(p))) return 0;
+  const d = cupom.tipo === 'pct' ? Math.round(Number(p.preco) * Math.min(cupom.valor, 90)) / 100 : cupom.valor;
+  return Math.min(Math.round(d * 100) / 100, Number(p.preco) || 0);
+}
+
+function propostaCompra(cat, i, cupom) {
+  const p = (cat.produtos || []).find((x) => x.id === i.produto_id);
+  if (!p) return { erro: 'Aparelho não encontrado: use o id da lista de aparelhos à venda.' };
+  const desc = descontoCupom(cupom, p);
+  const final = Math.max(0, Math.round((Number(p.preco) - desc) * 100) / 100);
+  return Object.assign({
+    aparelho: nome(p) + ' ' + (p.cor || ''),
+    valor_a_vista: brl(final),
+    no_cartao: parcelas(cat, final)
+  }, desc > 0 ? { cupom_aplicado: cupom.codigo + ' (−' + brl(desc) + ')', preco_sem_cupom: brl(p.preco) } : {});
+}
+
+function propostaTroca(cat, entrada, cupom) {
   const p = (cat.produtos || []).find((x) => x.id === entrada.produto_id);
   if (!p) return { erro: 'Aparelho não encontrado: use o id da lista de aparelhos à venda.' };
   if (!ehIphone(p)) return { erro: 'Troca só vale na compra de iPhone.' };
   const av = avaliar(cat, entrada);
   if (av.erro || av.recusado || !av.pre_avaliacao) return Object.assign({ aparelho: nome(p) }, av);
   const valorUsado = Number(String(av.pre_avaliacao).replace(/[^\d,]/g, '').replace(',', '.')) || 0;
-  const dif = Math.max(0, Math.round((Number(p.preco) - valorUsado) * 100) / 100);
-  return {
+  const desc = descontoCupom(cupom, p);
+  const dif = Math.max(0, Math.round((Number(p.preco) - desc - valorUsado) * 100) / 100);
+  return Object.assign({
     aparelho: nome(p) + ' ' + (p.cor || ''),
     diferenca_a_vista: brl(dif),
-    diferenca_no_cartao: parcelas(cat, dif),
+    diferenca_no_cartao: parcelas(cat, dif)
+  }, desc > 0 ? { cupom_aplicado: cupom.codigo + ' (−' + brl(desc) + ')' } : {}, {
     so_se_o_cliente_perguntar: { preco_cheio: brl(p.preco), avaliacao_do_usado: av.pre_avaliacao },
     observacao: av.observacao
-  };
+  });
 }
 
 // Confere nome e WhatsApp; quem grava é o site (na lista de clientes do admin)
@@ -196,6 +227,12 @@ const FERRAMENTAS = [
       required: ['nome', 'whatsapp'],
       additionalProperties: false
     },
+    strict: true
+  },
+  {
+    name: 'proposta_compra',
+    description: 'Valor à vista e parcelas de um aparelho da lista para compra sem entrada, já com o cupom do cliente descontado (se ele tiver). Use sempre que for passar o valor de um aparelho.',
+    input_schema: { type: 'object', properties: { produto_id: { type: 'string', description: 'id do aparelho na lista' } }, required: ['produto_id'], additionalProperties: false },
     strict: true
   },
   {
@@ -251,6 +288,7 @@ module.exports = async (req, res) => {
 
   // Memória guardada no celular do cliente: o iPhone que ele informou para dar de entrada
   const mem = (req.body || {}).memoria || {};
+  const cupom = cupomValido(cat, mem.cupom && typeof mem.cupom === 'object' ? String(mem.cupom.codigo || '').slice(0, 40) : '');
   const e0 = mem.entrada && typeof mem.entrada === 'object' ? mem.entrada : null;
   const ent = e0 && typeof e0.modelo === 'string' ? {
     modelo: e0.modelo.slice(0, 40), armazenamento: String(e0.armazenamento || '').slice(0, 10),
@@ -264,7 +302,11 @@ module.exports = async (req, res) => {
   const memContato = nomeCliente
     ? 'O nome do cliente é ' + nomeCliente + (c0.whatsapp ? ' e o WhatsApp dele já está salvo' : ' (ele não passou o WhatsApp)') + '. Chame ele pelo nome e NÃO peça nome nem WhatsApp de novo.'
     : 'Ainda não sabemos o nome nem o WhatsApp do cliente: peça na sua primeira resposta (veja CONTATO DO CLIENTE).';
-  const memoria = 'MEMÓRIA DO CLIENTE\n' + memContato + '\n' + (!ent
+  const memCupom = cupom
+    ? 'O cliente tem o cupom ' + cupom.codigo + ' salvo: ' + (cupom.tipo === 'pct' ? cupom.valor + '% de desconto' : brl(cupom.valor) + ' de desconto') +
+      (cupom.em === 'iphone' ? ' (só em iPhones)' : '') + '. As ferramentas proposta_compra e proposta_troca já aplicam esse desconto.'
+    : 'O cliente não tem cupom de desconto salvo.';
+  const memoria = 'MEMÓRIA DO CLIENTE\n' + memContato + '\n' + memCupom + '\n' + (!ent
     ? 'Primeira conversa: ainda não sabemos se ele tem iPhone de entrada. Siga o passo 1 quando ele perguntar por um iPhone.'
     : mem.anterior
       ? 'Em uma conversa anterior o cliente informou este iPhone de entrada: ' + descricao + '. O site já abriu esta conversa nova perguntando: "Da última vez você falou do seu ' + ent.modelo + ' ' + ent.armazenamento + ' para dar de entrada. Ainda tem interesse em dar ele de entrada?". A primeira mensagem do cliente pode ser a resposta a isso. Se confirmar, use proposta_troca com esse aparelho e mande só a diferença; se não, trate como compra direta (ou pegue o novo aparelho de entrada). Se ele não respondeu a isso e perguntou outra coisa, pergunte de forma natural se ainda vai dar esse aparelho de entrada antes de mandar valores.'
@@ -332,13 +374,14 @@ module.exports = async (req, res) => {
           saida = b.name === 'calcular_parcelas'
             ? { valor: brl(b.input.valor), a_vista: brl(b.input.valor), cartao: parcelas(cat, Number(b.input.valor) || 0) }
             : b.name === 'avaliar_entrada' ? avaliar(cat, b.input)
-              : b.name === 'proposta_troca' ? propostaTroca(cat, b.input)
+              : b.name === 'proposta_troca' ? propostaTroca(cat, b.input, cupom)
+                : b.name === 'proposta_compra' ? propostaCompra(cat, b.input, cupom)
                 : b.name === 'salvar_contato' ? salvarContato(b.input) : { erro: 'ferramenta desconhecida' };
         } catch (e) {
           return { type: 'tool_result', tool_use_id: b.id, content: 'erro: ' + e.message, is_error: true };
         }
         if (b.name === 'salvar_contato' && saida && saida.salvo) contatoNovo = saida.salvo;
-        if (b.name === 'proposta_troca' && saida && !saida.erro) {
+        if ((b.name === 'proposta_troca' || b.name === 'proposta_compra') && saida && !saida.erro) {
           const p = (cat.produtos || []).find((x) => x.id === b.input.produto_id);
           if (p) produtoProposta = { id: p.id, nome: nome(p), cor: p.cor || '' };
         }

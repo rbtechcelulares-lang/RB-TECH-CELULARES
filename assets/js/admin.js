@@ -58,6 +58,29 @@
 
   boot();
 
+  // Junta o rascunho com o publicado: em cada seção (e em cada campo das seções-objeto),
+  // vale o rascunho só onde ele mudou em relação à versão em que foi criado.
+  function mesclarRascunho(base, rasc, pub) {
+    const igual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    const objeto = (v) => v && typeof v === 'object' && !Array.isArray(v);
+    const out = clone(rasc);
+    Object.keys(pub).forEach((k) => {
+      const r = rasc[k], b = base ? base[k] : undefined, pv = pub[k];
+      if (r === undefined || (objeto(r) && !Object.keys(r).length && objeto(pv) && Object.keys(pv).length)) { out[k] = clone(pv); return; }
+      if (!base) {
+        if (objeto(r) && objeto(pv)) Object.keys(pv).forEach((c) => { if (out[k][c] === undefined) out[k][c] = clone(pv[c]); });
+        return;
+      }
+      if (igual(r, b)) { out[k] = clone(pv); return; }
+      if (objeto(r) && objeto(pv)) {
+        Object.keys(pv).forEach((c) => {
+          if (r[c] === undefined || (objeto(b) && igual(r[c], b[c]))) out[k][c] = clone(pv[c]);
+        });
+      }
+    });
+    return out;
+  }
+
   async function boot() {
     try {
       publicado = await RB.carregarCatalogo();
@@ -73,7 +96,17 @@
       rasc = null;
       try { localStorage.removeItem(RB.DRAFT_KEY); localStorage.setItem(PUB_KEY, JSON.stringify(publicado)); } catch (e) { /* ignora */ }
     }
+    // rascunho antigo: só fica o que foi mudado nele; o resto vem do site publicado
+    // (assim uma publicação não apaga configurações novas, como o RBChat)
+    if (rasc && publicado) rasc = mesclarRascunho(ultimo ? JSON.parse(ultimo) : null, rasc, publicado);
     cat = rasc || clone(publicado);
+    // a versão publicada de agora é a base dos próximos rascunhos
+    if (publicado) {
+      try {
+        localStorage.setItem(PUB_KEY, JSON.stringify(publicado));
+        if (rasc) localStorage.setItem(RB.DRAFT_KEY, JSON.stringify(rasc));
+      } catch (e) { /* ignora */ }
+    }
     if (!cat) { document.body.innerHTML = '<p style="padding:24px">Não foi possível carregar data/catalogo.json.</p>'; return; }
 
     $('#login-form').addEventListener('submit', entrar);
