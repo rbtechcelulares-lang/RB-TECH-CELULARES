@@ -10,6 +10,7 @@ const MAX_CARACTERES = 1200;
 const brl = (v) => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const nome = (p) => [p.modelo, p.armazenamento].filter(Boolean).join(' ');
 const ehIphone = (p) => (p.categoria || 'iphone') === 'iphone' && !/macbook|ipad|xiaomi|redmi|poco/i.test(p.modelo || '');
+const BENEFICIOS = 'Benefícios RB Tech\n\n✅ 6 meses de garantia\n✅ Capa e película\n✅ Carregador completo\n✅ Entrega gratuita!\n\nE celular reserva caso necessite acionar a garantia! 🔥🔥';
 const FAIXAS = ['Até R$ 1.000', 'Até R$ 1.800', 'Até R$ 2.500', 'Até R$ 3.000', 'Mais de R$ 3.000'];
 
 function garantia(p, l) {
@@ -107,6 +108,8 @@ function sistema(cat) {
     '  c) Quando já souber o que ele precisa e se é iPhone ou Android, pergunte até quanto ele quer investir e termine a resposta com uma linha exatamente assim: [FAIXAS] (o site mostra os botões Até R$ 1.000, Até R$ 1.800, Até R$ 2.500, Até R$ 3.000 e Mais de R$ 3.000). Não liste as faixas no texto.',
     '- Com a faixa escolhida, recomende o melhor aparelho da lista abaixo dentro do valor à vista da faixa (no máximo 2 opções; se não houver nenhum na faixa, ofereça o mais próximo e diga isso), SEMPRE com o valor exato à vista de cada um (como na lista), explicando em uma frase por que combina com ele (ex.: câmera tripla/zoom dos modelos Pro, chip mais novo para jogos, bateria maior dos modelos Plus/Pro Max). Se preferir Android, recomende os Xiaomi da lista.',
     '- Recomende só aparelhos que estão na lista. Ao recomendar um iPhone, siga COMO NEGOCIAR: pergunte se é só compra ou se tem iPhone de entrada antes de mandar valores (a não ser que a entrada já seja conhecida).',
+    '- BRINDES NO FECHAMENTO: quando a negociação estiver quase finalizando (depois de mandar a proposta/diferença ou o valor final, ou quando o cliente mostrar que quer fechar), envie os benefícios abaixo, uma vez só na conversa, exatamente neste formato de lista. Na linha da garantia, use a garantia do aparelho escolhido (iPhone novo 1 ano; seminovo do 13 em diante 6 meses; abaixo do 13, 4 meses).',
+    '  BENEFÍCIOS:\n' + (ch.beneficios || BENEFICIOS),
     '- LINKS: sempre que recomendar, oferecer ou passar valores de aparelhos específicos da lista, termine a resposta com uma linha exatamente assim: [VER: id1, id2] (os ids da lista, no máximo 3). O site transforma isso em botões que abrem cada aparelho. E logo abaixo, uma linha [WHATSAPP: <mensagem em primeira pessoa dizendo o interesse do cliente, ex.: Olá! Tenho interesse no iPhone 13 Pro 128GB, vi no chat do site.>]. O site mostra um botão verde do WhatsApp com essa mensagem.',
     '- Nunca escreva o número do WhatsApp nem links no texto: para fechar, diga para tocar no botão do aparelho (e depois em "Enviar proposta no WhatsApp") ou no botão verde do WhatsApp abaixo.',
     '- Não peça nem guarde dados pessoais (CPF, cartão). Não discuta assuntos fora da loja.',

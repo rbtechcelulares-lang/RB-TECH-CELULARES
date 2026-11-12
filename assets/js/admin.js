@@ -661,6 +661,9 @@
       '<div class="a-card"><h3>📝 Informações para a IA</h3>' +
         '<p class="hint">Escreva aqui tudo que a IA deve saber e usar nas respostas: novidades, aparelhos que vão chegar, acessórios que vocês vendem, prazos de entrega, formas de envio, promoções, respostas para perguntas comuns… Um assunto por linha.</p>' +
         '<label class="field"><span>Informações</span><textarea data-bind="chat.informacoes" rows="12" placeholder="Ex.:\n- Chega iPhone 17 Pro Max laranja na próxima semana.\n- Vendemos capinha e película: R$ 49 cada.\n- Entregamos em Florianópolis no mesmo dia (taxa R$ 20).">' + esc(ch.informacoes || '') + '</textarea></label></div>' +
+      '<div class="a-card"><h3>🎁 Benefícios enviados no fechamento</h3>' +
+        '<p class="hint">A IA manda esta lista quando a negociação estiver quase fechando. A linha da garantia é ajustada sozinha para a garantia do aparelho.</p>' +
+        '<label class="field"><span>Benefícios</span><textarea data-bind="chat.beneficios" rows="8">' + esc(ch.beneficios || '') + '</textarea></label></div>' +
       '<div class="a-card"><h3>📋 Políticas da loja</h3>' +
         '<p class="hint">Garantia, trocas, devolução, retirada, entrega… A garantia dos iPhones é automática (novo 1 ano; seminovo do 13 em diante 6 meses; abaixo do 13, 4 meses).</p>' +
         '<label class="field"><span>Políticas</span><textarea data-bind="chat.politicas" rows="8">' + esc(ch.politicas || '') + '</textarea>' +
