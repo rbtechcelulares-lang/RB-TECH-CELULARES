@@ -1204,10 +1204,9 @@
       "corHex": "#4b3f5c",
       "condicao": "Seminovo",
       "bateria": null,
-      "preco": 2899,
-      "precoAntigo": 0,
+      "preco": 2799,
+      "precoAntigo": 3000,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1236,7 +1235,13 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "vitrine": true,
+      "categoria": "iphone",
+      "specs": "",
+      "topo": false,
+      "encomenda": false,
+      "prazo": ""
     },
     {
       "id": "p-14pro-256gb",
@@ -1373,7 +1378,7 @@
       "condicao": "Seminovo",
       "bateria": null,
       "preco": 2799,
-      "precoAntigo": 0,
+      "precoAntigo": 3100,
       "garantia": "90 dias",
       "destaque": true,
       "disponivel": true,
@@ -1404,7 +1409,13 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "categoria": "iphone",
+      "specs": "",
+      "topo": false,
+      "vitrine": true,
+      "encomenda": false,
+      "prazo": ""
     },
     {
       "id": "p-15-256gb",
@@ -1708,10 +1719,9 @@
       "corHex": "#c8ae93",
       "condicao": "Seminovo",
       "bateria": null,
-      "preco": 4500,
-      "precoAntigo": 0,
+      "preco": 4447,
+      "precoAntigo": 4900,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1740,7 +1750,13 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "vitrine": true,
+      "categoria": "iphone",
+      "specs": "",
+      "topo": false,
+      "encomenda": false,
+      "prazo": ""
     },
     {
       "id": "p-16pro-256gb",
@@ -1792,10 +1808,9 @@
       "corHex": "#c8ae93",
       "condicao": "Seminovo",
       "bateria": null,
-      "preco": 5400,
-      "precoAntigo": 0,
+      "preco": 5159,
+      "precoAntigo": 5499,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1824,7 +1839,13 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "vitrine": true,
+      "categoria": "iphone",
+      "specs": "",
+      "topo": false,
+      "encomenda": false,
+      "prazo": ""
     },
     {
       "id": "p-16promax-512gb",
@@ -1973,10 +1994,9 @@
       "corHex": "#5b1a2a",
       "condicao": "Novo lacrado",
       "bateria": 100,
-      "preco": 8450,
-      "precoAntigo": 0,
+      "preco": 8299,
+      "precoAntigo": 8799,
       "garantia": "1 ano",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia.",
@@ -2005,7 +2025,12 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "vitrine": true,
+      "specs": "",
+      "topo": false,
+      "encomenda": false,
+      "prazo": ""
     },
     {
       "id": "p-18pro-256gb-branco",
@@ -2148,7 +2173,6 @@
       "preco": 9490,
       "precoAntigo": 9890,
       "garantia": "1 ano",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia.",
@@ -2180,7 +2204,7 @@
       },
       "topo": false,
       "specs": "",
-      "vitrine": false,
+      "vitrine": true,
       "encomenda": false,
       "prazo": ""
     },
@@ -2498,7 +2522,7 @@
       "precoAntigo": 0,
       "garantia": "1 ano",
       "topo": false,
-      "vitrine": false,
+      "vitrine": true,
       "disponivel": true,
       "fotos": [
         "img/xiaomi/poco-c71-128gb.webp"
@@ -2520,7 +2544,7 @@
       "precoAntigo": 0,
       "garantia": "1 ano",
       "topo": false,
-      "vitrine": false,
+      "vitrine": true,
       "disponivel": true,
       "fotos": [
         "img/xiaomi/redmi-a7-pro-128gb.webp"
@@ -2542,7 +2566,7 @@
       "precoAntigo": 0,
       "garantia": "1 ano",
       "topo": false,
-      "vitrine": false,
+      "vitrine": true,
       "disponivel": true,
       "fotos": [
         "img/xiaomi/poco-c81-pro-nfc-128gb.webp"
@@ -2564,7 +2588,7 @@
       "precoAntigo": 0,
       "garantia": "1 ano",
       "topo": false,
-      "vitrine": false,
+      "vitrine": true,
       "disponivel": true,
       "fotos": [
         "img/xiaomi/redmi-15c-nfc-128gb.webp"
@@ -2586,7 +2610,7 @@
       "precoAntigo": 0,
       "garantia": "1 ano",
       "topo": false,
-      "vitrine": false,
+      "vitrine": true,
       "disponivel": true,
       "fotos": [
         "img/xiaomi/poco-c85-nfc-128gb.webp"
@@ -2608,7 +2632,7 @@
       "precoAntigo": 0,
       "garantia": "1 ano",
       "topo": false,
-      "vitrine": false,
+      "vitrine": true,
       "disponivel": true,
       "fotos": [
         "img/xiaomi/redmi-15c-256gb.webp"
@@ -2630,7 +2654,7 @@
       "precoAntigo": 0,
       "garantia": "1 ano",
       "topo": false,
-      "vitrine": false,
+      "vitrine": true,
       "disponivel": true,
       "fotos": [
         "img/xiaomi/poco-c85-nfc-256gb.webp"
@@ -2652,7 +2676,7 @@
       "precoAntigo": 0,
       "garantia": "1 ano",
       "topo": false,
-      "vitrine": false,
+      "vitrine": true,
       "disponivel": true,
       "fotos": [
         "img/xiaomi/redmi-note-14-256gb.webp"
@@ -2674,7 +2698,7 @@
       "precoAntigo": 0,
       "garantia": "1 ano",
       "topo": false,
-      "vitrine": false,
+      "vitrine": true,
       "disponivel": true,
       "fotos": [
         "img/xiaomi/redmi-note-14s-nfc-256gb.webp"
@@ -2696,7 +2720,7 @@
       "precoAntigo": 0,
       "garantia": "1 ano",
       "topo": false,
-      "vitrine": false,
+      "vitrine": true,
       "disponivel": true,
       "fotos": [
         "img/xiaomi/poco-m8s-5g-nfc-256gb.webp"
@@ -2718,7 +2742,7 @@
       "precoAntigo": 0,
       "garantia": "1 ano",
       "topo": false,
-      "vitrine": false,
+      "vitrine": true,
       "disponivel": true,
       "fotos": [
         "img/xiaomi/redmi-note-17-nfc-256gb.webp"
@@ -2740,7 +2764,7 @@
       "precoAntigo": 0,
       "garantia": "1 ano",
       "topo": false,
-      "vitrine": false,
+      "vitrine": true,
       "disponivel": true,
       "fotos": [
         "img/xiaomi/redmi-note-15-pro-5g-nfc-256gb.webp"
