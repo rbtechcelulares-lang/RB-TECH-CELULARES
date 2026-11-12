@@ -622,6 +622,17 @@
     el.innerHTML =
       '<div class="a-head"><div><h2>Promoções</h2><p class="muted">O destaque do início da página e o pop-up que abre quando o cliente entra no site.</p></div></div>' +
 
+      '<div class="a-card"><div class="pop-head"><h3>🔥 Black Friday</h3>' +
+        '<label class="switch" title="Ligar Black Friday"><input type="checkbox" data-bind="blackfriday.ativo"' + ((cat.blackfriday || {}).ativo ? ' checked' : '') + '><span></span></label></div>' +
+        '<p class="hint">Liga o visual de Black Friday no site inteiro: faixa com contagem regressiva, fogo nos preços e avisos de venda no canto da tela. Depois da data final, o site volta ao normal sozinho.</p>' +
+        '<div class="ed-grid">' +
+          '<label class="field"><span>Termina em</span><input type="datetime-local" data-bind="blackfriday.fim" value="' + esc((cat.blackfriday || {}).fim || '') + '"></label>' +
+          '<label class="field"><span>Texto da faixa</span>' + inp('blackfriday.texto', (cat.blackfriday || {}).texto || '', 'placeholder="🔥 Ofertas *esgotando*"') + '</label>' +
+          '<label class="field"><span>Avisos de venda a cada (segundos)</span>' + num('blackfriday.intervalo', (cat.blackfriday || {}).intervalo ?? 18, 'min="8" max="120"') + '</label>' +
+          '<label class="check" style="align-self:end;margin-bottom:12px"><input type="checkbox" data-bind="blackfriday.vendas"' + ((cat.blackfriday || {}).vendas !== false ? ' checked' : '') + '> Mostrar avisos "Vendeu iPhone…"</label>' +
+        '</div>' +
+      '</div>' +
+
       '<div class="a-card"><h3>⭐ Promoção do topo da página inicial</h3>' +
         '<p class="hint">Aparecem aqui os aparelhos marcados com <b>⭐ Topo</b> na aba iPhones. Com mais de um, vira um carrossel que passa sozinho.</p>' +
         '<div class="topo-lista">' + (cat.produtos.filter(RB.noTopo).map((p) =>

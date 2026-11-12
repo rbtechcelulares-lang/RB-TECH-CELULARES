@@ -67,6 +67,66 @@
     registrarVisita();
     rota();
     agendarPopup();
+    blackFriday();
+  }
+
+  /* ---------- Black Friday: tema, contagem regressiva e avisos de venda ---------- */
+  function blackFriday() {
+    const bf = cat.blackfriday || {};
+    if (!bf.ativo) return;
+    const fim = bf.fim ? new Date(bf.fim) : null;
+    if (fim && Date.now() > fim.getTime()) return; // campanha acabou: site volta ao normal sozinho
+    document.body.classList.add('bf');
+    const bar = $('#bf-bar');
+    bar.innerHTML = '<div class="wrap bf-in"><span class="bf-tag">BLACK FRIDAY</span>' +
+      '<span class="bf-txt">' + RB.formatar(cat, bf.texto || '🔥 Ofertas *esgotando*') + '</span>' +
+      (fim ? '<span class="bf-timer" id="bf-timer" aria-live="off"></span>' : '') + '</div>';
+    bar.hidden = false;
+    // selo no topo da página inicial
+    const titulo = $('.hero-title');
+    if (titulo && !$('.bf-hero')) titulo.insertAdjacentHTML('beforebegin', '<p class="bf-hero"><span>BLACK</span> FRIDAY</p>');
+    if (fim) {
+      const t = $('#bf-timer');
+      const dois = (n) => String(n).padStart(2, '0');
+      const tick = () => {
+        let s = Math.max(0, Math.floor((fim.getTime() - Date.now()) / 1000));
+        const d = Math.floor(s / 86400); s %= 86400;
+        const h = Math.floor(s / 3600); s %= 3600;
+        const m = Math.floor(s / 60); s %= 60;
+        t.innerHTML = '<small>termina em</small>' + (d ? '<b>' + d + '</b><i>d</i>' : '') +
+          '<b>' + dois(h) + '</b><i>h</i><b>' + dois(m) + '</b><i>m</i><b>' + dois(s) + '</b><i>s</i>';
+      };
+      tick(); setInterval(tick, 1000);
+    }
+    if (bf.vendas !== false && !preview) avisosDeVenda(bf);
+  }
+
+  function avisosDeVenda(bf) {
+    const pool = todos().filter((p) => RB.ehIphone(p));
+    if (!pool.length) return;
+    const cidades = bf.cidades && bf.cidades.length ? bf.cidades : ['São José', 'Florianópolis', 'Palhoça', 'Biguaçu', 'Santo Amaro da Imperatriz'];
+    const box = document.createElement('div');
+    box.className = 'bf-venda'; box.setAttribute('role', 'status'); box.hidden = true;
+    document.body.appendChild(box);
+    const intervalo = Math.max(8, Number(bf.intervalo) || 18) * 1000;
+    let timer;
+    const mostrar = () => {
+      if (!$('#sheet').hidden || document.getElementById('rb-popup') || document.getElementById('rb-aviso')) { timer = setTimeout(mostrar, 4000); return; }
+      const p = pool[Math.floor(Math.random() * pool.length)];
+      const min = 2 + Math.floor(Math.random() * 38);
+      box.innerHTML = '<span class="bv-img">' + RB.imagemProduto(p, true) + '</span>' +
+        '<span class="bv-txt"><b>🔥 Vendeu ' + esc(RB.nomeProduto(p)) + '</b>' +
+        '<small>' + esc(cidades[Math.floor(Math.random() * cidades.length)]) + ' · há ' + min + ' min</small></span>' +
+        '<button type="button" aria-label="Fechar">×</button>';
+      box.onclick = (e) => {
+        if (e.target.closest('button')) { box.hidden = true; return; }
+        origemClique = 'venda'; location.hash = '#p/' + encodeURIComponent(p.id); box.hidden = true;
+      };
+      box.hidden = false; box.classList.remove('sai'); void box.offsetWidth; box.classList.add('entra');
+      setTimeout(() => { box.classList.add('sai'); setTimeout(() => (box.hidden = true), 400); }, 5500);
+      timer = setTimeout(mostrar, intervalo + Math.random() * intervalo * 0.6);
+    };
+    timer = setTimeout(mostrar, 7000);
   }
 
   function registrarVisita() {

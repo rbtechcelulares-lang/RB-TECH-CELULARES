@@ -2731,5 +2731,12 @@
   "rastreamento": {
     "supabaseUrl": "https://krtmdlanpuyqihwvbwxe.supabase.co",
     "supabaseChave": "sb_publishable_eSjD52qlqg2GBnB6IxbvbA_FViIEpmf"
+  },
+  "blackfriday": {
+    "ativo": true,
+    "fim": "2026-11-30T23:59",
+    "texto": "🔥 Ofertas *esgotando* · preços que não voltam",
+    "intervalo": 18,
+    "vendas": true
   }
 }
