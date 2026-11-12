@@ -333,7 +333,7 @@
     "texto": "+ 4 BRINDES EXCLUSIVOS - MELHOR PREÇO DO BRASIL!  - Ultimas unidades disponíveis "
   },
   "popup": {
-    "ativo": false,
+    "ativo": true,
     "selo": "Só esta semana",
     "titulo": "Ganhe UM BRINDE EXCLUSIVO ",
     "texto": "Toque em \"Salvar meu cupom\" e Brinde  compra de qualquer iPhone Novo ou seminovo.",
@@ -342,7 +342,7 @@
     "acao": "vitrine",
     "produtoId": "",
     "link": "",
-    "imagem": "img/promo/popup-mvhlhjjr.jpg",
+    "imagem": "img/promo/popup-mwcxaini.webp",
     "frequencia": "sessao",
     "atraso": 1,
     "inicio": "",
