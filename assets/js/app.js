@@ -176,7 +176,7 @@
     const f = { tipo: '', marca: '', outraMarca: '', modelo: '', defeitos: [], relato: '', nome: ct.nome || '', fone: foneFmt(ct.whatsapp) };
     box.innerHTML =
       '<h2 class="rep-h">Conte o que aconteceu 🔧</h2>' +
-      '<p class="rbp-txt">Leva menos de 1 minuto. Um especialista já recebe tudo certinho.</p>' +
+      '<p class="rbp-txt">É pra já! Quem fica sem celular hoje em dia? 📱 Leva menos de 1 minuto.</p>' +
       '<div class="rep-form">' +
         '<span class="rep-lbl">Seu aparelho é</span>' +
         '<div class="rep-tipo"><button type="button" data-tipo="Apple">🍎 Apple (iPhone)</button><button type="button" data-tipo="Android">🤖 Android</button></div>' +
@@ -438,7 +438,13 @@
       if (!texto || ocupado) return;
       campo.value = '';
       if (pedeAjuda(texto)) return escolher();
-      if (/^🔧 Preciso de reparo$/.test(texto)) { if (innerWidth < 760) abrir(false); abrirReparo('chat'); return; }
+      if (/^🔧 Preciso de reparo$/.test(texto)) {
+        zerarSeParado();
+        msgs.push({ role: 'user', content: texto }, { role: 'assistant', content: 'É pra já! 🔧 Quem fica sem celular hoje em dia, né? Me conta rapidinho o que aconteceu no formulário que abri pra você 👇' });
+        guardar(); desenhar();
+        setTimeout(() => { if (innerWidth < 760) abrir(false); abrirReparo('chat'); }, 700);
+        return;
+      }
       if (/^📱 iPhones disponíveis$/.test(texto)) { location.href = 'catalogo.html?cat=iphone' + (preview ? '&preview=1' : ''); return; }
       if (/^🤖 Androids disponíveis$/.test(texto)) { location.href = 'catalogo.html?cat=xiaomi' + (preview ? '&preview=1' : ''); return; }
       const fixa = respostaFixa(texto);
