@@ -571,7 +571,7 @@
           RB.imagemProduto(p) + '</div></a>' +
         '<div class="spot-info">' +
           '<span class="ribbon">' + esc(promo.faixa || (off ? 'Oferta da semana' : 'Destaque da semana')) + '</span>' +
-          '<p class="eyebrow">' + esc(p.condicao) + ' · garantia ' + esc(p.garantia || cat.loja.garantiaPadrao) + (RB.sobEncomenda(p) ? ' · sob encomenda' : '') + '</p>' +
+          '<p class="eyebrow">' + esc(p.condicao) + ' · garantia ' + esc(RB.garantia(p, cat)) + (RB.sobEncomenda(p) ? ' · sob encomenda' : '') + '</p>' +
           '<h2 class="spot-title">' + esc(RB.nomeProduto(p)) + '</h2>' +
           (promo.texto ? '<p class="spot-text">' + esc(promo.texto) + '</p>' : '') +
           '<p class="spot-sub">' + esc(p.cor) + (!RB.ehIphone(p) ? (p.specs ? ' · ' + esc(p.specs) : '') : ' · bateria ' + esc(RB.batTexto(p, cat)) + ' · checklist completo') + '</p>' +
@@ -784,7 +784,7 @@
             '<button class="' + (i === 0 ? 'on' : '') + '" data-i="' + i + '"><img src="' + esc(f) + '" alt="Foto ' + (i + 1) + '"></button>').join('') + '</div>' : '') +
         '</div>' +
         '<div class="pd-info">' +
-          '<p class="eyebrow eyebrow-dark">' + esc(p.condicao) + ' · Garantia ' + esc(p.garantia || cat.loja.garantiaPadrao) + (RB.sobEncomenda(p) ? ' · Sob encomenda' : '') + '</p>' +
+          '<p class="eyebrow eyebrow-dark">' + esc(p.condicao) + ' · Garantia ' + esc(RB.garantia(p, cat)) + (RB.sobEncomenda(p) ? ' · Sob encomenda' : '') + '</p>' +
           '<h2 id="sheet-title" class="pd-title">' + esc(p.modelo) + '</h2>' +
           '<p class="card-meta"><span class="dot" style="background:' + esc(p.corHex || '#ccc') + '"></span>' + esc(p.cor) + ' · ' + esc(p.armazenamento) +
             (!RB.ehIphone(p) ? (p.specs ? ' · ' + esc(p.specs) : '') : ' · ' + (RB.batNumero(p, cat) ? batteryIcon(RB.batNumero(p, cat)) + ' ' : '') + 'bateria ' + esc(RB.batTexto(p, cat))) + '</p>' +
@@ -970,7 +970,7 @@
   function specsFicha(p) {
     const itens = [['Armazenamento', p.armazenamento], ['Configuração', p.specs], ['Cor', p.cor], ['Condição', p.condicao],
       ['Bateria', RB.batTexto(p, cat)],
-      ['Garantia', p.garantia || cat.loja.garantiaPadrao]].filter((x) => x[1]);
+      ['Garantia', RB.garantia(p, cat)]].filter((x) => x[1]);
     return '<h3 class="pd-h">Especificações</h3><ul class="checklist">' + itens.map(([k, v]) =>
       '<li class="ck ck-ok"><span class="ck-ic">✓</span><div><strong>' + esc(k) + '</strong><small>' + esc(v) + '</small></div></li>').join('') + '</ul>';
   }

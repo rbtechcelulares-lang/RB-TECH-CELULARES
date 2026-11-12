@@ -127,6 +127,17 @@
   const ehMac = (p) => categoria(p) === 'macbook';
   const ehNovo = (p) => /^novo|lacrad/i.test(p.condicao || '');
 
+  // Garantia dos iPhones (regra da loja): novo lacrado 1 ano; seminovo do iPhone 13 em diante 6 meses; abaixo do 13, 4 meses.
+  function garantia(p, cat) {
+    if (ehIphone(p)) {
+      if (ehNovo(p)) return '1 ano';
+      const m = String(p.modelo || '').match(/iPhone\s*(\d+)/i);
+      const n = m ? Number(m[1]) : /air/i.test(p.modelo || '') ? 99 : 0;
+      return n >= 13 ? '6 meses' : '4 meses';
+    }
+    return p.garantia || (cat && cat.loja && cat.loja.garantiaPadrao) || '';
+  }
+
   // Onde o aparelho aparece: promoção do topo, vitrine da página inicial e catálogo
   const noTopo = (p) => !!p.topo;
   const naVitrine = (p) => (p.vitrine != null ? !!p.vitrine : !!p.destaque);
@@ -480,6 +491,6 @@
     DRAFT_KEY, CHECKLIST_ITENS, STATUS,
     money, esc, lerRascunho, carregarCatalogo,
     TEXTOS, texto, formatar, registrar, limparSupabase, abrirAviso, cabecalhosSupabase, campanhaVigente, abrirPopup,
-    avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, batNumero, CATEGORIAS, categoria, ehIphone, ehMac, ehNovo, noTopo, naVitrine, noCatalogo, ativo, emPromocao, sobEncomenda, nomeProduto, phoneSVG, produtoSVG, fotoModelo, coresDoModelo, imagemProduto, sha256
+    avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, batNumero, CATEGORIAS, categoria, ehIphone, ehMac, ehNovo, garantia, noTopo, naVitrine, noCatalogo, ativo, emPromocao, sobEncomenda, nomeProduto, phoneSVG, produtoSVG, fotoModelo, coresDoModelo, imagemProduto, sha256
   };
 })(window);

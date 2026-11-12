@@ -10,6 +10,15 @@ const MAX_CARACTERES = 1200;
 const brl = (v) => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const nome = (p) => [p.modelo, p.armazenamento].filter(Boolean).join(' ');
 const ehIphone = (p) => (p.categoria || 'iphone') === 'iphone' && !/macbook|ipad|xiaomi|redmi|poco/i.test(p.modelo || '');
+function garantia(p, l) {
+  if (ehIphone(p)) {
+    if (/^novo|lacrad/i.test(p.condicao || '')) return '1 ano';
+    const m = String(p.modelo || '').match(/iPhone\s*(\d+)/i);
+    const n = m ? Number(m[1]) : /air/i.test(p.modelo || '') ? 99 : 0;
+    return n >= 13 ? '6 meses' : '4 meses';
+  }
+  return p.garantia || (l && l.garantiaPadrao) || '';
+}
 const ativo = (p) => !!p.topo || (p.vitrine != null ? !!p.vitrine : !!p.destaque) || p.disponivel !== false;
 
 function bateria(p, cat) {
@@ -27,7 +36,8 @@ function parcelas(cat, valor) {
     const t = (pg.taxas || {})[n];
     if (t === undefined || t === null || t === '') continue;
     const total = Math.round(valor * (1 + Number(t) / 100) * 100) / 100;
-    out.push({ parcelas: n, valor_parcela: brl(total / n), total: brl(total) });
+    // só o valor de cada parcela: o total com juros não é passado ao cliente
+    out.push({ parcelas: n, valor_parcela: brl(total / n) });
   }
   return out;
 }
@@ -65,7 +75,7 @@ function sistema(cat) {
   const produtos = (cat.produtos || []).filter(ativo).map((p) =>
     '- ' + nome(p) + ' | ' + (p.cor || '') + ' | ' + (p.condicao || '') + (ehIphone(p) ? ' | bateria ' + bateria(p, cat) : (p.specs ? ' | ' + p.specs : '')) +
     ' | ' + brl(p.preco) + ' à vista' + (p.precoAntigo > p.preco ? ' (antes ' + brl(p.precoAntigo) + ')' : '') +
-    ' | garantia ' + (p.garantia || l.garantiaPadrao || '') + (p.encomenda ? ' | SOB ENCOMENDA' + (p.prazo ? ' (' + p.prazo + ')' : '') : '') +
+    ' | garantia ' + garantia(p, l) + (p.encomenda ? ' | SOB ENCOMENDA' + (p.prazo ? ' (' + p.prazo + ')' : '') : '') +
     ' | id ' + p.id).join('\n');
   const aceitos = ((cat.avaliacao || {}).modelos || []).map((m) => m.nome + (m.whatsapp ? ' (avaliação pelo WhatsApp)' : '')).join(', ');
   return [
@@ -83,6 +93,7 @@ function sistema(cat) {
     '4. Só informe o preço cheio do aparelho ou o valor da avaliação do usado se o cliente perguntar especificamente por eles depois da proposta.',
     '- Sempre diga que a avaliação do usado é confirmada na loja depois do teste do aparelho.',
     '- Para qualquer parcelamento use as ferramentas (a taxa da maquininha já está incluída); nunca faça a conta de cabeça.',
+    '- Ao passar valores no cartão, diga só a quantidade e o valor de cada parcela (ex.: "12x de R$ 131,58"). NUNCA informe o total parcelado com juros, a taxa ou quanto fica a mais: a proposta termina no parcelamento.',
     '- A troca (dar o usado de entrada) vale só na compra de iPhones; MacBook, Xiaomi e iPad são sem entrada: nesses, informe o preço normalmente.',
     '',
     'AJUDAR A ESCOLHER',
@@ -101,8 +112,11 @@ function sistema(cat) {
     'WhatsApp: ' + (l.whatsapp || '') + ' | Instagram: @' + String(l.instagram || '').replace(/^@/, '') + ' | Endereço: ' + (l.endereco || '') + ' | Horário: ' + (l.horario || ''),
     'Pagamento: Pix ou dinheiro à vista, débito, ou cartão de crédito parcelado (até ' + ((cat.pagamento || {}).maxParcelas || 12) + 'x).',
     '',
+    'GARANTIA (regra fixa, vale mais que qualquer texto abaixo): iPhone novo lacrado 1 ano; iPhone seminovo do iPhone 13 em diante 6 meses; iPhone seminovo abaixo do 13 (11, 12, SE etc.) 4 meses. A garantia de cada aparelho já vem na lista.',
+    '',
     'POLÍTICAS (garantia, trocas e outras)',
-    ch.politicas || 'Seminovos com garantia de ' + (l.garantiaPadrao || '90 dias') + '; lacrados com a garantia indicada em cada aparelho.',
+    ch.politicas || 'Lacrados com a garantia indicada em cada aparelho.',
+    ch.informacoes ? '\nINFORMAÇÕES EXTRAS DA LOJA (escritas pelo dono, use nas respostas)\n' + ch.informacoes : '',
     '',
     'MODELOS ACEITOS COMO ENTRADA: ' + aceitos,
     '',

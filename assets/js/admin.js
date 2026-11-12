@@ -115,7 +115,7 @@
   function render() {
     ({
       produtos: renderProdutos, promocoes: renderPromocoes, cliques: renderCliques, avaliacao: renderAvaliacao,
-      pagamento: renderPagamento, loja: renderLoja, textos: renderTextos, publicar: renderPublicar
+      pagamento: renderPagamento, loja: renderLoja, ia: renderIA, textos: renderTextos, publicar: renderPublicar
     })[aba]();
   }
 
@@ -395,6 +395,15 @@
       }));
       previewCor();
     };
+    const garantiaAuto = () => {
+      const q = { categoria: f.categoria.value, modelo: f.modelo.value, condicao: f.condicao.value };
+      const auto = RB.ehIphone(q);
+      f.garantia.readOnly = auto;
+      if (auto) f.garantia.value = RB.garantia(q, cat);
+      f.garantia.title = auto ? 'Automática: novo 1 ano; seminovo do iPhone 13 em diante 6 meses; abaixo do 13, 4 meses.' : '';
+    };
+    ['input', 'change'].forEach((ev) => [f.modelo, f.condicao, f.categoria].forEach((x) => x.addEventListener(ev, garantiaAuto)));
+    garantiaAuto();
     f.modelo.addEventListener('input', desenharCores);
     f.modelo.addEventListener('change', desenharCores);
     f.categoria.addEventListener('change', desenharCores);
@@ -601,19 +610,6 @@
         campo('garantiaPadrao', 'Garantia padrão dos seminovos') +
       '</div><label class="field"><span>Texto de apresentação</span><textarea data-bind="loja.subtitulo" rows="2">' + esc(l.subtitulo) + '</textarea></label>' +
       '<p class="hint" id="wa-test"></p></div>' +
-      '<div class="a-card"><div class="pop-head"><h3>💬 RBChat (atendente com IA)</h3>' +
-        '<label class="switch" title="Ligar RBChat"><input type="checkbox" data-bind="chat.ativo"' + ((cat.chat || {}).ativo ? ' checked' : '') + '><span></span></label></div>' +
-        '<p class="hint">Uma janelinha de chat no canto direito do site que responde sobre preços, parcelas, troca do usado, garantia e Black Friday, usando os aparelhos e valores publicados. ' +
-        'Usa o Claude Haiku: a chave fica na Vercel em <b>Settings › Environment Variables</b> com o nome <code>ANTHROPIC_API_KEY</code> (depois faça Redeploy).</p>' +
-        '<div class="ed-grid">' +
-          '<label class="field"><span>Nome do chat</span>' + inp('chat.nome', (cat.chat || {}).nome || 'RBChat') + '</label>' +
-          '<label class="field"><span>Mensagem de boas-vindas</span>' + inp('chat.saudacao', (cat.chat || {}).saudacao || '') + '</label>' +
-        '</div>' +
-        '<label class="field"><span>Políticas da loja que o chat deve seguir (garantia, trocas, devolução, retirada, entrega…)</span>' +
-          '<textarea data-bind="chat.politicas" rows="8">' + esc((cat.chat || {}).politicas || '') + '</textarea>' +
-          '<small class="hint">O chat só afirma o que estiver escrito aqui e nos aparelhos cadastrados. Revise com as regras reais da loja.</small></label>' +
-        '<p class="hint" id="chat-status"></p>' +
-      '</div>' +
       '<div class="a-card"><h3>Contatos e redes</h3><p class="hint">Deixe em branco o que não quiser mostrar no rodapé.</p><div class="ed-grid">' +
         campo('instagram', 'Instagram', 'placeholder="@sualoja"') +
         campo('tiktok', 'TikTok', 'placeholder="@sualoja"') +
@@ -636,10 +632,6 @@
     };
     bind(el, wa);
     wa();
-    fetch('api/chat', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((d) => {
-      const st = $('#chat-status'); if (!st) return;
-      st.innerHTML = d && d.configurado ? '🟢 Chave do Claude configurada na Vercel.' : '🟡 Falta a chave <code>ANTHROPIC_API_KEY</code> na Vercel: sem ela, o chat responde que está indisponível.';
-    }).catch(() => {});
     $('#trocar').addEventListener('click', async () => {
       const a = $('#ns1').value, b = $('#ns2').value;
       if (a.length < 6) return toast('Use pelo menos 6 caracteres.', true);
@@ -650,6 +642,35 @@
     });
   }
 
+
+  /* ---------- IA: RBChat ---------- */
+  function renderIA() {
+    const el = $('[data-panel="ia"]');
+    cat.chat = cat.chat || {};
+    const ch = cat.chat;
+    el.innerHTML =
+      '<div class="a-head"><div><h2>🤖 IA · RBChat</h2><p class="muted">O atendente com IA do site. Ele usa os aparelhos, preços, parcelas e avaliação publicados, mais o que você escrever aqui.</p></div></div>' +
+      '<div class="a-card"><div class="pop-head"><h3>RBChat ligado no site</h3>' +
+        '<label class="switch" title="Ligar RBChat"><input type="checkbox" data-bind="chat.ativo"' + (ch.ativo ? ' checked' : '') + '><span></span></label></div>' +
+        '<p class="hint">Usa o Claude Haiku: a chave fica na Vercel em <b>Settings › Environment Variables</b> com o nome <code>ANTHROPIC_API_KEY</code> (depois faça Redeploy).</p>' +
+        '<p class="hint" id="chat-status"></p>' +
+        '<div class="ed-grid">' +
+          '<label class="field"><span>Nome do chat</span>' + inp('chat.nome', ch.nome || 'RBChat') + '</label>' +
+          '<label class="field"><span>Mensagem de boas-vindas</span>' + inp('chat.saudacao', ch.saudacao || '') + '</label>' +
+        '</div></div>' +
+      '<div class="a-card"><h3>📝 Informações para a IA</h3>' +
+        '<p class="hint">Escreva aqui tudo que a IA deve saber e usar nas respostas: novidades, aparelhos que vão chegar, acessórios que vocês vendem, prazos de entrega, formas de envio, promoções, respostas para perguntas comuns… Um assunto por linha.</p>' +
+        '<label class="field"><span>Informações</span><textarea data-bind="chat.informacoes" rows="12" placeholder="Ex.:\n- Chega iPhone 17 Pro Max laranja na próxima semana.\n- Vendemos capinha e película: R$ 49 cada.\n- Entregamos em Florianópolis no mesmo dia (taxa R$ 20).">' + esc(ch.informacoes || '') + '</textarea></label></div>' +
+      '<div class="a-card"><h3>📋 Políticas da loja</h3>' +
+        '<p class="hint">Garantia, trocas, devolução, retirada, entrega… A garantia dos iPhones é automática (novo 1 ano; seminovo do 13 em diante 6 meses; abaixo do 13, 4 meses).</p>' +
+        '<label class="field"><span>Políticas</span><textarea data-bind="chat.politicas" rows="8">' + esc(ch.politicas || '') + '</textarea>' +
+          '<small class="hint">O chat só afirma o que estiver escrito aqui e nos aparelhos cadastrados. Mudanças valem depois de publicar.</small></label></div>';
+    bind(el);
+    fetch('api/chat', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((d) => {
+      const st = $('#chat-status'); if (!st) return;
+      st.innerHTML = d && d.configurado ? '🟢 Chave do Claude configurada na Vercel.' : '🟡 Falta a chave <code>ANTHROPIC_API_KEY</code> na Vercel: sem ela, o chat responde que está indisponível.';
+    }).catch(() => {});
+  }
 
   /* ---------- Promoções: destaque do topo e pop-up ---------- */
   function renderPromocoes() {
