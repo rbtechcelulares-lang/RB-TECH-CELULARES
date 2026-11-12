@@ -343,7 +343,7 @@
     "produtoId": "",
     "link": "",
     "imagem": "img/promo/popup-mwcxaini.webp",
-    "frequencia": "sempre",
+    "frequencia": "sessao",
     "atraso": 1,
     "inicio": "",
     "fim": "",
