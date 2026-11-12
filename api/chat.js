@@ -117,7 +117,8 @@ function sistema(cat) {
     rep.ativo !== false
       ? '- CONSERTO/REPARO: SIM, a loja faz conserto e assistência técnica' + (rep.servicos ? ' (' + rep.servicos + ')' : '') + '. Quando o cliente falar de conserto, reparo, troca de tela/bateria ou aparelho com defeito: responda que sim e que não passamos valor de reparo pelo chat (o orçamento sai pelo pedido de reparo). ' +
         'Descubra, com no máximo 2 perguntas curtas, o que falta entre: o MODELO EXATO do aparelho (ex.: se disser só "iPhone" ou "Samsung", pergunte qual modelo) e o DEFEITO. ' +
-        'Assim que souber modelo e defeito, use a ferramenta pedido_reparo, escrevendo o modelo pelo nome comercial correto e completo (ex.: "ip 13 pro max" → "iPhone 13 Pro Max"; "a54" → "Galaxy A54" com marca Samsung; "moto g84" → "Moto G84" com marca Motorola), e responda com um resumo curto (aparelho e defeito) dizendo que é só tocar no botão para abrir o pedido já preenchido. ' +
+        'Antes de montar o pedido, o orçamento precisa ir para o WhatsApp do cliente: se a MEMÓRIA DO CLIENTE não diz que o WhatsApp dele está salvo, pergunte exatamente "Para receber seu orçamento no WhatsApp, me passa seu primeiro nome e contato?" e só depois de salvar_contato use pedido_reparo. Se ele não quiser passar, termine com a linha [REPARO] (o formulário pede os dados). ' +
+        'Assim que souber modelo, defeito e o contato, use a ferramenta pedido_reparo, escrevendo o modelo pelo nome comercial correto e completo (ex.: "ip 13 pro max" → "iPhone 13 Pro Max"; "a54" → "Galaxy A54" com marca Samsung; "moto g84" → "Moto G84" com marca Motorola), e responda com um resumo curto (aparelho e defeito) dizendo que é só tocar no botão para abrir o pedido já preenchido. ' +
         'Se o cliente só perguntou se fazemos conserto, sem dizer aparelho nem defeito, responda que sim, pergunte o modelo e o defeito e termine com uma linha exatamente assim: [REPARO]'
       : '',
     '- LINKS: sempre que recomendar, oferecer ou passar valores de aparelhos específicos da lista, termine a resposta com uma linha exatamente assim: [VER: id1, id2] (os ids da lista, no máximo 3). O site transforma isso em botões que abrem cada aparelho. E logo abaixo, uma linha [WHATSAPP: <mensagem em primeira pessoa dizendo o interesse do cliente, ex.: Olá! Tenho interesse no iPhone 13 Pro 128GB, vi no chat do site.>]. O site mostra um botão verde do WhatsApp com essa mensagem.',
@@ -197,8 +198,9 @@ function propostaTroca(cat, entrada, cupom) {
 }
 
 // Pedido de reparo: confere os campos; o site monta o link do sistema de OS com eles
-function pedidoReparo(cat, i) {
+function pedidoReparo(cat, i, temContato) {
   const r = cat.reparos || {};
+  if (!temContato) return { erro: 'Ainda não temos o WhatsApp do cliente. Pergunte: "Para receber seu orçamento no WhatsApp, me passa seu primeiro nome e contato?" Depois use salvar_contato e então pedido_reparo.' };
   if (r.ativo === false) return { erro: 'A loja não está recebendo pedidos de reparo pelo site. Oriente o cliente a chamar no WhatsApp.' };
   const limpa = (v, n) => String(v || '').replace(/[\u0000-\u001f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
   const pedido = {
@@ -461,6 +463,14 @@ module.exports = async (req, res) => {
         return res.status(200).json({ resposta: texto || 'Pode repetir a pergunta?', entrada: entradaNova, whatsapp, sugestoes, produtos, contato: contatoNovo, avaliacao, reparo, reparoPedido });
       }
       conversa.push({ role: 'assistant', content: resp.content });
+      // contato passado nesta mesma resposta vale para o pedido de reparo
+      for (const b of resp.content) {
+        if (b.type === 'tool_use' && b.name === 'salvar_contato') {
+          const sc = salvarContato(b.input || {});
+          if (sc && sc.salvo && sc.salvo.whatsapp) contatoNovo = sc.salvo;
+        }
+      }
+      const temContato = !!((c0 && c0.whatsapp) || (contatoNovo && contatoNovo.whatsapp));
       const resultados = resp.content.filter((b) => b.type === 'tool_use').map((b) => {
         let saida;
         try {
@@ -470,7 +480,7 @@ module.exports = async (req, res) => {
               : b.name === 'proposta_troca' ? propostaTroca(cat, b.input, cupom)
                 : b.name === 'proposta_compra' ? propostaCompra(cat, b.input, cupom)
                 : b.name === 'salvar_contato' ? salvarContato(b.input)
-                  : b.name === 'pedido_reparo' ? pedidoReparo(cat, b.input) : { erro: 'ferramenta desconhecida' };
+                  : b.name === 'pedido_reparo' ? pedidoReparo(cat, b.input, temContato) : { erro: 'ferramenta desconhecida' };
         } catch (e) {
           return { type: 'tool_result', tool_use_id: b.id, content: 'erro: ' + e.message, is_error: true };
         }
