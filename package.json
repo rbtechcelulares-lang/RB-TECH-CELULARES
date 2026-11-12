@@ -1,0 +1,8 @@
+{
+  "name": "rb-tech-celulares",
+  "private": true,
+  "description": "Site da RB Tech Celulares (est\u00e1tico) com fun\u00e7\u00f5es da Vercel em api/",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0"
+  }
+}

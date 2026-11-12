@@ -68,6 +68,76 @@
     rota();
     agendarPopup();
     blackFriday();
+    rbChat();
+  }
+
+  /* ---------- RBChat: assistente virtual (Claude Haiku via api/chat) ---------- */
+  function rbChat() {
+    const ch = cat.chat || {};
+    if (!ch.ativo) return;
+    const nomeChat = ch.nome || 'RBChat';
+    const CHAVE = 'rbtech_chat';
+    let msgs = [];
+    try { msgs = JSON.parse(sessionStorage.getItem(CHAVE) || '[]'); } catch (e) { msgs = []; }
+    const guardar = () => { try { sessionStorage.setItem(CHAVE, JSON.stringify(msgs.slice(-30))); } catch (e) { /* ignora */ } };
+    const fmt = (t) => esc(t).replace(/\*\*?([^*\n]+)\*\*?/g, '<b>$1</b>').replace(/\n/g, '<br>');
+
+    const botao = document.createElement('button');
+    botao.className = 'rbc-btn'; botao.type = 'button';
+    botao.innerHTML = '<span class="rbc-ic">💬</span><span>Fale com <b>' + esc(nomeChat) + '</b></span>';
+    const painel = document.createElement('section');
+    painel.className = 'rbc'; painel.hidden = true; painel.setAttribute('aria-label', nomeChat);
+    painel.innerHTML =
+      '<header class="rbc-top"><span class="rbc-av">RB</span><div><b>' + esc(nomeChat) + '</b><small>online · responde na hora</small></div>' +
+        '<button type="button" class="rbc-x" aria-label="Fechar">×</button></header>' +
+      '<div class="rbc-msgs" aria-live="polite"></div>' +
+      '<div class="rbc-sug"></div>' +
+      '<form class="rbc-form"><input maxlength="600" placeholder="Pergunte sobre preço, parcelas, troca…" aria-label="Sua mensagem">' +
+        '<button type="submit" aria-label="Enviar">➤</button></form>' +
+      '<a class="rbc-zap" target="_blank" rel="noopener">Prefere falar com uma pessoa? Chamar no WhatsApp</a>';
+    document.body.append(botao, painel);
+    $('.rbc-zap', painel).href = RB.linkWhats(cat, 'Olá! Vim pelo chat do site.');
+    const lista = $('.rbc-msgs', painel), campo = $('.rbc-form input', painel), sug = $('.rbc-sug', painel);
+
+    const desenhar = () => {
+      const saud = ch.saudacao || 'Oi! 👋 Sou o ' + nomeChat + '. Posso te ajudar com preços, parcelas, avaliação do seu usado e garantia.';
+      lista.innerHTML = '<div class="rbc-m ass">' + fmt(saud) + '</div>' +
+        msgs.map((m) => '<div class="rbc-m ' + (m.role === 'user' ? 'eu' : 'ass') + '">' + fmt(m.content) + '</div>').join('');
+      sug.innerHTML = msgs.length ? '' : ['Quanto vale meu iPhone 12?', 'Parcelas do iPhone 15 Pro', 'Qual a garantia?', 'Até quando vai a Black Friday?']
+        .map((t) => '<button type="button">' + esc(t) + '</button>').join('');
+      $$('button', sug).forEach((b) => b.addEventListener('click', () => enviar(b.textContent)));
+      lista.scrollTop = lista.scrollHeight;
+    };
+
+    let ocupado = false;
+    async function enviar(texto) {
+      texto = String(texto || '').trim();
+      if (!texto || ocupado) return;
+      ocupado = true; campo.value = '';
+      msgs.push({ role: 'user', content: texto }); guardar(); desenhar();
+      lista.insertAdjacentHTML('beforeend', '<div class="rbc-m ass rbc-dig"><i></i><i></i><i></i></div>');
+      lista.scrollTop = lista.scrollHeight;
+      let resposta;
+      try {
+        const r = await fetch('api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensagens: msgs }) });
+        const d = await r.json().catch(() => ({}));
+        resposta = d.resposta || (d.erro ? d.erro + ' Se preferir, chame a gente no WhatsApp.' : 'Não consegui responder agora. Chame a gente no WhatsApp!');
+      } catch (e) {
+        resposta = 'Sem conexão agora. Tente de novo ou chame a gente no WhatsApp!';
+      }
+      msgs.push({ role: 'assistant', content: resposta }); guardar();
+      ocupado = false; desenhar();
+      RB.registrar(cat, 'popup', { origem: 'chat', detalhe: texto.slice(0, 190) });
+    }
+
+    const abrir = (sim) => {
+      painel.hidden = !sim; botao.hidden = sim;
+      document.body.classList.toggle('rbc-aberto', sim);
+      if (sim) { desenhar(); setTimeout(() => campo.focus(), 50); }
+    };
+    botao.addEventListener('click', () => abrir(true));
+    $('.rbc-x', painel).addEventListener('click', () => abrir(false));
+    $('.rbc-form', painel).addEventListener('submit', (e) => { e.preventDefault(); enviar(campo.value); });
   }
 
   /* ---------- Black Friday: tema, contagem regressiva e avisos de venda ---------- */

@@ -2787,5 +2787,11 @@
     "texto": "🔥 Ofertas *esgotando* · preços que não voltam",
     "intervalo": 19,
     "vendas": true
+  },
+  "chat": {
+    "ativo": true,
+    "nome": "RBChat",
+    "saudacao": "Oi! 👋 Sou o RBChat da RB Tech. Te ajudo com preços, parcelas, avaliação do seu iPhone usado e garantia. O que você procura?",
+    "politicas": "- Garantia: seminovos com 90 dias de garantia da loja; aparelhos novos lacrados com 1 ano de garantia (ou a indicada no aparelho).\n- Todo seminovo passa por checklist de Face ID, bateria, sistema, câmeras, tela e tampa traseira antes da venda.\n- Troca/entrada: aceitamos iPhone usado como parte do pagamento na compra de outro iPhone. A pré-avaliação do site é uma estimativa; o valor final é confirmado na loja depois do teste do aparelho.\n- Não aceitamos aparelho bloqueado no iCloud ou com conta de outra pessoa.\n- Bateria abaixo de 80% ou com mensagem de \"Serviço\" reduz a avaliação.\n- Pagamento: Pix ou dinheiro à vista, débito, ou crédito parcelado com a taxa da maquininha incluída.\n- Atendimento e retirada na loja em São José/SC; para entrega ou envio, combinar pelo WhatsApp."
   }
 }

@@ -601,6 +601,19 @@
         campo('garantiaPadrao', 'Garantia padrão dos seminovos') +
       '</div><label class="field"><span>Texto de apresentação</span><textarea data-bind="loja.subtitulo" rows="2">' + esc(l.subtitulo) + '</textarea></label>' +
       '<p class="hint" id="wa-test"></p></div>' +
+      '<div class="a-card"><div class="pop-head"><h3>💬 RBChat (atendente com IA)</h3>' +
+        '<label class="switch" title="Ligar RBChat"><input type="checkbox" data-bind="chat.ativo"' + ((cat.chat || {}).ativo ? ' checked' : '') + '><span></span></label></div>' +
+        '<p class="hint">Uma janelinha de chat no canto direito do site que responde sobre preços, parcelas, troca do usado, garantia e Black Friday, usando os aparelhos e valores publicados. ' +
+        'Usa o Claude Haiku: a chave fica na Vercel em <b>Settings › Environment Variables</b> com o nome <code>ANTHROPIC_API_KEY</code> (depois faça Redeploy).</p>' +
+        '<div class="ed-grid">' +
+          '<label class="field"><span>Nome do chat</span>' + inp('chat.nome', (cat.chat || {}).nome || 'RBChat') + '</label>' +
+          '<label class="field"><span>Mensagem de boas-vindas</span>' + inp('chat.saudacao', (cat.chat || {}).saudacao || '') + '</label>' +
+        '</div>' +
+        '<label class="field"><span>Políticas da loja que o chat deve seguir (garantia, trocas, devolução, retirada, entrega…)</span>' +
+          '<textarea data-bind="chat.politicas" rows="8">' + esc((cat.chat || {}).politicas || '') + '</textarea>' +
+          '<small class="hint">O chat só afirma o que estiver escrito aqui e nos aparelhos cadastrados. Revise com as regras reais da loja.</small></label>' +
+        '<p class="hint" id="chat-status"></p>' +
+      '</div>' +
       '<div class="a-card"><h3>Contatos e redes</h3><p class="hint">Deixe em branco o que não quiser mostrar no rodapé.</p><div class="ed-grid">' +
         campo('instagram', 'Instagram', 'placeholder="@sualoja"') +
         campo('tiktok', 'TikTok', 'placeholder="@sualoja"') +
@@ -623,6 +636,10 @@
     };
     bind(el, wa);
     wa();
+    fetch('api/chat', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((d) => {
+      const st = $('#chat-status'); if (!st) return;
+      st.innerHTML = d && d.configurado ? '🟢 Chave do Claude configurada na Vercel.' : '🟡 Falta a chave <code>ANTHROPIC_API_KEY</code> na Vercel: sem ela, o chat responde que está indisponível.';
+    }).catch(() => {});
     $('#trocar').addEventListener('click', async () => {
       const a = $('#ns1').value, b = $('#ns2').value;
       if (a.length < 6) return toast('Use pelo menos 6 caracteres.', true);
