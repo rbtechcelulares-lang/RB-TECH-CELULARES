@@ -874,7 +874,7 @@
           '<dl class="cli-dl">' +
             '<dt>Interesse</dt><dd>' + (c.interesse ? '📱 ' + esc(c.interesse) : '<span class="muted">—</span>') + '</dd>' +
             (c.entrada ? '<dt>Entrada</dt><dd>🔁 ' + esc(c.entrada) + '</dd>' : '') +
-            '<dt>Último contato</dt><dd>' + quando(c.atualizado_em) + (c.criado_em !== c.atualizado_em ? ' <span class="muted">· desde ' + quando(c.criado_em).split(' ')[0] + '</span>' : '') + '</dd>' +
+            '<dt>Último contato</dt><dd>' + quando(c.atualizado_em) + (c.criado_em !== c.atualizado_em ? ' <span class="muted">· desde ' + quando(c.criado_em).split(',')[0] + '</span>' : '') + '</dd>' +
           '</dl>' +
           '<div class="cli-acoes"><select class="cli-st">' + STATUS_CLI.map((s) => '<option value="' + s[0] + '"' + (c.status === s[0] ? ' selected' : '') + '>' + s[1] + '</option>').join('') + '</select>' +
             '<input class="cli-notas" placeholder="Anotações do follow-up…" value="' + esc(c.notas || '') + '">' +
