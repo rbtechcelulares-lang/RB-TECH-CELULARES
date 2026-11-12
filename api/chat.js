@@ -115,7 +115,10 @@ function sistema(cat) {
     '- BRINDES NO FECHAMENTO: quando a negociação estiver quase finalizando (depois de mandar a proposta/diferença ou o valor final, ou quando o cliente mostrar que quer fechar), envie os benefícios abaixo, uma vez só na conversa, exatamente neste formato de lista. Na linha da garantia, use a garantia do aparelho escolhido (iPhone novo 1 ano; seminovo do 13 em diante 6 meses; abaixo do 13, 4 meses).',
     '  BENEFÍCIOS:\n' + (ch.beneficios || BENEFICIOS),
     rep.ativo !== false
-      ? '- CONSERTO/REPARO: SIM, a loja faz conserto e assistência técnica' + (rep.servicos ? ' (' + rep.servicos + ')' : '') + '. Se o cliente perguntar sobre conserto, reparo, troca de tela/bateria, aparelho com defeito etc., responda que sim, que não passamos valor de reparo pelo chat, e que ele pede o orçamento pelo botão abaixo (descrevendo o problema, gera a ordem de serviço na hora). Termine a resposta com uma linha exatamente assim: [REPARO]'
+      ? '- CONSERTO/REPARO: SIM, a loja faz conserto e assistência técnica' + (rep.servicos ? ' (' + rep.servicos + ')' : '') + '. Quando o cliente falar de conserto, reparo, troca de tela/bateria ou aparelho com defeito: responda que sim e que não passamos valor de reparo pelo chat (o orçamento sai pelo pedido de reparo). ' +
+        'Descubra, com no máximo 2 perguntas curtas, o que falta entre: o MODELO EXATO do aparelho (ex.: se disser só "iPhone" ou "Samsung", pergunte qual modelo) e o DEFEITO. ' +
+        'Assim que souber modelo e defeito, use a ferramenta pedido_reparo, escrevendo o modelo pelo nome comercial correto e completo (ex.: "ip 13 pro max" → "iPhone 13 Pro Max"; "a54" → "Galaxy A54" com marca Samsung; "moto g84" → "Moto G84" com marca Motorola), e responda com um resumo curto (aparelho e defeito) dizendo que é só tocar no botão para abrir o pedido já preenchido. ' +
+        'Se o cliente só perguntou se fazemos conserto, sem dizer aparelho nem defeito, responda que sim, pergunte o modelo e o defeito e termine com uma linha exatamente assim: [REPARO]'
       : '',
     '- LINKS: sempre que recomendar, oferecer ou passar valores de aparelhos específicos da lista, termine a resposta com uma linha exatamente assim: [VER: id1, id2] (os ids da lista, no máximo 3). O site transforma isso em botões que abrem cada aparelho. E logo abaixo, uma linha [WHATSAPP: <mensagem em primeira pessoa dizendo o interesse do cliente, ex.: Olá! Tenho interesse no iPhone 13 Pro 128GB, vi no chat do site.>]. O site mostra um botão verde do WhatsApp com essa mensagem.',
     '- Nunca escreva o número do WhatsApp nem links no texto: para fechar, diga para tocar no botão do aparelho (e depois em "Enviar proposta no WhatsApp") ou no botão verde do WhatsApp abaixo.',
@@ -193,6 +196,22 @@ function propostaTroca(cat, entrada, cupom) {
   });
 }
 
+// Pedido de reparo: confere os campos; o site monta o link do sistema de OS com eles
+function pedidoReparo(cat, i) {
+  const r = cat.reparos || {};
+  if (r.ativo === false) return { erro: 'A loja não está recebendo pedidos de reparo pelo site. Oriente o cliente a chamar no WhatsApp.' };
+  const limpa = (v, n) => String(v || '').replace(/[\u0000-\u001f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
+  const pedido = {
+    tipo: i.tipo === 'Apple' ? 'Apple' : 'Android',
+    marca: limpa(i.tipo === 'Apple' ? 'Apple' : i.marca, 30),
+    modelo: limpa(i.modelo, 60),
+    defeito: limpa(i.defeito, 120),
+    relato: limpa(i.relato, 500)
+  };
+  if (!pedido.modelo || !pedido.defeito) return { erro: 'Falta o modelo exato ou o defeito: pergunte ao cliente.' };
+  return { ok: true, pedido, aviso: /^https:\/\//.test(r.link || '') ? 'O site mostra o botão do pedido preenchido.' : 'Sem link do sistema: o site mostra o botão do WhatsApp com o pedido.' };
+}
+
 // Confere nome e WhatsApp; quem grava é o site (na lista de clientes do admin)
 function salvarContato(i) {
   const nomeC = String(i.nome || '').replace(/[^\p{L}\p{M} '.-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, 60);
@@ -242,6 +261,23 @@ const FERRAMENTAS = [
         defeitos: { type: 'array', items: { type: 'string' }, description: 'Ex.: ["tela trincada"]; vazio se perfeito' }
       },
       required: ['produto_id', 'modelo', 'armazenamento', 'bateria_abaixo_de_80', 'defeitos'],
+      additionalProperties: false
+    },
+    strict: true
+  },
+  {
+    name: 'pedido_reparo',
+    description: 'Monta o pedido de reparo (ordem de serviço) do cliente com o aparelho e o defeito. Use quando souber o modelo exato e o defeito. O site mostra um botão que abre o pedido já preenchido.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        tipo: { type: 'string', enum: ['Apple', 'Android'] },
+        marca: { type: 'string', description: 'Marca: Apple, Samsung, Motorola, Xiaomi, Realme, LG, Asus etc.' },
+        modelo: { type: 'string', description: 'Nome comercial completo e correto do modelo, sem a marca quando for Android. Ex.: "iPhone 13 Pro Max", "Galaxy A54", "Moto G84", "Redmi Note 13"' },
+        defeito: { type: 'string', description: 'Defeito(s) principal(is), curto. Use, quando servir: Tela quebrada, Bateria, Não liga, Não carrega, Câmera, Som ou microfone, Face ID / biometria, Molhou, Outro. Vários separados por vírgula.' },
+        relato: { type: 'string', description: 'O que o cliente contou, resumido em uma ou duas frases na primeira pessoa (ex.: "Caiu no chão e a tela trincou, o touch não funciona embaixo.")' }
+      },
+      required: ['tipo', 'marca', 'modelo', 'defeito', 'relato'],
       additionalProperties: false
     },
     strict: true
@@ -354,6 +390,7 @@ module.exports = async (req, res) => {
   let entradaNova = null; // devolvida ao site para guardar no celular do cliente
   let contatoNovo = null; // nome e WhatsApp que o cliente passou (o site salva na lista de clientes)
   let produtoProposta = null; // aparelho da última proposta: conta como interesse do cliente
+  let reparoPedido = null; // pedido de reparo montado pela IA (vira botão que abre o pedido preenchido)
   const uso = { entrada: 0, cache_lido: 0, cache_gravado: 0, saida: 0, rodadas: 0 };
   const registrarUso = () => console.log('rbchat uso', JSON.stringify(uso));
   try {
@@ -420,7 +457,8 @@ module.exports = async (req, res) => {
             valor: av.pre_avaliacao ? Number(String(av.pre_avaliacao).replace(/[^\d,]/g, '').replace(',', '.')) || 0 : 0
           };
         }
-        return res.status(200).json({ resposta: texto || 'Pode repetir a pergunta?', entrada: entradaNova, whatsapp, sugestoes, produtos, contato: contatoNovo, avaliacao, reparo });
+        if (reparoPedido) reparo = null; // já tem o pedido pronto: não precisa do formulário
+        return res.status(200).json({ resposta: texto || 'Pode repetir a pergunta?', entrada: entradaNova, whatsapp, sugestoes, produtos, contato: contatoNovo, avaliacao, reparo, reparoPedido });
       }
       conversa.push({ role: 'assistant', content: resp.content });
       const resultados = resp.content.filter((b) => b.type === 'tool_use').map((b) => {
@@ -431,11 +469,13 @@ module.exports = async (req, res) => {
             : b.name === 'avaliar_entrada' ? avaliar(cat, b.input)
               : b.name === 'proposta_troca' ? propostaTroca(cat, b.input, cupom)
                 : b.name === 'proposta_compra' ? propostaCompra(cat, b.input, cupom)
-                : b.name === 'salvar_contato' ? salvarContato(b.input) : { erro: 'ferramenta desconhecida' };
+                : b.name === 'salvar_contato' ? salvarContato(b.input)
+                  : b.name === 'pedido_reparo' ? pedidoReparo(cat, b.input) : { erro: 'ferramenta desconhecida' };
         } catch (e) {
           return { type: 'tool_result', tool_use_id: b.id, content: 'erro: ' + e.message, is_error: true };
         }
         if (b.name === 'salvar_contato' && saida && saida.salvo) contatoNovo = saida.salvo;
+        if (b.name === 'pedido_reparo' && saida && saida.pedido) reparoPedido = saida.pedido;
         if ((b.name === 'proposta_troca' || b.name === 'proposta_compra') && saida && !saida.erro) {
           const p = (cat.produtos || []).find((x) => x.id === b.input.produto_id);
           if (p) produtoProposta = { id: p.id, nome: nome(p), cor: p.cor || '' };

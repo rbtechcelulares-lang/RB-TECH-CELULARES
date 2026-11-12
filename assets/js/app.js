@@ -316,6 +316,7 @@
         msgs.map((m, i) => '<div class="rbc-m ' + (m.role === 'user' ? 'eu' : 'ass') + '">' + fmt(m.content) +
           (m.produtos && m.produtos.length ? '<span class="rbc-ver">' + m.produtos.map((x) => '<a class="rbc-prod" href="#p/' + encodeURIComponent(x.id) + '" data-id="' + esc(x.id) + '" data-m="' + i + '" data-origem="chat">📱 Ver proposta: ' + esc(x.nome) + (x.cor && !/variad/i.test(x.cor) ? ' · ' + esc(x.cor) : '') + ' →</a>').join('') + '</span>' : '') +
           (m.mapa ? '<a class="rbc-mapa" target="_blank" rel="noopener" href="' + esc(m.mapa) + '">🗺️ Ver no mapa</a>' : '') +
+          (m.reparoPedido ? botoesPedido(m.reparoPedido) : '') +
           (m.reparo ? '<a class="rbc-rep" target="_blank" rel="noopener" href="' + esc(m.reparo) + '">🔧 Contar o defeito / pedir orçamento</a>' : '') +
           (m.whatsapp ? '<a class="rbc-wa" target="_blank" rel="noopener" href="' + esc(RB.linkWhats(cat, m.whatsapp)) + '">💬 Falar no WhatsApp da loja</a>' : '') + '</div>').join('');
       const ult = msgs[msgs.length - 1];
@@ -371,6 +372,27 @@
       escolhendo = true;
       guardar(); desenhar(); esperarResposta();
       RB.registrar(cat, 'popup', { origem: 'chat', detalhe: 'Me ajude a escolher' });
+    }
+
+    // Pedido de reparo montado pela IA: link do sistema de OS já preenchido + WhatsApp com especialista
+    function linkPedido(rp) {
+      const r = cat.reparos || {};
+      if (!/^https:\/\//.test(r.link || '')) return '';
+      try {
+        const u = new URL(r.link);
+        const d = { nome: contato && contato.nome, whatsapp: contato && contato.whatsapp, tipo: rp.tipo, marca: rp.marca, modelo: rp.modelo, defeito: rp.defeito, relato: rp.relato, origem: 'site' };
+        Object.keys(d).forEach((k) => { if (d[k]) u.searchParams.set(k, String(d[k]).slice(0, 500)); });
+        return u.toString();
+      } catch (e) { return ''; }
+    }
+    function botoesPedido(rp) {
+      const aparelho = [rp.marca !== 'Apple' ? rp.marca : '', rp.modelo].filter(Boolean).join(' ');
+      const link = linkPedido(rp);
+      const zapMsg = 'Olá!' + (contato && contato.nome ? ' Sou *' + contato.nome + '*.' : '') + ' Vim pelo chat do site e preciso de um reparo 🔧\n\n📱 Aparelho: ' + aparelho +
+        '\n⚠️ Defeito: ' + rp.defeito + (rp.relato ? '\n📝 Relato: ' + rp.relato : '');
+      return '<span class="rbc-ver">' +
+        (link ? '<a class="rbc-os" target="_blank" rel="noopener" href="' + esc(link) + '">📋 Abrir pedido de reparo · ' + esc(aparelho) + ' →</a>' : '') +
+        '<a class="rbc-wa" target="_blank" rel="noopener" href="' + esc(RB.linkWhats(cat, zapMsg)) + '">💬 Falar com um especialista</a></span>';
     }
 
     // Endereço, horário, pagamento e WhatsApp: respostas prontas com os dados do admin (sem IA)
@@ -434,9 +456,14 @@
       // botões rápidos: os que a IA mandou, ou as faixas de preço quando ela pergunta o orçamento
       let botoes = Array.isArray(dados.sugestoes) ? dados.sugestoes.slice(0, 6).map(String) : null;
       // (só quando a IA pergunta quanto o cliente quer gastar num aparelho; nunca em reparo)
-      if (!botoes && !dados.reparo && /quanto (você )?(quer|pretende|pode) (investir|gastar)|qual (é )?(o )?seu orçamento|faixa de (preço|valor)/i.test(resposta || '')) botoes = FAIXAS;
+      if (!botoes && !dados.reparo && !dados.reparoPedido && /quanto (você )?(quer|pretende|pode) (investir|gastar)|qual (é )?(o )?seu orçamento|faixa de (preço|valor)/i.test(resposta || '')) botoes = FAIXAS;
       msgs.push(Object.assign({ role: 'assistant', content: resposta }, zap ? { whatsapp: zap } : {}, botoes ? { sugestoes: botoes } : {}, Array.isArray(dados.produtos) && dados.produtos.length ? { produtos: dados.produtos.slice(0, 3), avaliacao: dados.avaliacao || null } : {},
-        dados.reparo ? { reparo: String(dados.reparo) } : {})); guardar();
+        dados.reparo ? { reparo: String(dados.reparo) } : {},
+        dados.reparoPedido && typeof dados.reparoPedido === 'object' ? { reparoPedido: dados.reparoPedido } : {})); guardar();
+      if (dados.reparoPedido && contato && contato.whatsapp) { // cliente conhecido: já vai para a lista do admin
+        const rp = dados.reparoPedido;
+        RB.salvarCliente(cat, { origem: 'reparo', nome: contato.nome, whatsapp: contato.whatsapp, interesse: ('🔧 Reparo: ' + [rp.marca !== 'Apple' ? rp.marca : '', rp.modelo].filter(Boolean).join(' ') + ' · ' + rp.defeito).slice(0, 300) });
+      }
       ocupado = false; desenhar();
       if (zap) escolhendo = false; // já ofereceu o WhatsApp nesta resposta
       esperarResposta();
@@ -460,6 +487,7 @@
     $('.rbc-x', painel).addEventListener('click', () => abrir(false));
     // abrir um aparelho pelo chat: no celular fecha o chat para mostrar o aparelho
     lista.addEventListener('click', (e) => {
+      if (e.target.closest('.rbc-os')) RB.registrar(cat, 'popup', { origem: 'reparo-orcamento', detalhe: 'chat' });
       if (e.target.closest('.rbc-rep')) { e.preventDefault(); if (innerWidth < 760) abrir(false); abrirReparo('chat'); return; }
       const a = e.target.closest('.rbc-prod');
       if (!a) return;
