@@ -10,6 +10,8 @@ const MAX_CARACTERES = 1200;
 const brl = (v) => 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const nome = (p) => [p.modelo, p.armazenamento].filter(Boolean).join(' ');
 const ehIphone = (p) => (p.categoria || 'iphone') === 'iphone' && !/macbook|ipad|xiaomi|redmi|poco/i.test(p.modelo || '');
+const FAIXAS = ['Até R$ 1.000', 'Até R$ 1.800', 'Até R$ 2.500', 'Até R$ 3.000', 'Mais de R$ 3.000'];
+
 function garantia(p, l) {
   if (ehIphone(p)) {
     if (/^novo|lacrad/i.test(p.condicao || '')) return '1 ano';
@@ -97,8 +99,11 @@ function sistema(cat) {
     '- A troca (dar o usado de entrada) vale só na compra de iPhones; MacBook, Xiaomi e iPad são sem entrada: nesses, informe o preço normalmente.',
     '',
     'AJUDAR A ESCOLHER',
-    '- Quando o cliente pedir ajuda para escolher (ex.: "me ajude a escolher"), descubra o que ele mais valoriza no celular: câmera, desempenho/jogos, bateria, tela/tamanho, armazenamento, orçamento, e se prefere iPhone ou Android. Faça uma pergunta por vez, no máximo 2 perguntas antes de recomendar.',
-    '- Depois recomende o melhor aparelho da lista abaixo para o que ele precisa (no máximo 2 opções), explicando em uma frase por que combina com ele (ex.: câmera tripla/zoom dos modelos Pro, chip mais novo para jogos, bateria maior dos modelos Plus/Pro Max). Se preferir Android, recomende os Xiaomi da lista.',
+    '- Quando o cliente pedir ajuda para escolher (ex.: "me ajude a escolher"), siga esta ordem, uma pergunta por vez:',
+    '  a) O que ele mais valoriza no celular (câmera, desempenho/jogos, bateria, tela, custo-benefício).',
+    '  b) Se ainda não disse, se prefere iPhone ou Android: pergunte e termine a resposta com uma linha exatamente assim: [PLATAFORMA]',
+    '  c) Quando já souber o que ele precisa e se é iPhone ou Android, pergunte até quanto ele quer investir e termine a resposta com uma linha exatamente assim: [FAIXAS] (o site mostra os botões Até R$ 1.000, Até R$ 1.800, Até R$ 2.500, Até R$ 3.000 e Mais de R$ 3.000). Não liste as faixas no texto.',
+    '- Com a faixa escolhida, recomende o melhor aparelho da lista abaixo dentro do valor à vista da faixa (no máximo 2 opções; se não houver nenhum na faixa, ofereça o mais próximo e diga isso), explicando em uma frase por que combina com ele (ex.: câmera tripla/zoom dos modelos Pro, chip mais novo para jogos, bateria maior dos modelos Plus/Pro Max). Se preferir Android, recomende os Xiaomi da lista.',
     '- Recomende só aparelhos que estão na lista. Ao recomendar um iPhone, siga COMO NEGOCIAR: pergunte se é só compra ou se tem iPhone de entrada antes de mandar valores (a não ser que a entrada já seja conhecida).',
     '- Para fechar, oriente o cliente a abrir o aparelho no site e tocar em "Enviar proposta no WhatsApp", ou chamar no WhatsApp ' + (l.whatsapp || '') + '.',
     '- Não peça nem guarde dados pessoais (CPF, cartão). Não discuta assuntos fora da loja.',
@@ -248,7 +253,11 @@ module.exports = async (req, res) => {
         // pedido de WhatsApp com a pergunta do cliente (vira um botão no chat)
         let whatsapp = null;
         texto = texto.replace(/\[WHATSAPP:\s*([^\]]{3,300})\]/i, (m, q) => { whatsapp = q.trim(); return ''; }).trim();
-        return res.status(200).json({ resposta: texto || 'Pode repetir a pergunta?', entrada: entradaNova, whatsapp });
+        // botões de resposta rápida no chat
+        let sugestoes = null;
+        texto = texto.replace(/\[FAIXAS\]/gi, () => { sugestoes = FAIXAS; return ''; })
+          .replace(/\[PLATAFORMA\]/gi, () => { sugestoes = sugestoes || ['🍎 iPhone', '🤖 Android']; return ''; }).trim();
+        return res.status(200).json({ resposta: texto || 'Pode repetir a pergunta?', entrada: entradaNova, whatsapp, sugestoes });
       }
       conversa.push({ role: 'assistant', content: resp.content });
       const resultados = resp.content.filter((b) => b.type === 'tool_use').map((b) => {

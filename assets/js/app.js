@@ -135,6 +135,7 @@
     // "Me ajude a escolher": a IA entra perguntando o que o cliente mais procura.
     // Se ele demorar para responder, oferece o WhatsApp da loja com a mesma pergunta.
     const ESPERA = 60 * 1000;
+    const FAIXAS = ['Até R$ 1.000', 'Até R$ 1.800', 'Até R$ 2.500', 'Até R$ 3.000', 'Mais de R$ 3.000'];
     let relogio = null, escolhendo = false;
     const pedeAjuda = (t) => /ajud\w*\s+(a\s+)?escolher/i.test(t);
     const esperarResposta = () => {
@@ -171,10 +172,11 @@
       msgs.push({ role: 'user', content: texto }); guardar(); desenhar();
       lista.insertAdjacentHTML('beforeend', '<div class="rbc-m ass rbc-dig"><i></i><i></i><i></i></div>');
       lista.scrollTop = lista.scrollHeight;
-      let resposta, zap = '';
+      let resposta, zap = '', dados = {};
       try {
         const r = await fetch('api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensagens: msgs, memoria: { entrada: entradaMem, anterior } }) });
         const d = await r.json().catch(() => ({}));
+        dados = d;
         if (d.entrada && d.entrada.modelo) { entradaMem = d.entrada; anterior = false; }
         zap = d.whatsapp || (d.erro ? 'Olá! Vim pelo chat do site e tenho uma dúvida: ' + texto : '');
         resposta = d.resposta || (d.erro ? d.erro + ' Se preferir, chame a gente no WhatsApp.' : 'Não consegui responder agora. Chame a gente no WhatsApp!');
@@ -182,7 +184,10 @@
         resposta = 'Sem conexão agora. Tente de novo ou chame a gente no WhatsApp!';
         zap = 'Olá! Vim pelo chat do site e tenho uma dúvida: ' + texto;
       }
-      msgs.push(Object.assign({ role: 'assistant', content: resposta }, zap ? { whatsapp: zap } : {})); guardar();
+      // botões rápidos: os que a IA mandou, ou as faixas de preço quando ela pergunta o orçamento
+      let botoes = Array.isArray(dados.sugestoes) ? dados.sugestoes.slice(0, 6).map(String) : null;
+      if (!botoes && /quanto (você )?(quer|pretende|pode) (investir|gastar)|orçamento|faixa de (preço|valor)/i.test(resposta || '')) botoes = FAIXAS;
+      msgs.push(Object.assign({ role: 'assistant', content: resposta }, zap ? { whatsapp: zap } : {}, botoes ? { sugestoes: botoes } : {})); guardar();
       ocupado = false; desenhar();
       if (zap) escolhendo = false; // já ofereceu o WhatsApp nesta resposta
       esperarResposta();
