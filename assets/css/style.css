@@ -962,3 +962,6 @@ body.rbc-aberto .fab-whats, body.rbc-aberto .bf-venda { display: none !important
 .pc-modo .opt-pix { width: 100%; }
 .pc-modo .opts .opt strong { font-size: 14px; }
 .pc-modo .opts .opt small.pc-parc { font-size: 12.5px; color: inherit; font-weight: 600; white-space: nowrap; }
+.pc-contato { display: grid; gap: 8px; }
+@media (min-width: 560px) { .pc-contato { grid-template-columns: 1fr 1fr; } }
+.pc-modo #enviar.pc-off { opacity: .55; }

@@ -241,6 +241,7 @@
       if (sim) { desenhar(); setTimeout(() => campo.focus(), 50); }
     };
     botao.addEventListener('click', () => abrir(true));
+    window.addEventListener('rbtech:contato', (e) => { contato = Object.assign({}, contato, e.detail); guardar(); });
     // botão "Me ajude a escolher" da página: abre o chat já no modo de escolha
     const ajuda = $('#ajuda-btn');
     if (ajuda) ajuda.addEventListener('click', (e) => {
@@ -257,7 +258,7 @@
       e.preventDefault();
       const m = msgs[Number(a.dataset.m)] || {};
       if (innerWidth < 760) abrir(false);
-      abrirPropostaChat(p, { avaliacao: m.avaliacao || null, nome: contato && contato.nome });
+      abrirPropostaChat(p, { avaliacao: m.avaliacao || null, nome: (contato && contato.nome) || '', whatsapp: (contato && contato.whatsapp) || '', interesse });
     });
     $('.rbc-form', painel).addEventListener('submit', (e) => { e.preventDefault(); enviar(campo.value); });
   }
@@ -344,7 +345,9 @@
     } catch (e) { /* sem storage: mostra */ }
     const mostrar = () => {
       // não cobre a conversa: espera o cliente fechar o chat
-      if (document.body.classList.contains('rbc-aberto')) return setTimeout(mostrar, 3000);
+      // (nem a proposta pronta do chat)
+      const propostaAberta = !$('#sheet').hidden && $('#sheet-body').classList.contains('pc-modo');
+      if (document.body.classList.contains('rbc-aberto') || propostaAberta) return setTimeout(mostrar, 3000);
       // a pré-visualização do admin (?popup=1) não conta como "já visto"
       if (!forcar) {
         try {
@@ -860,7 +863,15 @@
     const s = $('#sheet');
     const body = $('#sheet-body');
     const av = RB.ehIphone(p) && info.avaliacao ? info.avaliacao : null;
-    if (info.nome && !nomeValido(nomeCliente)) nomeCliente = info.nome;
+    let nomeP = info.nome || '';
+    let foneP = info.whatsapp ? String(info.whatsapp).replace(/^55(?=\d{10,11}$)/, '') : '';
+    const foneFmt = (v) => {
+      const d = String(v).replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '').slice(0, 11);
+      if (d.length <= 2) return d;
+      if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2);
+      return '(' + d.slice(0, 2) + ') ' + d.slice(2, d.length - 4) + '-' + d.slice(-4);
+    };
+    const foneValido = (v) => /^\d{10,11}$/.test(String(v).replace(/\D/g, ''));
     const cupom = cupomSalvo();
     const descCupom = descontoCupom(p);
     const preco = Math.max(0, p.preco - descCupom);
@@ -896,8 +907,11 @@
         '</div>' +
         '<div class="pay"><h4 class="sim-h">Como você quer pagar?</h4><div id="pc-pag">' + pagamento() + '</div>' +
           (descCupom > 0 ? '<div class="cupom-ativo">🎟️ Você economizou <b>' + money(descCupom) + '</b> com o cupom <b>' + esc(cupom.codigo) + '</b></div>' : '') +
-          '<label class="field nome-cli"><span>Seu nome completo</span><input id="nome-cli" autocomplete="name" autocapitalize="words" placeholder="Ex.: Maria da Silva" value="' + esc(nomeCliente) + '"></label>' +
-          '<p class="nome-err" id="nome-err" hidden>Digite seu nome e sobrenome para enviarmos a proposta.</p>' +
+          '<div class="pc-contato">' +
+            '<label class="field nome-cli"><span>Seu nome completo</span><input id="nome-cli" autocomplete="name" autocapitalize="words" placeholder="Ex.: Maria da Silva" value="' + esc(nomeP) + '"></label>' +
+            '<label class="field nome-cli"><span>Seu WhatsApp</span><input id="fone-cli" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(48) 99999-8888" value="' + esc(foneFmt(foneP)) + '"></label>' +
+          '</div>' +
+          '<p class="nome-err" id="nome-err" hidden>Preencha seu nome completo e seu WhatsApp com DDD para enviar a proposta.</p>' +
           '<a class="btn btn-whats btn-block" id="enviar" target="_blank" rel="noopener" href="#">Enviar proposta no WhatsApp</a>' +
           '<p class="hint center"><a href="#p/' + encodeURIComponent(p.id) + '" class="pc-editar">Quero mudar algo na proposta →</a></p>' +
         '</div>' +
@@ -905,7 +919,7 @@
     ligarFotos(body, p);
 
     const msg = () => {
-      const l = ['Olá! Sou *' + nomeCliente.trim() + '* e montei esta proposta pelo ' + ((cat.chat || {}).nome || 'RBChat') + ' do site:', ''];
+      const l = ['Olá! Sou *' + nomeP.trim() + '* e montei esta proposta pelo ' + ((cat.chat || {}).nome || 'RBChat') + ' do site:', ''];
       l.push('📱 *' + RB.nomeProduto(p) + '* · ' + p.cor + ' · ' + p.condicao + (RB.ehIphone(p) ? ' · bateria ' + RB.batTexto(p, cat) : p.specs ? ' · ' + p.specs : ''));
       l.push('🛡️ Garantia: ' + RB.garantia(p, cat));
       if (RB.sobEncomenda(p)) l.push('📦 *Sob encomenda* · prazo: ' + prazoEncomenda(p));
@@ -919,25 +933,39 @@
       if (cupom && !(descCupom > 0)) l.push('', '🎟️ *Cupom:* ' + cupom.codigo);
       return l.join('\n');
     };
-    const btn = $('#enviar', body), campo = $('#nome-cli', body);
+    const btn = $('#enviar', body), campo = $('#nome-cli', body), campoFone = $('#fone-cli', body);
+    const pronto = () => nomeValido(nomeP) && foneValido(foneP);
+    const marcar = () => {
+      btn.classList.toggle('pc-off', !pronto());
+      if (pronto()) $('#nome-err', body).hidden = true;
+      campo.classList.toggle('erro', !$('#nome-err', body).hidden && !nomeValido(nomeP));
+      campoFone.classList.toggle('erro', !$('#nome-err', body).hidden && !foneValido(foneP));
+    };
     const ligarPag = () => $$('#pc-pag .opt', body).forEach((b) => b.addEventListener('click', () => {
       st.parcela = Number(b.dataset.n); $('#pc-pag', body).innerHTML = pagamento(); ligarPag(); btn.href = RB.linkWhats(cat, msg());
     }));
     ligarPag();
     btn.href = RB.linkWhats(cat, msg());
-    campo.addEventListener('input', () => {
-      nomeCliente = campo.value;
-      try { localStorage.setItem('rbtech_nome', nomeCliente); } catch (e) { /* ignora */ }
-      if (nomeValido(nomeCliente)) { $('#nome-err', body).hidden = true; campo.classList.remove('erro'); }
-      btn.href = RB.linkWhats(cat, msg());
+    campo.addEventListener('input', () => { nomeP = campo.value; marcar(); btn.href = RB.linkWhats(cat, msg()); });
+    campoFone.addEventListener('input', () => {
+      campoFone.value = foneFmt(campoFone.value);
+      foneP = campoFone.value.replace(/\D/g, '');
+      marcar();
     });
+    marcar();
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      if (!nomeValido(nomeCliente)) {
-        $('#nome-err', body).hidden = false; campo.classList.add('erro'); campo.focus();
-        campo.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      if (!pronto()) {
+        $('#nome-err', body).hidden = false; marcar();
+        const alvo = !nomeValido(nomeP) ? campo : campoFone;
+        alvo.focus(); alvo.scrollIntoView({ block: 'center', behavior: 'smooth' });
         return;
       }
+      // salva o cliente na lista do admin e avisa o chat (não pede de novo)
+      const zap = '55' + foneP.replace(/\D/g, '');
+      const nome = nomeP.trim().replace(/\s+/g, ' ');
+      RB.salvarCliente(cat, { origem: 'proposta', nome, whatsapp: zap, interesse: RB.nomeProduto(p) + (p.cor && !/variad/i.test(p.cor) ? ' ' + p.cor : ''), entrada: av ? av.descricao : '' });
+      window.dispatchEvent(new CustomEvent('rbtech:contato', { detail: { nome, whatsapp: zap } }));
       const url = RB.linkWhats(cat, msg());
       RB.abrirAviso({
         titulo: RB.formatar(cat, RB.texto(cat, 'avisoT')), texto: RB.formatar(cat, RB.texto(cat, 'avisoS')), botao: RB.texto(cat, 'avisoB'),

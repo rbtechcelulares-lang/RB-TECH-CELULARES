@@ -421,7 +421,7 @@
         method: 'POST',
         keepalive: true,
         headers: cabecalhosSupabase(lim.chave),
-        body: JSON.stringify({ p_nome: c.nome || '', p_whatsapp: c.whatsapp, p_interesse: c.interesse || null, p_entrada: c.entrada || null, p_origem: 'chat' })
+        body: JSON.stringify({ p_nome: c.nome || '', p_whatsapp: c.whatsapp, p_interesse: c.interesse || null, p_entrada: c.entrada || null, p_origem: c.origem || 'chat' })
       }).catch(() => {});
     } catch (e) { /* nunca atrapalha o cliente */ }
   }
