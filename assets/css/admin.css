@@ -10,13 +10,6 @@ body.admin { background: #f3efe8; }
 .err { color: var(--bad); font-size: 14px; }
 .back { font-size: 14px; color: var(--muted); text-decoration: none; }
 
-.a-top { position: sticky; top: 0; z-index: 20; background: var(--ink); color: #fff; }
-.a-top-in { max-width: 1100px; margin: 0 auto; padding: 0 16px; display: flex; align-items: center; gap: 20px; min-height: 60px; flex-wrap: wrap; }
-.a-tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px 10px; width: calc(100% + 32px); }
-.a-tabs::-webkit-scrollbar { display: none; }
-.a-tabs button { flex: none; border: 0; background: transparent; color: rgba(255,255,255,.7); padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 14px; }
-.a-tabs button.on { background: var(--gold-2); color: #1a140c; }
-@media (min-width: 900px) { .a-tabs { width: auto; margin: 0 0 0 auto; padding: 0; } }
 
 .draft-bar { background: var(--gold-soft); border-bottom: 1px solid #e6d3b2; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; font-size: 14px; }
 .draft-actions { display: flex; gap: 8px; }
@@ -271,3 +264,51 @@ details.a-card summary h3 { display: inline; }
 .cli-msg textarea { width: 100%; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font: inherit; margin: 6px 0 8px; }
 .cli-msg summary { cursor: pointer; list-style: none; }
 .cli-msg summary h3 { display: inline; }
+
+/* ---------- Navegação: barra lateral fixa (gaveta no celular) ---------- */
+.a-shell:not([hidden]) { display: flex; align-items: flex-start; min-height: 100vh; }
+.a-side {
+  position: sticky; top: 0; flex: none; width: 240px; height: 100vh; z-index: 40;
+  display: flex; flex-direction: column; background: var(--ink); color: #fff;
+  border-right: 1px solid rgba(255,255,255,.06);
+}
+.a-side-brand { flex: none; display: flex; align-items: center; gap: 10px; padding: 18px 18px 16px; color: #fff; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.08); }
+.a-side-brand .a-logo { height: 42px; }
+.a-side-brand .brand-name { font-size: 20px; }
+.a-tabs {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 3px; padding: 12px 10px 20px;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.18) transparent;
+}
+.a-tabs::-webkit-scrollbar { width: 6px; }
+.a-tabs::-webkit-scrollbar-track { background: transparent; }
+.a-tabs::-webkit-scrollbar-thumb { background: rgba(255,255,255,.16); border-radius: 99px; }
+.a-tabs::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.3); }
+.a-tabs button {
+  flex: none; width: 100%; text-align: left; border: 0; background: transparent; cursor: pointer;
+  color: rgba(255,255,255,.72); padding: 11px 14px; border-radius: 10px; font: inherit; font-weight: 600; font-size: 14.5px;
+  transition: background .15s, color .15s;
+}
+.a-tabs button:hover { background: rgba(255,255,255,.08); color: #fff; }
+.a-tabs button.on, .a-tabs button.on:hover { background: #ff6a00; color: #fff; box-shadow: 0 6px 16px rgba(255,106,0,.25); }
+.a-tabs button:focus-visible { outline: 2px solid #ff6a00; outline-offset: 2px; }
+.a-content { flex: 1; min-width: 0; }
+.a-mob { display: none; }
+.a-side-back { display: none; }
+
+@media (max-width: 767px) {
+  .a-side {
+    position: fixed; left: 0; top: 0; bottom: 0; height: 100vh; height: 100dvh; width: min(280px, 82vw); z-index: 60;
+    transform: translateX(-100%); transition: transform .25s cubic-bezier(.2,.8,.2,1); box-shadow: none;
+  }
+  .a-shell.menu-aberto .a-side { transform: none; box-shadow: 0 0 40px rgba(0,0,0,.45); }
+  .a-side-back:not([hidden]) { display: block; position: fixed; inset: 0; z-index: 55; background: rgba(0,0,0,.55); animation: fade .2s; }
+  .a-mob {
+    position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 10px;
+    background: var(--ink); color: #fff; padding: 10px 14px; min-height: 58px;
+  }
+  .a-mob .a-logo { height: 34px; }
+  .a-mob .brand-name { font-size: 18px; }
+  .a-mob-aba { margin-left: auto; font-size: 13px; color: rgba(255,255,255,.7); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40vw; }
+  .a-menu { flex: none; width: 42px; height: 42px; border-radius: 12px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.06); color: #fff; font-size: 22px; line-height: 1; cursor: pointer; }
+}

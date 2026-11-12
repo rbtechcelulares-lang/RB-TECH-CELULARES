@@ -132,9 +132,28 @@
     $('#login').hidden = true;
     $('#app').hidden = false;
     $$('#tabs button').forEach((b) => b.addEventListener('click', () => irPara(b.dataset.tab)));
+    menuLateral();
     $$('[data-goto]').forEach((b) => b.addEventListener('click', () => irPara(b.dataset.goto)));
     atualizarBarra();
     render();
+  }
+
+  // Barra lateral: no celular abre como gaveta pelo ☰ e fecha ao tocar fora ou escolher uma aba
+  function menuLateral() {
+    const shell = $('#app'), back = $('#a-side-back'), botao = $('#a-menu');
+    const nomeAba = () => { const b = $('#tabs button.on'); $('#a-mob-aba').textContent = b ? b.textContent : ''; };
+    const abrirMenu = (sim) => {
+      shell.classList.toggle('menu-aberto', sim);
+      back.hidden = !sim;
+      botao.setAttribute('aria-expanded', sim ? 'true' : 'false');
+      document.body.classList.toggle('no-scroll', sim);
+    };
+    botao.addEventListener('click', () => abrirMenu(!shell.classList.contains('menu-aberto')));
+    back.addEventListener('click', () => abrirMenu(false));
+    $$('#tabs button').forEach((b) => b.addEventListener('click', () => { abrirMenu(false); nomeAba(); }));
+    $$('[data-goto]').forEach((b) => b.addEventListener('click', nomeAba));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && shell.classList.contains('menu-aberto')) abrirMenu(false); });
+    nomeAba();
   }
 
   function irPara(t) {
