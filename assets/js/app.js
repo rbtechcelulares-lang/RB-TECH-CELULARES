@@ -387,7 +387,8 @@
       }
       // botões rápidos: os que a IA mandou, ou as faixas de preço quando ela pergunta o orçamento
       let botoes = Array.isArray(dados.sugestoes) ? dados.sugestoes.slice(0, 6).map(String) : null;
-      if (!botoes && /quanto (você )?(quer|pretende|pode) (investir|gastar)|orçamento|faixa de (preço|valor)/i.test(resposta || '')) botoes = FAIXAS;
+      // (só quando a IA pergunta quanto o cliente quer gastar num aparelho; nunca em reparo)
+      if (!botoes && !dados.reparo && /quanto (você )?(quer|pretende|pode) (investir|gastar)|qual (é )?(o )?seu orçamento|faixa de (preço|valor)/i.test(resposta || '')) botoes = FAIXAS;
       msgs.push(Object.assign({ role: 'assistant', content: resposta }, zap ? { whatsapp: zap } : {}, botoes ? { sugestoes: botoes } : {}, Array.isArray(dados.produtos) && dados.produtos.length ? { produtos: dados.produtos.slice(0, 3), avaliacao: dados.avaliacao || null } : {},
         dados.reparo ? { reparo: String(dados.reparo) } : {})); guardar();
       ocupado = false; desenhar();
