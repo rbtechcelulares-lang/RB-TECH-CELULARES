@@ -301,12 +301,11 @@
         '<label class="field"><span>Garantia</span><input name="garantia" value="' + esc(p.garantia) + '"></label>' +
         '<label class="field ed-mac"><span>Configuração</span><input name="specs" value="' + esc(p.specs || '') + '" placeholder="Ex.: 16 GB de RAM · chip M5 · tela 11&quot;"></label>' +
       '</div>' +
-      '<div class="field"><span>Cor</span><div class="colors">' +
-        CORES.map(([n, h]) => '<button type="button" class="sw' + (n === p.cor ? ' on' : '') + '" data-c="' + esc(n) + '" data-h="' + h + '" title="' + esc(n) + '" style="background:' + h + '"></button>').join('') +
+      '<div class="field"><span>Cor <small class="hint" id="cor-dica"></small></span><div class="colors" id="ed-cores"></div>' +
       '</div><div class="ed-grid ed-grid-2">' +
         '<input name="cor" value="' + esc(p.cor) + '" placeholder="Nome da cor">' +
         '<input name="corHex" type="color" value="' + esc(p.corHex || '#cccccc') + '" title="Tom da cor">' +
-      '</div></div>' +
+      '</div><div class="cor-preview" id="cor-preview"></div></div>' +
       '<div class="ed-iphone"><label class="field"><span>Saúde da bateria: <b id="bat-v">' + esc(RB.batTexto(p, cat)) + '</b></span>' +
         '<input name="bateria" type="range" min="50" max="100" value="' + esc(Number(p.bateria) > 0 ? p.bateria : 90) + '"' + (Number(p.bateria) > 0 ? '' : ' disabled') + '></label>' +
       '<label class="check"><input type="checkbox" name="semBateria"' + (Number(p.bateria) > 0 ? '' : ' checked') + '> Não informar a porcentagem (usa a faixa da linha)</label></div>' +
@@ -372,10 +371,35 @@
       p.fotos.push(u); $('#ed-url').value = ''; desenharFotos();
     });
 
-    $$('.sw', f).forEach((b) => b.addEventListener('click', () => {
-      f.cor.value = b.dataset.c; f.corHex.value = b.dataset.h;
-      $$('.sw', f).forEach((x) => x.classList.toggle('on', x === b));
-    }));
+    // cores: as oficiais do modelo escolhido (iPhone) ou a lista geral; a foto do site acompanha a cor
+    const previewCor = () => {
+      const pv = $('#cor-preview', f);
+      if (!pv) return;
+      const src = RB.fotoModelo({ categoria: f.categoria.value, modelo: f.modelo.value, cor: f.cor.value });
+      pv.innerHTML = src && !p.fotos.length ? '<img src="' + src + '" alt="">' : '';
+    };
+    const desenharCores = () => {
+      const oficiais = f.categoria.value === 'iphone' ? RB.coresDoModelo(f.modelo.value) : [];
+      const lista = oficiais.length ? oficiais.map((c) => [c[0], c[1]]) : CORES;
+      const atual = f.cor.value.trim().toLowerCase();
+      $('#ed-cores', f).innerHTML = lista.map(([n, h]) =>
+        '<button type="button" class="sw sw-nome' + (n.toLowerCase() === atual ? ' on' : '') + '" data-c="' + esc(n) + '" data-h="' + h + '" title="' + esc(n) + '">' +
+        '<i style="background:' + h + '"></i>' + esc(n) + '</button>').join('') +
+        '<button type="button" class="sw sw-nome' + (atual === 'cores variadas' ? ' on' : '') + '" data-c="Cores variadas" data-h="#9a9a9a"><i class="sw-var"></i>Cores variadas</button>';
+      $('#cor-dica', f).textContent = oficiais.length ? '· cores oficiais do ' + f.modelo.value + ' (a foto do site muda junto)' : '';
+      $$('.sw', f).forEach((b) => b.addEventListener('click', () => {
+        f.cor.value = b.dataset.c;
+        f.corHex.value = b.dataset.h;
+        $$('.sw', f).forEach((x) => x.classList.toggle('on', x === b));
+        previewCor();
+      }));
+      previewCor();
+    };
+    f.modelo.addEventListener('input', desenharCores);
+    f.modelo.addEventListener('change', desenharCores);
+    f.categoria.addEventListener('change', desenharCores);
+    f.cor.addEventListener('input', previewCor);
+    desenharCores();
     // iPhone tem bateria e checklist; MacBook, Xiaomi e iPad têm ficha de configuração
     const tipo = () => {
       const iph = f.categoria.value === 'iphone';

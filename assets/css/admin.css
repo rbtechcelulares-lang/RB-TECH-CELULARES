@@ -242,3 +242,11 @@ details.a-card summary h3 { display: inline; }
 .pc-nums b.gold { color: #b8860b; }
 #zerar { margin-top: 4px; }
 @media (max-width: 520px) { .funil .fn { grid-template-columns: 120px 1fr 40px; } }
+
+/* Cores por modelo */
+.colors .sw-nome { width: auto; height: auto; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 5px; background: #fff; border: 1px solid var(--line); font-size: 12.5px; font-weight: 600; }
+.colors .sw-nome i { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(0,0,0,.18); display: inline-block; }
+.colors .sw-nome .sw-var { background: conic-gradient(#e8792b, #5b1a2a, #2b3d5a, #a9cfcb, #f2f2f2, #e8792b); }
+.colors .sw-nome.on { border-color: var(--ink); box-shadow: 0 0 0 2px var(--gold); }
+.cor-preview { margin-top: 8px; }
+.cor-preview img { height: 120px; width: auto; display: block; background: #141210; border-radius: 12px; padding: 8px 18px; }

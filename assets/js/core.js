@@ -192,9 +192,47 @@
   const FOTOS_MODELO = ['11', '11-pro', '11-pro-max', '12', '12-pro', '12-pro-max', '13', '13-pro', '13-pro-max',
     '14', '14-plus', '14-pro', '14-pro-max', '15', '15-plus', '15-pro', '15-pro-max', '16', '16-plus', '16-pro', '16-pro-max',
     '17', 'air', '17-pro', '17-pro-max', '18-pro', '18-pro-max'];
+  // Cores oficiais de cada iPhone: [nome, tom, arquivo] (fotos em img/modelos/cores)
+  const CORES_IPHONE = {
+    '11': [['Preto', '#1f2020', 'preto'], ['Branco', '#f4f1ea', 'branco'], ['Verde', '#aee1cd', 'verde'], ['Amarelo', '#ffe681', 'amarelo'], ['Roxo', '#d1cdda', 'roxo'], ['(PRODUCT)RED', '#ba0c2e', 'product-red']],
+    '11-pro': [['Cinza-espacial', '#535150', 'cinza-espacial'], ['Prateado', '#ebebe3', 'prateado'], ['Dourado', '#f3d6bd', 'dourado'], ['Verde-meia-noite', '#4e5851', 'verde-meia-noite']],
+    '11-pro-max': [['Cinza-espacial', '#535150', 'cinza-espacial'], ['Prateado', '#ebebe3', 'prateado'], ['Dourado', '#f3d6bd', 'dourado'], ['Verde-meia-noite', '#4e5851', 'verde-meia-noite']],
+    '12': [['Preto', '#25212b', 'preto'], ['Branco', '#f6f3ef', 'branco'], ['(PRODUCT)RED', '#d82e2e', 'product-red'], ['Verde', '#d8efd5', 'verde'], ['Azul', '#1f4a7a', 'azul'], ['Roxo', '#b7afe6', 'roxo']],
+    '12-pro': [['Grafite', '#52514f', 'grafite'], ['Prateado', '#e3e4e5', 'prateado'], ['Dourado', '#f2e3cb', 'dourado'], ['Azul-Pacífico', '#2e4a5c', 'azul-pacifico']],
+    '12-pro-max': [['Grafite', '#52514f', 'grafite'], ['Prateado', '#e3e4e5', 'prateado'], ['Dourado', '#f2e3cb', 'dourado'], ['Azul-Pacífico', '#2e4a5c', 'azul-pacifico']],
+    '13': [['Meia-noite', '#232a31', 'meia-noite'], ['Estelar', '#f2eee9', 'estelar'], ['Azul', '#276787', 'azul'], ['Rosa', '#f7d8d2', 'rosa'], ['(PRODUCT)RED', '#bf0013', 'product-red'], ['Verde', '#394c38', 'verde']],
+    '13-pro': [['Grafite', '#54524f', 'grafite'], ['Dourado', '#f2e2c8', 'dourado'], ['Prateado', '#eceee9', 'prateado'], ['Azul-Sierra', '#a7c1d9', 'azul-sierra'], ['Verde-alpino', '#576856', 'verde-alpino']],
+    '13-pro-max': [['Grafite', '#54524f', 'grafite'], ['Dourado', '#f2e2c8', 'dourado'], ['Prateado', '#eceee9', 'prateado'], ['Azul-Sierra', '#a7c1d9', 'azul-sierra'], ['Verde-alpino', '#576856', 'verde-alpino']],
+    '14': [['Meia-noite', '#222930', 'meia-noite'], ['Estelar', '#f2eee9', 'estelar'], ['Azul', '#a0b4c7', 'azul'], ['Roxo', '#e0d6e8', 'roxo'], ['(PRODUCT)RED', '#e0142c', 'product-red'], ['Amarelo', '#f3dc6e', 'amarelo']],
+    '14-plus': [['Meia-noite', '#222930', 'meia-noite'], ['Estelar', '#f2eee9', 'estelar'], ['Azul', '#a0b4c7', 'azul'], ['Roxo', '#e0d6e8', 'roxo'], ['(PRODUCT)RED', '#e0142c', 'product-red'], ['Amarelo', '#f3dc6e', 'amarelo']],
+    '14-pro': [['Preto-espacial', '#403e3d', 'preto-espacial'], ['Prateado', '#eceeee', 'prateado'], ['Dourado', '#efe0c2', 'dourado'], ['Roxo-profundo', '#594f63', 'roxo-profundo']],
+    '14-pro-max': [['Preto-espacial', '#403e3d', 'preto-espacial'], ['Prateado', '#eceeee', 'prateado'], ['Dourado', '#efe0c2', 'dourado'], ['Roxo-profundo', '#594f63', 'roxo-profundo']],
+    '15': [['Preto', '#35393b', 'preto'], ['Azul', '#cfe0ea', 'azul'], ['Verde', '#dce4d4', 'verde'], ['Amarelo', '#ede2b8', 'amarelo'], ['Rosa', '#f0d6da', 'rosa']],
+    '15-plus': [['Preto', '#35393b', 'preto'], ['Azul', '#cfe0ea', 'azul'], ['Verde', '#dce4d4', 'verde'], ['Amarelo', '#ede2b8', 'amarelo'], ['Rosa', '#f0d6da', 'rosa']],
+    '15-pro': [['Titânio natural', '#bab4a9', 'titanio-natural'], ['Titânio azul', '#2f4452', 'titanio-azul'], ['Titânio branco', '#e2e1dc', 'titanio-branco'], ['Titânio preto', '#2a2a2c', 'titanio-preto']],
+    '15-pro-max': [['Titânio natural', '#bab4a9', 'titanio-natural'], ['Titânio azul', '#2f4452', 'titanio-azul'], ['Titânio branco', '#e2e1dc', 'titanio-branco'], ['Titânio preto', '#2a2a2c', 'titanio-preto']],
+    '16': [['Preto', '#3c3c3d', 'preto'], ['Branco', '#f4f4f4', 'branco'], ['Rosa', '#f1a7c9', 'rosa'], ['Verde-acinzentado', '#a9cfcb', 'verde-acinzentado'], ['Ultramarino', '#8b9df2', 'ultramarino']],
+    '16-plus': [['Preto', '#3c3c3d', 'preto'], ['Branco', '#f4f4f4', 'branco'], ['Rosa', '#f1a7c9', 'rosa'], ['Verde-acinzentado', '#a9cfcb', 'verde-acinzentado'], ['Ultramarino', '#8b9df2', 'ultramarino']],
+    '16-pro': [['Titânio-deserto', '#bfa48f', 'titanio-deserto'], ['Titânio natural', '#c2bcb2', 'titanio-natural'], ['Titânio branco', '#ecebe7', 'titanio-branco'], ['Titânio preto', '#3c3c3d', 'titanio-preto']],
+    '16-pro-max': [['Titânio-deserto', '#bfa48f', 'titanio-deserto'], ['Titânio natural', '#c2bcb2', 'titanio-natural'], ['Titânio branco', '#ecebe7', 'titanio-branco'], ['Titânio preto', '#3c3c3d', 'titanio-preto']],
+    '17': [['Preto', '#2b2b2b', 'preto'], ['Branco', '#f2f2f2', 'branco'], ['Azul-névoa', '#9fb6d4', 'azul-nevoa'], ['Sálvia', '#a9b99a', 'salvia'], ['Lavanda', '#c9b8e0', 'lavanda']],
+    'air': [['Preto-espacial', '#262626', 'preto-espacial'], ['Branco-nuvem', '#f2f2f2', 'branco-nuvem'], ['Dourado-claro', '#e8d9b8', 'dourado-claro'], ['Azul-céu', '#b7d4ec', 'azul-ceu']],
+    '17-pro': [['Laranja-cósmico', '#e8792b', 'laranja-cosmico'], ['Azul-intenso', '#2b3d5a', 'azul-intenso'], ['Prateado', '#e3e3e0', 'prateado']],
+    '17-pro-max': [['Laranja-cósmico', '#e8792b', 'laranja-cosmico'], ['Azul-intenso', '#2b3d5a', 'azul-intenso'], ['Prateado', '#e3e3e0', 'prateado']],
+    '18-pro': [['Bordeaux', '#5b1a2a', 'bordeaux'], ['Preto', '#1c1c1e', 'preto'], ['Branco', '#ecebe7', 'branco'], ['Azul', '#a9c8e6', 'azul']],
+    '18-pro-max': [['Bordeaux', '#5b1a2a', 'bordeaux'], ['Preto', '#1c1c1e', 'preto'], ['Branco', '#ecebe7', 'branco'], ['Azul', '#a9c8e6', 'azul']]
+  };
+  const chaveModelo = (modelo) => String(modelo || '').toLowerCase().replace(/^iphone\s*/, '').trim().replace(/\s+/g, '-');
+  const slugCor = (c) => String(c || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  function coresDoModelo(modelo) {
+    return CORES_IPHONE[chaveModelo(modelo)] || [];
+  }
+
   function fotoModelo(p) {
     if (!ehIphone(p)) return '';
-    const s = String(p.modelo || '').toLowerCase().replace(/^iphone\s*/, '').trim().replace(/\s+/g, '-');
+    const s = chaveModelo(p.modelo);
+    const cor = coresDoModelo(p.modelo).find((c) => c[2] === slugCor(p.cor) || slugCor(c[0]) === slugCor(p.cor));
+    if (cor) return 'img/modelos/cores/iphone-' + s + '-' + cor[2] + '.webp';
     return FOTOS_MODELO.includes(s) ? 'img/modelos/iphone-' + s + '.webp' : '';
   }
 
@@ -442,6 +480,6 @@
     DRAFT_KEY, CHECKLIST_ITENS, STATUS,
     money, esc, lerRascunho, carregarCatalogo,
     TEXTOS, texto, formatar, registrar, limparSupabase, abrirAviso, cabecalhosSupabase, campanhaVigente, abrirPopup,
-    avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, batNumero, CATEGORIAS, categoria, ehIphone, ehMac, ehNovo, noTopo, naVitrine, noCatalogo, ativo, emPromocao, sobEncomenda, nomeProduto, phoneSVG, produtoSVG, fotoModelo, imagemProduto, sha256
+    avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, batNumero, CATEGORIAS, categoria, ehIphone, ehMac, ehNovo, noTopo, naVitrine, noCatalogo, ativo, emPromocao, sobEncomenda, nomeProduto, phoneSVG, produtoSVG, fotoModelo, coresDoModelo, imagemProduto, sha256
   };
 })(window);
