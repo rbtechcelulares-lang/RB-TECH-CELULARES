@@ -353,10 +353,11 @@
     "link": "",
     "imagem": "img/promo/popup-mwcxaini.webp",
     "frequencia": "sessao",
-    "atraso": 1,
+    "atraso": 4,
     "inicio": "",
     "fim": "",
-    "mensagem": "Olá! Quero ativar meu cupom *{cupom}* da promoção \"{titulo}\". 🎟️"
+    "mensagem": "Olá! Quero ativar meu cupom *{cupom}* da promoção \"{titulo}\". 🎟️",
+    "desconto": 50
   },
   "bateriaLinha": {
     "11": "78% a 80%",
@@ -653,15 +654,10 @@
       "bateria": null,
       "preco": 1100,
       "precoAntigo": 0,
-      "garantia": "4 meses",
+      "garantia": "90 dias",
       "destaque": false,
       "disponivel": true,
-      "fotos": [
-        "img/produtos/p-12-64gb-mwehzq5e0.jpg",
-        "img/produtos/p-12-64gb-mwehzsgh1.jpg",
-        "img/produtos/p-12-64gb-mwehzu732.jpg",
-        "img/produtos/p-12-64gb-mwehzw3c3.jpg"
-      ],
+      "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
       "checklist": {
         "faceid": {
@@ -688,13 +684,7 @@
           "status": "ok",
           "nota": ""
         }
-      },
-      "categoria": "iphone",
-      "specs": "",
-      "topo": false,
-      "vitrine": false,
-      "encomenda": false,
-      "prazo": ""
+      }
     },
     {
       "id": "p-12-128gb",
@@ -706,13 +696,9 @@
       "bateria": null,
       "preco": 1499,
       "precoAntigo": 0,
-      "garantia": "4 meses",
+      "garantia": "90 dias",
       "disponivel": true,
-      "fotos": [
-        "img/produtos/p-12-128gb-mwehzxwq4.jpg",
-        "img/produtos/p-12-128gb-mwehzzq45.jpg",
-        "img/produtos/p-12-128gb-mwei01ba6.jpg"
-      ],
+      "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
       "checklist": {
         "faceid": {
@@ -740,12 +726,7 @@
           "nota": ""
         }
       },
-      "vitrine": true,
-      "categoria": "iphone",
-      "specs": "",
-      "topo": false,
-      "encomenda": false,
-      "prazo": ""
+      "vitrine": true
     },
     {
       "id": "p-12-256gb",
@@ -787,7 +768,7 @@
           "nota": ""
         }
       },
-      "vitrine": false
+      "vitrine": true
     },
     {
       "id": "p-12pro-128gb",
@@ -799,11 +780,10 @@
       "bateria": null,
       "preco": 1600,
       "precoAntigo": 0,
-      "garantia": "4 meses",
+      "garantia": "90 dias",
+      "destaque": false,
       "disponivel": true,
-      "fotos": [
-        "img/produtos/p-12pro-128gb-mwei02ys7.jpg"
-      ],
+      "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
       "checklist": {
         "faceid": {
@@ -831,12 +811,7 @@
           "nota": ""
         }
       },
-      "encomenda": true,
-      "vitrine": true,
-      "categoria": "iphone",
-      "specs": "",
-      "topo": false,
-      "prazo": ""
+      "encomenda": true
     },
     {
       "id": "p-12promax-128gb",
@@ -938,14 +913,9 @@
       "bateria": null,
       "preco": 1799,
       "precoAntigo": 2100,
-      "garantia": "6 meses",
+      "garantia": "90 dias",
       "disponivel": true,
-      "fotos": [
-        "img/produtos/p-13-128gb-mwei04nc8.jpg",
-        "img/produtos/p-13-128gb-mwei06cs9.jpg",
-        "img/produtos/p-13-128gb-mwei083b10.jpg",
-        "img/produtos/p-13-128gb-mwei09ub11.jpg"
-      ],
+      "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
       "checklist": {
         "faceid": {
