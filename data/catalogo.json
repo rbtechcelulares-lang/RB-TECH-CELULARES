@@ -653,51 +653,15 @@
       "bateria": null,
       "preco": 1100,
       "precoAntigo": 0,
-      "garantia": "90 dias",
+      "garantia": "4 meses",
       "destaque": false,
       "disponivel": true,
-      "fotos": [],
-      "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
-      "checklist": {
-        "faceid": {
-          "status": "ok",
-          "nota": ""
-        },
-        "bateria": {
-          "status": "ok",
-          "nota": "Revisada"
-        },
-        "sistema": {
-          "status": "ok",
-          "nota": ""
-        },
-        "cameras": {
-          "status": "ok",
-          "nota": ""
-        },
-        "tela": {
-          "status": "ok",
-          "nota": ""
-        },
-        "tampa": {
-          "status": "ok",
-          "nota": ""
-        }
-      }
-    },
-    {
-      "id": "p-12-128gb",
-      "modelo": "iPhone 12",
-      "armazenamento": "128GB",
-      "cor": "Cores variadas",
-      "corHex": "#1f2430",
-      "condicao": "Seminovo",
-      "bateria": null,
-      "preco": 1499,
-      "precoAntigo": 0,
-      "garantia": "90 dias",
-      "disponivel": true,
-      "fotos": [],
+      "fotos": [
+        "img/produtos/p-12-64gb-mwehzq5e0.jpg",
+        "img/produtos/p-12-64gb-mwehzsgh1.jpg",
+        "img/produtos/p-12-64gb-mwehzu732.jpg",
+        "img/produtos/p-12-64gb-mwehzw3c3.jpg"
+      ],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
       "checklist": {
         "faceid": {
@@ -725,7 +689,63 @@
           "nota": ""
         }
       },
-      "vitrine": true
+      "categoria": "iphone",
+      "specs": "",
+      "topo": false,
+      "vitrine": false,
+      "encomenda": false,
+      "prazo": ""
+    },
+    {
+      "id": "p-12-128gb",
+      "modelo": "iPhone 12",
+      "armazenamento": "128GB",
+      "cor": "Cores variadas",
+      "corHex": "#1f2430",
+      "condicao": "Seminovo",
+      "bateria": null,
+      "preco": 1499,
+      "precoAntigo": 0,
+      "garantia": "4 meses",
+      "disponivel": true,
+      "fotos": [
+        "img/produtos/p-12-128gb-mwehzxwq4.jpg",
+        "img/produtos/p-12-128gb-mwehzzq45.jpg",
+        "img/produtos/p-12-128gb-mwei01ba6.jpg"
+      ],
+      "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
+      "checklist": {
+        "faceid": {
+          "status": "ok",
+          "nota": ""
+        },
+        "bateria": {
+          "status": "ok",
+          "nota": "Revisada"
+        },
+        "sistema": {
+          "status": "ok",
+          "nota": ""
+        },
+        "cameras": {
+          "status": "ok",
+          "nota": ""
+        },
+        "tela": {
+          "status": "ok",
+          "nota": ""
+        },
+        "tampa": {
+          "status": "ok",
+          "nota": ""
+        }
+      },
+      "vitrine": true,
+      "categoria": "iphone",
+      "specs": "",
+      "topo": false,
+      "encomenda": false,
+      "prazo": ""
     },
     {
       "id": "p-12-256gb",
@@ -767,7 +787,7 @@
           "nota": ""
         }
       },
-      "vitrine": true
+      "vitrine": false
     },
     {
       "id": "p-12pro-128gb",
@@ -779,10 +799,11 @@
       "bateria": null,
       "preco": 1600,
       "precoAntigo": 0,
-      "garantia": "90 dias",
-      "destaque": false,
+      "garantia": "4 meses",
       "disponivel": true,
-      "fotos": [],
+      "fotos": [
+        "img/produtos/p-12pro-128gb-mwei02ys7.jpg"
+      ],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
       "checklist": {
         "faceid": {
@@ -810,7 +831,12 @@
           "nota": ""
         }
       },
-      "encomenda": true
+      "encomenda": true,
+      "vitrine": true,
+      "categoria": "iphone",
+      "specs": "",
+      "topo": false,
+      "prazo": ""
     },
     {
       "id": "p-12promax-128gb",
@@ -912,9 +938,14 @@
       "bateria": null,
       "preco": 1799,
       "precoAntigo": 2100,
-      "garantia": "90 dias",
+      "garantia": "6 meses",
       "disponivel": true,
-      "fotos": [],
+      "fotos": [
+        "img/produtos/p-13-128gb-mwei04nc8.jpg",
+        "img/produtos/p-13-128gb-mwei06cs9.jpg",
+        "img/produtos/p-13-128gb-mwei083b10.jpg",
+        "img/produtos/p-13-128gb-mwei09ub11.jpg"
+      ],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
       "checklist": {
         "faceid": {
