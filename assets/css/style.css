@@ -771,6 +771,11 @@ body.loja {
 .cat-art img.img-modelo, .prow-img img.img-modelo { left: 6%; top: 6%; width: 88%; height: 88%; }
 .card-media .tag { z-index: 1; }
 
+/* Foto própria do aparelho (em pé, ex.: 675x1200): na página do aparelho ela aparece inteira, sem cortar o
+   aparelho embaixo (a caixa quadrada cortava o meio da foto) */
+.pd-main:has(> img.img-foto) { aspect-ratio: auto; }
+.pd-main img.img-foto { width: 100%; height: auto; max-height: 66vh; object-fit: contain; display: block; }
+
 /* Celular: os 3 iPhones do topo esmaecidos atrás do texto, no canto direito */
 @media (max-width: 959px) {
   .hero-in { position: relative; }

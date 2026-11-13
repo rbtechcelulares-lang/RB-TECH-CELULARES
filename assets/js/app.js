@@ -1116,7 +1116,8 @@
   function ligarFotos(body, p) {
     const fotos = (p.fotos || []).filter(Boolean);
     $$('.pd-thumbs button', body).forEach((b) => b.addEventListener('click', () => {
-      $('.pd-main', body).innerHTML = '<img src="' + esc(fotos[b.dataset.i]) + '" alt="">';
+      const f = fotos[b.dataset.i];
+      $('.pd-main', body).innerHTML = '<img class="' + (/^img\/xiaomi\//.test(f) ? 'img-modelo' : 'img-foto') + '" src="' + esc(f) + '" alt="">';
       $$('.pd-thumbs button', body).forEach((x) => x.classList.toggle('on', x === b));
     }));
   }
