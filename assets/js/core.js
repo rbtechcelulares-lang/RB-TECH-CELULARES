@@ -439,6 +439,51 @@
   }
 
   /* ---------- Pop-up de campanha ---------- */
+  /* ---------- Campanhas do site (skins): uma ligada por vez, escolhida no admin ---------- */
+  // tag = faixa no topo e nos cartões; hero = selo grande da página inicial; texto = faixa padrão
+  const CAMPANHAS = {
+    blackfriday: { nome: 'Black Friday', emoji: '🔥', tag: 'BLACK FRIDAY', hero: ['BLACK', 'FRIDAY'], texto: '🔥 Ofertas *esgotando* · preços que não voltam', vendeu: '🔥 Vendeu' },
+    natal: { nome: 'Natal', emoji: '🎄', tag: 'NATAL', hero: ['FELIZ', 'NATAL'], texto: '🎁 Presente de Natal com *preço especial*', vendeu: '🎁 Vendeu' },
+    anonovo: { nome: 'Ano Novo', emoji: '🥂', tag: 'ANO NOVO', hero: ['ANO NOVO,', 'IPHONE NOVO'], texto: '✨ Comece o ano de *iPhone novo*', vendeu: '✨ Vendeu' },
+    pascoa: { nome: 'Páscoa', emoji: '🐰', tag: 'PÁSCOA', hero: ['FELIZ', 'PÁSCOA'], texto: '🍫 Ofertas de Páscoa *mais doces* que chocolate', vendeu: '🐰 Vendeu' },
+    maes: { nome: 'Dia das Mães', emoji: '💐', tag: 'DIA DAS MÃES', hero: ['DIA DAS', 'MÃES'], texto: '💐 O presente que ela *merece*', vendeu: '💐 Vendeu' },
+    pais: { nome: 'Dia dos Pais', emoji: '👔', tag: 'DIA DOS PAIS', hero: ['DIA DOS', 'PAIS'], texto: '🎁 Presente de pai *é iPhone*', vendeu: '🎁 Vendeu' },
+    criancas: { nome: 'Dia das Crianças', emoji: '🎈', tag: 'DIA DAS CRIANÇAS', hero: ['DIA DAS', 'CRIANÇAS'], texto: '🎈 Ofertas de Dia das Crianças · *alegria garantida*', vendeu: '🎈 Vendeu' }
+  };
+  // data em que cada campanha termina (a próxima a partir de hoje), no formato do campo "Termina em"
+  function fimSugerido(tema, agora) {
+    const hoje = agora || new Date();
+    const fmt = (y, m, d) => y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0') + 'T23:59';
+    const nDomingo = (y, m, n) => { const pri = new Date(y, m - 1, 1).getDay(); return 1 + ((7 - pri) % 7) + 7 * (n - 1); };
+    const pascoa = (y) => { // domingo de Páscoa (calendário gregoriano)
+      const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+      const h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+      return [Math.floor((h + l - 7 * m + 114) / 31), ((h + l - 7 * m + 114) % 31) + 1];
+    };
+    const dataDe = {
+      blackfriday: (y) => { const pri = new Date(y, 10, 1).getDay(); const quinta = 1 + ((4 - pri + 7) % 7) + 21; return [11, quinta + 4]; }, // até a Cyber Monday
+      natal: () => [12, 24], anonovo: () => [12, 31], pascoa,
+      maes: (y) => [5, nDomingo(y, 5, 2)], pais: (y) => [8, nDomingo(y, 8, 2)], criancas: () => [10, 12]
+    }[tema] || (() => [12, 31]);
+    for (let y = hoje.getFullYear(); y <= hoje.getFullYear() + 1; y++) {
+      const [m, d] = dataDe(y);
+      if (new Date(y, m - 1, d, 23, 59) >= hoje) return fmt(y, m, d);
+    }
+    return '';
+  }
+  // configuração salva (cat.campanha); cat.blackfriday é o formato antigo, de antes das skins
+  const configCampanha = (cat) => (cat && cat.campanha) || (cat && cat.blackfriday ? Object.assign({ tema: 'blackfriday' }, cat.blackfriday) : {});
+  // campanha que aparece no site agora (ou null). forcar = ver uma skin na pré-visualização do admin
+  function campanhaAtiva(cat, forcar) {
+    const c = configCampanha(cat);
+    const tema = forcar && CAMPANHAS[forcar] ? forcar : (CAMPANHAS[c.tema] ? c.tema : 'blackfriday');
+    const mesma = !forcar || forcar === (c.tema || 'blackfriday');
+    if (!forcar && !c.ativo) return null;
+    const fim = mesma ? c.fim : fimSugerido(tema);
+    if (!forcar && fim && Date.now() > new Date(fim).getTime()) return null; // acabou: site volta ao normal sozinho
+    return Object.assign({ id: tema }, CAMPANHAS[tema], { fim, texto: (mesma && c.texto) || CAMPANHAS[tema].texto, intervalo: c.intervalo, vendas: c.vendas, cidades: c.cidades });
+  }
+
   function campanhaVigente(pp) {
     if (!pp || !pp.ativo) return false;
     const hoje = new Date();
@@ -517,6 +562,7 @@
     DRAFT_KEY, CHECKLIST_ITENS, STATUS,
     money, esc, lerRascunho, carregarCatalogo,
     TEXTOS, texto, formatar, registrar, salvarCliente, limparSupabase, abrirAviso, cabecalhosSupabase, campanhaVigente, abrirPopup,
+    CAMPANHAS, fimSugerido, configCampanha, campanhaAtiva,
     avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, batNumero, CATEGORIAS, categoria, ehIphone, ehMac, ehNovo, garantia, noTopo, naVitrine, noCatalogo, ativo, emPromocao, sobEncomenda, nomeProduto, phoneSVG, produtoSVG, fotoModelo, coresDoModelo, imagemProduto, sha256
   };
 })(window);

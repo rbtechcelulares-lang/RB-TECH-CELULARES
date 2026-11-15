@@ -82,7 +82,7 @@
     menuReparo();
     boasVindas();
     agendarPopup();
-    blackFriday();
+    campanha();
     rbChat();
   }
 
@@ -528,21 +528,24 @@
     $('.rbc-form', painel).addEventListener('submit', (e) => { e.preventDefault(); enviar(campo.value); });
   }
 
-  /* ---------- Black Friday: tema, contagem regressiva e avisos de venda ---------- */
-  function blackFriday() {
-    const bf = cat.blackfriday || {};
-    if (!bf.ativo) return;
-    const fim = bf.fim ? new Date(bf.fim) : null;
-    if (fim && Date.now() > fim.getTime()) return; // campanha acabou: site volta ao normal sozinho
-    document.body.classList.add('bf');
+  /* ---------- Campanha do site (skin): Black Friday, Natal, Ano Novo, Páscoa, Mães, Pais, Crianças ---------- */
+  // Uma campanha ligada por vez (admin › Promoções). Na pré-visualização, ?tema=natal mostra uma skin sem ligar.
+  function campanha() {
+    const c = RB.campanhaAtiva(cat, preview ? params.get('tema') || '' : '');
+    if (!c) return;
+    document.body.classList.add('bf', 'tema-' + c.id);
+    // textos que o CSS usa na faixa dos cartões e no emoji dos preços
+    document.body.style.setProperty('--camp-tag', JSON.stringify(c.tag));
+    document.body.style.setProperty('--camp-emoji', JSON.stringify(c.emoji));
+    const fim = c.fim ? new Date(c.fim) : null;
     const bar = $('#bf-bar');
-    bar.innerHTML = '<div class="wrap bf-in"><span class="bf-tag">BLACK FRIDAY</span>' +
-      '<span class="bf-txt">' + RB.formatar(cat, bf.texto || '🔥 Ofertas *esgotando*') + '</span>' +
+    bar.innerHTML = '<div class="wrap bf-in"><span class="bf-tag">' + esc(c.tag) + '</span>' +
+      '<span class="bf-txt">' + RB.formatar(cat, c.texto) + '</span>' +
       (fim ? '<span class="bf-timer" id="bf-timer" aria-live="off"></span>' : '') + '</div>';
     bar.hidden = false;
     // selo no topo da página inicial
     const titulo = $('.hero-title');
-    if (titulo && !$('.bf-hero')) titulo.insertAdjacentHTML('beforebegin', '<p class="bf-hero"><span>BLACK</span> FRIDAY</p>');
+    if (titulo && !$('.bf-hero')) titulo.insertAdjacentHTML('beforebegin', '<p class="bf-hero"><span>' + esc(c.hero[0]) + '</span> ' + esc(c.hero[1]) + '</p>');
     if (fim) {
       const t = $('#bf-timer');
       const dois = (n) => String(n).padStart(2, '0');
@@ -556,7 +559,7 @@
       };
       tick(); setInterval(tick, 1000);
     }
-    if (bf.vendas !== false && !preview) avisosDeVenda(bf);
+    if (c.vendas !== false && !preview) avisosDeVenda(c);
   }
 
   function avisosDeVenda(bf) {
@@ -573,7 +576,7 @@
       const p = pool[Math.floor(Math.random() * pool.length)];
       const min = 2 + Math.floor(Math.random() * 38);
       box.innerHTML = '<span class="bv-img">' + RB.imagemProduto(p, true) + '</span>' +
-        '<span class="bv-txt"><b>🔥 Vendeu ' + esc(RB.nomeProduto(p)) + '</b>' +
+        '<span class="bv-txt"><b>' + esc(bf.vendeu || '🔥 Vendeu') + ' ' + esc(RB.nomeProduto(p)) + '</b>' +
         '<small>' + esc(cidades[Math.floor(Math.random() * cidades.length)]) + ' · há ' + min + ' min</small></span>' +
         '<button type="button" aria-label="Fechar">×</button>';
       box.onclick = (e) => {

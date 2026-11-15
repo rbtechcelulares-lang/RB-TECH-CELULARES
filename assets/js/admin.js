@@ -770,21 +770,34 @@
     cat.promocao = cat.promocao || {};
     cat.popup = cat.popup || {};
     const pr = cat.promocao, pp = cat.popup;
+    // campanha do site (skins); antes só existia a Black Friday (cat.blackfriday)
+    if (!cat.campanha) cat.campanha = Object.assign({ tema: 'blackfriday' }, cat.blackfriday || {});
+    const cp = cat.campanha, temaAt = RB.CAMPANHAS[cp.tema] ? cp.tema : 'blackfriday';
+    const dataCurta = (f) => (f ? f.slice(8, 10) + '/' + f.slice(5, 7) + '/' + f.slice(0, 4) + (f.slice(11, 16) && f.slice(11, 16) !== '23:59' ? ' ' + f.slice(11, 16) : '') : '');
     const optProdutos = (sel) => cat.produtos.map((p) => '<option value="' + esc(p.id) + '"' + (p.id === sel ? ' selected' : '') + '>' +
       esc(RB.nomeProduto(p) + ' · ' + p.cor + ' · ' + money(p.preco)) + (p.disponivel === false ? ' (oculto)' : '') + '</option>').join('');
     const opt = (pares, v) => pares.map(([k, t]) => '<option value="' + k + '"' + (k === v ? ' selected' : '') + '>' + t + '</option>').join('');
     el.innerHTML =
       '<div class="a-head"><div><h2>Promoções</h2><p class="muted">O destaque do início da página e o pop-up que abre quando o cliente entra no site.</p></div></div>' +
 
-      '<div class="a-card"><div class="pop-head"><h3>🔥 Black Friday</h3>' +
-        '<label class="switch" title="Ligar Black Friday"><input type="checkbox" data-bind="blackfriday.ativo"' + ((cat.blackfriday || {}).ativo ? ' checked' : '') + '><span></span></label></div>' +
-        '<p class="hint">Liga o visual de Black Friday no site inteiro: faixa com contagem regressiva, fogo nos preços e avisos de venda no canto da tela. Depois da data final, o site volta ao normal sozinho.</p>' +
+      '<div class="a-card"><div class="pop-head"><h3>🎨 Campanha do site</h3>' +
+        '<label class="switch" title="Ligar a campanha"><input type="checkbox" data-bind="campanha.ativo"' + (cp.ativo ? ' checked' : '') + '><span></span></label></div>' +
+        '<p class="hint">Muda o visual do site inteiro para a data: faixa com contagem regressiva, cores e emoji nos preços, selo no topo e avisos de venda no canto. Uma campanha por vez; depois da data final, o site volta ao normal sozinho.</p>' +
+        '<p class="hint" id="camp-status"></p>' +
+        '<div class="camp-skins">' + Object.keys(RB.CAMPANHAS).map((id) => {
+          const d = RB.CAMPANHAS[id];
+          return '<div class="camp-skin' + (id === temaAt ? ' on' : '') + '">' +
+            '<button type="button" class="camp-escolher" data-tema="' + id + '" title="Usar esta campanha"><span class="camp-amostra tema-' + id + '">' + esc(d.tag) + '</span>' +
+            '<b>' + d.emoji + ' ' + esc(d.nome) + '</b><small>' + (id === temaAt ? '✓ escolhida' : 'termina ' + dataCurta(RB.fimSugerido(id))) + '</small></button>' +
+            '<a class="camp-ver" href="index.html?preview=1&tema=' + id + '" target="_blank" rel="noopener">👁 ver no site</a></div>';
+        }).join('') + '</div>' +
         '<div class="ed-grid">' +
-          '<label class="field"><span>Termina em</span><input type="datetime-local" data-bind="blackfriday.fim" value="' + esc((cat.blackfriday || {}).fim || '') + '"></label>' +
-          '<label class="field"><span>Texto da faixa</span>' + inp('blackfriday.texto', (cat.blackfriday || {}).texto || '', 'placeholder="🔥 Ofertas *esgotando*"') + '</label>' +
-          '<label class="field"><span>Avisos de venda a cada (segundos)</span>' + num('blackfriday.intervalo', (cat.blackfriday || {}).intervalo ?? 18, 'min="8" max="120"') + '</label>' +
-          '<label class="check" style="align-self:end;margin-bottom:12px"><input type="checkbox" data-bind="blackfriday.vendas"' + ((cat.blackfriday || {}).vendas !== false ? ' checked' : '') + '> Mostrar avisos "Vendeu iPhone…"</label>' +
+          '<label class="field"><span>Termina em</span><input type="datetime-local" data-bind="campanha.fim" value="' + esc(cp.fim || '') + '"></label>' +
+          '<label class="field"><span>Texto da faixa</span>' + inp('campanha.texto', cp.texto || '', 'placeholder="' + esc(RB.CAMPANHAS[temaAt].texto) + '"') + '</label>' +
+          '<label class="field"><span>Avisos de venda a cada (segundos)</span>' + num('campanha.intervalo', cp.intervalo ?? 18, 'min="8" max="120"') + '</label>' +
+          '<label class="check" style="align-self:end;margin-bottom:12px"><input type="checkbox" data-bind="campanha.vendas"' + (cp.vendas !== false ? ' checked' : '') + '> Mostrar avisos "Vendeu iPhone…"</label>' +
         '</div>' +
+        '<p class="hint">Ao trocar de campanha, o texto da faixa e a data final vão para o padrão da nova (dá para mudar depois). Coloque *entre asteriscos* o trecho que fica destacado.</p>' +
       '</div>' +
 
       '<div class="a-card"><h3>⭐ Promoção do topo da página inicial</h3>' +
@@ -851,12 +864,24 @@
       $('#pop-msg').hidden = (cat.popup.acao || 'whatsapp') !== 'whatsapp';
       $('#pop-img').innerHTML = cat.popup.imagem ? '<img class="pop-thumb" src="' + esc(cat.popup.imagem) + '" alt="">' : '<small class="hint">Sem imagem</small>';
       $('#pop-img-x').hidden = !cat.popup.imagem;
+      const c = cat.campanha, dc = RB.CAMPANHAS[c.tema] || RB.CAMPANHAS.blackfriday;
+      const venceu = c.fim && Date.now() > new Date(c.fim).getTime();
+      $('#camp-status').innerHTML = !c.ativo ? '⚪ Desligada: o site fica no visual normal.'
+        : venceu ? '🟡 ' + esc(dc.nome) + ' ligada, mas a data final já passou: o site está no visual normal. Mude o "Termina em".'
+          : '🟢 ' + esc(dc.nome) + ' ligada' + (c.fim ? ' até ' + dataCurta(c.fim) : '') + ': aparece para os clientes depois de publicar.';
       const vig = RB.campanhaVigente(cat.popup);
       $('#pop-status').innerHTML = !cat.popup.ativo ? '⚪ Pop-up desligado.'
         : vig ? '🟢 Ligado: aparece para os clientes depois de publicar.' : '🟡 Ligado, mas fora das datas escolhidas.';
     };
     bind(el, ajustar);
     ajustar();
+    $$('[data-tema]', el).forEach((b) => b.addEventListener('click', () => {
+      const id = b.dataset.tema;
+      if (id === cat.campanha.tema) return;
+      Object.assign(cat.campanha, { tema: id, texto: RB.CAMPANHAS[id].texto, fim: RB.fimSugerido(id) });
+      salvar(); renderPromocoes();
+      toast(RB.CAMPANHAS[id].emoji + ' ' + RB.CAMPANHAS[id].nome + ' escolhida' + (cat.campanha.ativo ? '' : ' (ligue a chave para aparecer no site)') + '. Publique para valer.');
+    }));
     $$('[data-tira]', el).forEach((b) => b.addEventListener('click', () => {
       const p = cat.produtos.find((x) => x.id === b.dataset.tira);
       if (p) { p.topo = false; salvar(); renderPromocoes(); }
