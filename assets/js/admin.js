@@ -845,7 +845,7 @@
           '<span id="pop-img"></span>' +
           '<label class="btn btn-outline btn-sm">📷 Escolher imagem<input type="file" accept="image/*" id="pop-up" hidden></label>' +
           '<button type="button" class="btn btn-sm btn-outline" id="pop-img-x">Remover</button>' +
-        '</div></div>' +
+        '</div><div class="pop-enq" id="pop-enq"></div></div>' +
         '<div class="ed-grid">' +
           '<label class="field"><span>Mostrar para o cliente</span><select data-bind="popup.frequencia">' +
             opt([['sessao', 'Uma vez a cada visita'], ['dia', 'Uma vez por dia'], ['uma', 'Só uma vez'], ['sempre', 'Sempre que abrir a página']], pp.frequencia || 'sessao') +
@@ -858,12 +858,61 @@
         '<a class="btn btn-outline" href="index.html?preview=1&popup=1" target="_blank">Ver no site (pré-visualização)</a></div>' +
       '</div>';
 
+    // Enquadramento da foto: arrastar escolhe a parte que aparece; zoom e formato da moldura (igual no site)
+    const FORMATOS = [['auto', 'Automático (foto inteira)'], ['1', 'Quadrado 1:1'], ['0.8', 'Retrato 4:5'], ['0.75', 'Retrato 3:4'], ['1.6', 'Paisagem 16:10'], ['2', 'Faixa 2:1']];
+    function desenharEnquadramento() {
+      const box = $('#pop-enq');
+      if (!box) return;
+      if (!cat.popup.imagem) { box.innerHTML = ''; box.dataset.img = ''; return; }
+      if (box.dataset.img === cat.popup.imagem) return; // já está na tela (não redesenha a cada tecla)
+      box.dataset.img = cat.popup.imagem;
+      const aj = Object.assign({ formato: 'auto', x: 50, y: 50, zoom: 1 }, cat.popup.imagemAjuste || {});
+      box.innerHTML = '<div class="rbp-foto pop-enq-moldura" id="pop-moldura" title="Arraste para escolher a parte da foto"><img src="' + esc(cat.popup.imagem) + '" alt="" draggable="false"></div>' +
+        '<div class="pop-enq-ctrl">' +
+          '<label class="field"><span>Formato da foto</span><select id="enq-formato">' + opt(FORMATOS, String(aj.formato)) + '</select></label>' +
+          '<label class="field"><span>Zoom <b id="enq-zoom-v">' + Number(aj.zoom).toFixed(1) + 'x</b></span><input type="range" id="enq-zoom" min="1" max="3" step="0.05" value="' + aj.zoom + '"></label>' +
+          '<button type="button" class="btn btn-sm btn-outline" id="enq-centro">Centralizar</button>' +
+        '</div>' +
+        '<small class="hint">Arraste a foto para escolher a parte que aparece no pop-up. "Automático" mostra a foto inteira, do tamanho que ela for (só fotos muito altas ou muito largas são cortadas no centro).</small>';
+      const mold = $('#pop-moldura'), img = mold.querySelector('img');
+      const aplicar = () => RB.ajustarFoto(mold, img, aj);
+      const guardar = () => { cat.popup.imagemAjuste = { formato: aj.formato, x: Math.round(aj.x * 10) / 10, y: Math.round(aj.y * 10) / 10, zoom: Math.round(aj.zoom * 100) / 100 }; salvar(); };
+      img.addEventListener('load', aplicar);
+      aplicar();
+      $('#enq-formato').addEventListener('change', (e) => { aj.formato = e.target.value; aj.x = 50; aj.y = 50; aplicar(); guardar(); });
+      $('#enq-zoom').addEventListener('input', (e) => { aj.zoom = Number(e.target.value); $('#enq-zoom-v').textContent = aj.zoom.toFixed(1) + 'x'; aplicar(); });
+      $('#enq-zoom').addEventListener('change', guardar);
+      $('#enq-centro').addEventListener('click', () => { Object.assign(aj, { x: 50, y: 50, zoom: 1 }); $('#enq-zoom').value = 1; $('#enq-zoom-v').textContent = '1.0x'; aplicar(); guardar(); });
+      // arrastar: quanto a foto pode andar em cada direção (sobra da foto + zoom)
+      let arr = null;
+      const limita = (v) => Math.min(100, Math.max(0, v));
+      mold.addEventListener('pointerdown', (e) => {
+        const r = mold.getBoundingClientRect(), nw = img.naturalWidth || r.width, nh = img.naturalHeight || r.height;
+        const s = Math.max(r.width / nw, r.height / nh), z = aj.zoom;
+        arr = { id: e.pointerId, x0: e.clientX, y0: e.clientY, ax: aj.x, ay: aj.y,
+          tx: r.width * (z - 1) + (nw * s - r.width) * z, ty: r.height * (z - 1) + (nh * s - r.height) * z };
+        try { mold.setPointerCapture(e.pointerId); } catch (er) { /* ignora */ }
+        mold.classList.add('arrastando');
+        e.preventDefault();
+      });
+      mold.addEventListener('pointermove', (e) => {
+        if (!arr || e.pointerId !== arr.id) return;
+        if (arr.tx > 0.5) aj.x = limita(arr.ax - (e.clientX - arr.x0) / arr.tx * 100);
+        if (arr.ty > 0.5) aj.y = limita(arr.ay - (e.clientY - arr.y0) / arr.ty * 100);
+        aplicar();
+      });
+      const soltar = () => { if (!arr) return; arr = null; mold.classList.remove('arrastando'); guardar(); };
+      mold.addEventListener('pointerup', soltar);
+      mold.addEventListener('pointercancel', soltar);
+    }
+
     const ajustar = () => {
       $('#pop-prod').hidden = (cat.popup.acao || 'whatsapp') !== 'produto';
       $('#pop-link').hidden = cat.popup.acao !== 'link';
       $('#pop-msg').hidden = (cat.popup.acao || 'whatsapp') !== 'whatsapp';
-      $('#pop-img').innerHTML = cat.popup.imagem ? '<img class="pop-thumb" src="' + esc(cat.popup.imagem) + '" alt="">' : '<small class="hint">Sem imagem</small>';
+      $('#pop-img').innerHTML = cat.popup.imagem ? '' : '<small class="hint">Sem imagem</small>';
       $('#pop-img-x').hidden = !cat.popup.imagem;
+      desenharEnquadramento();
       const c = cat.campanha, dc = RB.CAMPANHAS[c.tema] || RB.CAMPANHAS.blackfriday;
       const venceu = c.fim && Date.now() > new Date(c.fim).getTime();
       $('#camp-status').innerHTML = !c.ativo ? '⚪ Desligada: o site fica no visual normal.'
@@ -889,10 +938,11 @@
     $('#pop-up').addEventListener('change', async (e) => {
       const f = e.target.files[0];
       if (!f) return;
-      try { cat.popup.imagem = await comprimir(f); salvar(); ajustar(); } catch (err) { toast('Não foi possível ler a imagem.', true); }
+      // foto nova: enquadra sozinha (aparece inteira, no formato dela); dá para arrastar e dar zoom depois
+      try { cat.popup.imagem = await comprimir(f); cat.popup.imagemAjuste = { formato: 'auto', x: 50, y: 50, zoom: 1 }; salvar(); ajustar(); } catch (err) { toast('Não foi possível ler a imagem.', true); }
       e.target.value = '';
     });
-    $('#pop-img-x').addEventListener('click', () => { cat.popup.imagem = ''; salvar(); ajustar(); });
+    $('#pop-img-x').addEventListener('click', () => { cat.popup.imagem = ''; delete cat.popup.imagemAjuste; salvar(); ajustar(); });
     $('#pop-ver').addEventListener('click', () => {
       if (!cat.popup.titulo) return toast('Escreva um título para o pop-up.', true);
       RB.abrirPopup(cat, (p, fechar) => { fechar(); toast('No site, o botão vai: ' + $('#pop-acao').selectedOptions[0].textContent.toLowerCase() + '.'); });

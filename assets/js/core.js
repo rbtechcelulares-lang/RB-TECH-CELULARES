@@ -493,6 +493,23 @@
     return true;
   }
 
+  // Enquadramento da foto do pop-up. ajuste = { formato: 'auto' | proporção (largura/altura), x, y (0 a 100: que
+  // parte da foto aparece), zoom (1 a 3) }. 'auto' usa a proporção da própria foto (aparece inteira), só cortando no
+  // centro as muito altas (mais que 3:4) ou muito largas (mais que 2:1).
+  const FOTO_MIN = 0.75, FOTO_MAX = 2;
+  function formatoFoto(aj, nw, nh) {
+    const f = Number(aj && aj.formato);
+    if (f > 0) return f;
+    return nw && nh ? Math.min(FOTO_MAX, Math.max(FOTO_MIN, nw / nh)) : 1.6;
+  }
+  function ajustarFoto(moldura, img, ajuste) {
+    const aj = Object.assign({ formato: 'auto', x: 50, y: 50, zoom: 1 }, ajuste || {});
+    moldura.style.setProperty('--ar', String(formatoFoto(aj, img.naturalWidth, img.naturalHeight)));
+    moldura.style.setProperty('--x', Math.min(100, Math.max(0, Number(aj.x) || 0)) + '%');
+    moldura.style.setProperty('--y', Math.min(100, Math.max(0, Number(aj.y) || 0)) + '%');
+    moldura.style.setProperty('--zoom', String(Math.min(3, Math.max(1, Number(aj.zoom) || 1))));
+  }
+
   // Monta o pop-up na tela. onAcao(popup) é chamado no botão principal.
   function abrirPopup(cat, onAcao) {
     const pp = cat.popup || {};
@@ -505,7 +522,7 @@
       '<div class="rbp-back" data-x></div>' +
       '<div class="rbp-box" role="dialog" aria-modal="true" aria-labelledby="rbp-t">' +
         '<button class="rbp-close" data-x aria-label="Fechar">×</button>' +
-        (pp.imagem ? '<img class="rbp-img" src="' + esc(pp.imagem) + '" alt="">' : '') +
+        (pp.imagem ? '<div class="rbp-foto"><img src="' + esc(pp.imagem) + '" alt=""></div>' : '') +
         '<div class="rbp-body">' +
           (pp.selo ? '<span class="rbp-selo">' + esc(pp.selo) + '</span>' : '') +
           '<h2 id="rbp-t">' + formatar(cat, pp.titulo || '') + '</h2>' +
@@ -516,6 +533,13 @@
         '</div>' +
       '</div>';
     document.body.appendChild(el);
+    const moldura = el.querySelector('.rbp-foto');
+    if (moldura) {
+      const im = moldura.querySelector('img');
+      const ajustar = () => ajustarFoto(moldura, im, pp.imagemAjuste);
+      im.addEventListener('load', ajustar);
+      ajustar();
+    }
     const fechar = () => { el.remove(); document.removeEventListener('keydown', esc_); };
     const esc_ = (e) => { if (e.key === 'Escape') fechar(); };
     document.addEventListener('keydown', esc_);
@@ -562,7 +586,7 @@
     DRAFT_KEY, CHECKLIST_ITENS, STATUS,
     money, esc, lerRascunho, carregarCatalogo,
     TEXTOS, texto, formatar, registrar, salvarCliente, limparSupabase, abrirAviso, cabecalhosSupabase, campanhaVigente, abrirPopup,
-    CAMPANHAS, fimSugerido, configCampanha, campanhaAtiva,
+    CAMPANHAS, fimSugerido, configCampanha, campanhaAtiva, formatoFoto, ajustarFoto,
     avaliar, fmtGB, parcelas, valorPix, linkWhats, batTexto, batNumero, CATEGORIAS, categoria, ehIphone, ehMac, ehNovo, garantia, noTopo, naVitrine, noCatalogo, ativo, emPromocao, sobEncomenda, nomeProduto, phoneSVG, produtoSVG, fotoModelo, coresDoModelo, imagemProduto, sha256
   };
 })(window);

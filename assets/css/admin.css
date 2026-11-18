@@ -130,6 +130,13 @@ input[type=range] { accent-color: var(--ink); padding: 0 !important; border: 0 !
 .pop-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .pop-head h3 { margin: 0; }
 .pop-thumb { width: 84px; height: 84px; object-fit: cover; border-radius: 12px; border: 1px solid var(--line); }
+.pop-enq { display: grid; gap: 10px; margin-top: 10px; }
+.pop-enq:empty { display: none; }
+.pop-enq .rbp-foto.pop-enq-moldura { width: min(100%, 340px, calc(380px * var(--ar))); margin: 0; border-radius: 14px; border: 2px solid #d9a514; cursor: grab; touch-action: none; }
+.pop-enq .rbp-foto.pop-enq-moldura.arrastando { cursor: grabbing; }
+.pop-enq-ctrl { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.pop-enq-ctrl .field { margin: 0; min-width: 170px; }
+.pop-enq-ctrl input[type=range] { width: 100%; accent-color: #d9a514; }
 .a-card .pub-act { margin-top: 6px; }
 
 /* Cliques */
