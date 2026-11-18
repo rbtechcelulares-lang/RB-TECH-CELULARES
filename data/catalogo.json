@@ -344,20 +344,26 @@
   "popup": {
     "ativo": true,
     "selo": "Só esta semana",
-    "titulo": "Ganhe UM BRINDE EXCLUSIVO ",
+    "titulo": "SUA CHANCE DE ENCONOMIZAR AINDA MAIS NA BLACK",
     "texto": "Toque em \"Salvar meu cupom\" e Brinde  compra de qualquer iPhone Novo ou seminovo.",
-    "cupom": "BLACK 4.0",
+    "cupom": "BLACKJV",
     "botaoTexto": "Salvar meu cupom",
     "acao": "vitrine",
     "produtoId": "",
     "link": "",
-    "imagem": "img/promo/popup-mwcxaini.webp",
+    "imagem": "img/promo/popup-mwmn1i7e.jpg",
     "frequencia": "sessao",
     "atraso": 4,
     "inicio": "",
     "fim": "",
     "mensagem": "Olá! Quero ativar meu cupom *{cupom}* da promoção \"{titulo}\". 🎟️",
-    "desconto": 50
+    "desconto": 50,
+    "imagemAjuste": {
+      "formato": "0.75",
+      "x": 50,
+      "y": 50,
+      "zoom": 1
+    }
   },
   "bateriaLinha": {
     "11": "78% a 80%",
