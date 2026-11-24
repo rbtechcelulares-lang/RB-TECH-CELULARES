@@ -788,7 +788,7 @@
       "precoAntigo": 0,
       "garantia": "90 dias",
       "destaque": false,
-      "disponivel": true,
+      "disponivel": false,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
       "checklist": {
@@ -827,9 +827,9 @@
       "corHex": "#2e4a5c",
       "condicao": "Seminovo",
       "bateria": null,
-      "preco": 1800,
-      "precoAntigo": 2200,
-      "garantia": "90 dias",
+      "preco": 2199,
+      "precoAntigo": 2500,
+      "garantia": "4 meses",
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -860,7 +860,7 @@
         }
       },
       "encomenda": true,
-      "vitrine": true,
+      "vitrine": false,
       "categoria": "iphone",
       "specs": "",
       "topo": false,
@@ -878,7 +878,7 @@
       "precoAntigo": 0,
       "garantia": "90 dias",
       "destaque": false,
-      "disponivel": true,
+      "disponivel": false,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
       "checklist": {
@@ -1007,9 +1007,9 @@
       "corHex": "#3f4a5c",
       "condicao": "Seminovo",
       "bateria": null,
-      "preco": 2300,
-      "precoAntigo": 0,
-      "garantia": "90 dias",
+      "preco": 2450,
+      "precoAntigo": 288,
+      "garantia": "6 meses",
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1039,7 +1039,12 @@
           "nota": ""
         }
       },
-      "vitrine": false
+      "vitrine": true,
+      "categoria": "iphone",
+      "specs": "",
+      "topo": false,
+      "encomenda": false,
+      "prazo": ""
     },
     {
       "id": "p-13pro-256gb",
@@ -1053,7 +1058,7 @@
       "precoAntigo": 0,
       "garantia": "90 dias",
       "destaque": false,
-      "disponivel": true,
+      "disponivel": false,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
       "checklist": {
@@ -1449,9 +1454,9 @@
       "corHex": "#35393b",
       "condicao": "Seminovo",
       "bateria": null,
-      "preco": 2799,
-      "precoAntigo": 3100,
-      "garantia": "90 dias",
+      "preco": 2950,
+      "precoAntigo": 3199,
+      "garantia": "6 meses",
       "destaque": true,
       "disponivel": true,
       "fotos": [],
@@ -1629,9 +1634,9 @@
       "corHex": "#bab4a9",
       "condicao": "Seminovo",
       "bateria": null,
-      "preco": 4047,
+      "preco": 4199,
       "precoAntigo": 4500,
-      "garantia": "90 dias",
+      "garantia": "6 meses",
       "destaque": false,
       "disponivel": true,
       "fotos": [],
@@ -1680,7 +1685,6 @@
       "preco": 4300,
       "precoAntigo": 0,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1709,7 +1713,9 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "vitrine": true,
+      "encomenda": true
     },
     {
       "id": "p-16-128gb",
@@ -1722,7 +1728,6 @@
       "preco": 3800,
       "precoAntigo": 0,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1751,7 +1756,9 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "vitrine": false,
+      "encomenda": true
     },
     {
       "id": "p-16-256gb",
@@ -1765,7 +1772,7 @@
       "precoAntigo": 0,
       "garantia": "90 dias",
       "destaque": false,
-      "disponivel": true,
+      "disponivel": false,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
       "checklist": {
@@ -1793,7 +1800,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "encomenda": true
     },
     {
       "id": "p-16pro-128gb",
@@ -1943,7 +1951,6 @@
       "preco": 5600,
       "precoAntigo": 0,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1972,7 +1979,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "vitrine": true
     },
     {
       "id": "p-16pro-256gb-novo",
@@ -1986,7 +1994,7 @@
       "precoAntigo": 0,
       "garantia": "1 ano",
       "destaque": false,
-      "disponivel": true,
+      "disponivel": false,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia. Consulte as cores disponíveis pelo WhatsApp.",
       "checklist": {
@@ -2019,7 +2027,7 @@
       "specs": "",
       "topo": false,
       "vitrine": false,
-      "encomenda": false,
+      "encomenda": true,
       "prazo": ""
     },
     {
@@ -2033,8 +2041,7 @@
       "preco": 7750,
       "precoAntigo": 0,
       "garantia": "1 ano",
-      "destaque": true,
-      "disponivel": true,
+      "disponivel": false,
       "fotos": [],
       "observacoes": "Aparelho novo, lacrado, com 1 ano de garantia. Consulte as cores disponíveis pelo WhatsApp.",
       "checklist": {
@@ -2066,8 +2073,8 @@
       "categoria": "iphone",
       "specs": "",
       "topo": false,
-      "vitrine": true,
-      "encomenda": false,
+      "vitrine": false,
+      "encomenda": true,
       "prazo": ""
     },
     {
