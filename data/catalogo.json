@@ -2441,7 +2441,7 @@
       "corHex": "#1c1c1e",
       "condicao": "Novo lacrado",
       "bateria": 100,
-      "preco": 9650,
+      "preco": 10700,
       "precoAntigo": 0,
       "garantia": "1 ano",
       "destaque": false,
@@ -2474,7 +2474,11 @@
           "nota": ""
         }
       },
-      "encomenda": true
+      "encomenda": true,
+      "specs": "",
+      "topo": false,
+      "vitrine": false,
+      "prazo": ""
     },
     {
       "id": "p-18promax-512gb-azul",
