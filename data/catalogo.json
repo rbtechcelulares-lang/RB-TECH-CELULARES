@@ -1331,7 +1331,6 @@
       "preco": 3100,
       "precoAntigo": 0,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1360,7 +1359,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "vitrine": true
     },
     {
       "id": "p-14promax-128gb",
@@ -1373,7 +1373,6 @@
       "preco": 3399,
       "precoAntigo": 0,
       "garantia": "90 dias",
-      "destaque": false,
       "disponivel": true,
       "fotos": [],
       "observacoes": "Consulte as cores disponíveis pelo WhatsApp.",
@@ -1402,7 +1401,8 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "vitrine": true
     },
     {
       "id": "p-14promax-256gb",
@@ -1592,9 +1592,9 @@
       "corHex": "#bdb7ab",
       "condicao": "Seminovo",
       "bateria": null,
-      "preco": 3999,
+      "preco": 3850,
       "precoAntigo": 0,
-      "garantia": "90 dias",
+      "garantia": "6 meses",
       "destaque": true,
       "disponivel": true,
       "fotos": [],
@@ -1624,7 +1624,13 @@
           "status": "ok",
           "nota": ""
         }
-      }
+      },
+      "categoria": "iphone",
+      "specs": "",
+      "topo": false,
+      "vitrine": true,
+      "encomenda": false,
+      "prazo": ""
     },
     {
       "id": "p-15promax-256gb",
@@ -1714,7 +1720,7 @@
           "nota": ""
         }
       },
-      "vitrine": true,
+      "vitrine": false,
       "encomenda": true
     },
     {
