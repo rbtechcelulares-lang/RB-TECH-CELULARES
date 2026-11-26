@@ -238,7 +238,8 @@
       '<div class="a-head"><div><h2>Produtos à venda</h2><p class="muted">' + lista.length + ' cadastrados · ' +
       lista.filter(RB.noTopo).length + ' na promoção do topo · ' + lista.filter(RB.naVitrine).length + ' na vitrine · ' +
       lista.filter(RB.noCatalogo).length + ' no catálogo</p></div>' +
-      '<button class="btn btn-ink" id="novo">+ Cadastrar produto</button></div>' +
+      '<div class="a-head-acoes"><button class="btn btn-outline" id="cat-img" title="Gerar o catálogo em imagem (stories e post) e em PDF">🖼️ Catálogo PNG/PDF</button>' +
+      '<button class="btn btn-ink" id="novo">+ Cadastrar produto</button></div></div>' +
       '<div class="cat-filtro" id="cat-filtro">' + [{ id: 'todas', nome: 'Todos' }].concat(RB.CATEGORIAS).map((c) =>
         '<button data-cf="' + c.id + '" class="' + (c.id === filtroCat ? 'on' : '') + '">' + (c.icone ? c.icone + ' ' : '') + esc(c.nome) +
         ' <small>' + lista.filter((p) => c.id === 'todas' || RB.categoria(p) === c.id).length + '</small></button>').join('') + '</div>' +
@@ -300,6 +301,7 @@
     bind($('.bat-linha', el), () => desenhar());
     $('#a-busca').addEventListener('input', desenhar);
     $('#novo').addEventListener('click', () => abrirEditor(-1));
+    $('#cat-img').addEventListener('click', () => { if (window.RBCatalogoImg) RBCatalogoImg.abrir(cat); else toast('Recarregue a página do admin.', true); });
     $$('[data-cf]', el).forEach((b) => b.addEventListener('click', () => { filtroCat = b.dataset.cf; renderProdutos(); }));
     desenhar();
   }
